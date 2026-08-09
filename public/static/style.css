@@ -1,0 +1,126 @@
+/* CuratedLux v2.0 — Custom Styles */
+
+/* Hero gradient */
+.hero-gradient {
+  background: radial-gradient(ellipse at 30% 0%, rgba(200, 164, 90, 0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 100%, rgba(200, 164, 90, 0.04) 0%, transparent 50%),
+              linear-gradient(135deg, #0d0d0d 0%, #1a1410 50%, #0d0d0d 100%);
+}
+
+/* Gold shimmer animation */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.text-shimmer {
+  background: linear-gradient(90deg, #c8a45a 0%, #e0c680 30%, #c8a45a 60%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Pulse dot for status indicators */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.75); }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Confidence bar animation */
+@keyframes bar-fill {
+  from { width: 0%; }
+  to { width: var(--bar-width); }
+}
+
+.conf-bar {
+  animation: bar-fill 0.8s ease-out forwards;
+}
+
+/* Status badges */
+.badge-active { background: rgba(52, 211, 153, 0.12); color: #34d399; }
+.badge-locked { background: rgba(251, 191, 36, 0.12); color: #fbbf24; }
+.badge-sold { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
+.badge-archived { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.badge-matched { background: rgba(129, 140, 248, 0.12); color: #818cf8; }
+.badge-accepted { background: rgba(52, 211, 153, 0.12); color: #34d399; }
+.badge-pending { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
+
+/* Focus ring override */
+*:focus-visible {
+  outline: 2px solid rgba(200, 164, 90, 0.6);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+a, button, input, select, textarea {
+  transition-property: background-color, border-color, color, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(200, 164, 90, 0.3);
+  color: #fff;
+}
+
+/* Modal backdrop fade */
+.modal-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+.modal-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.2s ease-out;
+}
+
+/* Drop zone hover */
+#drop-zone.drag-over {
+  border-color: #c8a45a;
+  background: rgba(200, 164, 90, 0.05);
+}
+
+/* Match card score colors */
+.score-high { color: #34d399; }
+.score-mid { color: #fbbf24; }
+.score-low { color: #ef4444; }
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  animation: toast-in 0.3s ease-out, toast-out 0.3s ease-in 3s forwards;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+.toast-success { background: #065f46; color: #d1fae5; border: 1px solid #059669; }
+.toast-error { background: #7f1d1d; color: #fee2e2; border: 1px solid #dc2626; }
+.toast-info { background: #1e3a5f; color: #dbeafe; border: 1px solid #3b82f6; }
+
+/* Print styles for dossiers */
+@media print {
+  body { background: white !important; color: black !important; }
+  nav, footer, button, #dossier-detail { display: none; }
+  #dossier-certificate { border-color: #c8a45a !important; background: white !important; }
+}
