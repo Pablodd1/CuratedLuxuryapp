@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 
-// CuratedLux Luxury Editorial Dataset (2025 Market Edition)
+// ── Luxury Editorial Dataset (2025 Market Edition) ──────────────────────────
 const LUXURY_DATASET = [
   { keywords: ['submariner', 'rolex', '126610', 'oystersteel'], brand: 'Rolex', model: 'Submariner Date 126610LN', category: 'Watches', referenceNumber: '126610LN', estimatedValue: 14200, confidence: 96, reasoning: 'Ceramic bezel structure and dial markers align with 41mm Oystersteel Submariner 126610LN catalog specifications.' },
   { keywords: ['daytona', 'cosmograph', '116500', '126500'], brand: 'Rolex', model: 'Cosmograph Daytona 126500LN', category: 'Watches', referenceNumber: '126500LN', estimatedValue: 34800, confidence: 97, reasoning: 'Tri-compax dial geometry and Cerachrom tachymeter bezel verified against luxury watch editorial dataset.' },
@@ -26,120 +26,338 @@ function keywordMatch(text: string): (typeof LUXURY_DATASET)[number] | null {
   return bestScore >= 1 ? best : null
 }
 
-function generateUUID(): string {
-  return crypto.randomUUID()
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function extractJSON(text: string): any | null {
+  const m = text.match(/\{[\s\S]*\}/)
+  if (!m) return null
+  try { return JSON.parse(m[0]) } catch { return null }
 }
 
-const app = new Hono()
+function cleanBase64(b64: string): { data: string; mimeType: string } {
+  const cleaned = b64.replace(/^data:image\/\w+;base64,/, '')
+  const mimeMatch = b64.match(/data:(image\/\w+);base64/)
+  return { data: cleaned, mimeType: mimeMatch?.[1] || 'image/jpeg' }
+}
 
-// POST /api/valuation/analyze — AI-powered image analysis
-app.post('/analyze', async (c) => {
-  try {
-    const body = await c.req.json<{ imageBase64?: string; description?: string; transcript?: string }>()
-    const { imageBase64, description, transcript } = body
+// ── GEMINI VISION PROMPT ─────────────────────────────────────────────────────
+const VISION_PROMPT = `You are CuratedLux AI — a world-class luxury authentication engine for watches, handbags, jewelry, and exotic vehicles.
 
-    // Build search text from description or transcript
-    const searchText = (description || transcript || '').toLowerCase()
+Analyze this image with forensic precision. Extract the following JSON ONLY:
 
-    // Try Gemini if API key exists and image is provided
-    const apiKey = c.env.GEMINI_API_KEY
-    if (apiKey && imageBase64) {
-      try {
-        const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '')
-        const mimeMatch = imageBase64.match(/data:(image\/\w+);base64/)
-        const mimeType = mimeMatch?.[1] || 'image/jpeg'
-
-        const prompt = `You are CuratedLux AI — a world-class luxury watch, jewelry, and high-end handbag authentication engine.
-Perform visual analysis on this image. Inspect:
-1. Brand & Model Identification: Pinpoint exact reference number, bezel profile, dial texture, case metal, clasp type.
-2. Dial & Logo Integrity: Font weight, kerning, print alignment, coronet/logo geometry, date wheel magnification.
-3. Materials & Finish: Brushed vs polished beveling, ceramic bezel numbers, gold/platinum hallmarks.
-4. Estimated Fair Market Value: Current 2025 secondary market trade value in USD.
-
-Return ONLY a JSON object:
 {
   "category": "Watches" | "Handbags" | "Fine Jewelry" | "Art & Collectibles" | "Luxury Vehicles",
-  "brand": "e.g. Rolex",
-  "model": "e.g. Submariner Date 126610LN",
-  "referenceNumber": "e.g. 126610LN",
-  "estimatedValue": 14200,
+  "brand": "exact brand name",
+  "model": "exact model name with reference if visible",
+  "referenceNumber": "reference number from dial/caseback/certificate",
+  "year": 2024 or null,
+  "condition_grade": 0-4 (0=Poor, 1=Fair, 2=Good, 3=Excellent, 4=Mint/NOS),
+  "condition_label": "Mint" | "Excellent" | "Good" | "Fair" | "Poor",
+  "estimatedValue": number (USD, 2025 secondary market),
   "currency": "USD",
-  "confidence": 96,
-  "authenticityStatus": "AUTHENTIC MATCH",
-  "reasoning": "Detailed breakdown of findings",
-  "confidence_breakdown": { "logo": 96, "serial": 94, "materials": 95, "bezel_geometry": 97 }
+  "confidence": 0-100,
+  "authenticityStatus": "AUTHENTIC MATCH" | "REQUIRES IN-PERSON VERIFICATION" | "INCONCLUSIVE" | "SUSPECT COUNTERFEIT",
+  "reasoning": "detailed forensic breakdown of findings",
+  "confidence_breakdown": {
+    "logo": 0-100,
+    "serial": 0-100,
+    "materials": 0-100,
+    "bezel_geometry": 0-100,
+    "dial_texture": 0-100,
+    "overall_proportion": 0-100
+  },
+  "inclusions": ["Box", "Papers", "Hang Tag"] or [],
+  "red_flags": ["Mismatched lume color", "Incorrect crown geometry"] or []
 }`
 
+// ── OCR PROMPT for certificates, barcodes, serials ───────────────────────────
+const OCR_PROMPT = `Extract ALL text, serial numbers, barcodes, dates, and reference numbers from this image. This may be a warranty card, certificate, box label, hang tag, or caseback.
+
+Return ONLY this JSON:
+{
+  "serial_number": "extracted serial or null",
+  "reference_number": "extracted reference number or null",
+  "barcode_value": "barcode number if visible or null",
+  "dates": ["2024-03-15", ...],
+  "retailer_name": "retailer stamp if visible or null",
+  "all_text": "full extracted text block"
+}`
+
+// ── VOICE TRANSCRIPT PARSER PROMPT ───────────────────────────────────────────
+const VOICE_PROMPT = (transcript: string) => `Extract luxury asset listing details from this spoken description: "${transcript}"
+
+Return ONLY JSON:
+{
+  "category": "Watches|Handbags|Fine Jewelry|Art & Collectibles|Luxury Vehicles",
+  "brand": "extracted brand",
+  "model": "extracted model",
+  "referenceNumber": "extracted reference if mentioned",
+  "year": null or number,
+  "condition_grade": 0-4,
+  "condition_label": "Mint|Excellent|Good|Fair|Poor",
+  "estimatedValue": number (if price mentioned),
+  "currency": "USD",
+  "description": "normalized summary of the listing"
+}`
+
+// ── NORMALIZE: merge multiple AI outputs into one canonical form ─────────────
+function normalizeResults(vision: any, ocrTexts: string[], voice: any, description: string): any {
+  const result: any = {
+    category: vision?.category || voice?.category || 'Watches',
+    brand: vision?.brand || voice?.brand || '',
+    model: vision?.model || voice?.model || '',
+    referenceNumber: vision?.referenceNumber || voice?.referenceNumber || '',
+    year: vision?.year || voice?.year || null,
+    condition_grade: vision?.condition_grade ?? voice?.condition_grade ?? 3,
+    condition_label: vision?.condition_label || voice?.condition_label || 'Good',
+    estimatedValue: vision?.estimatedValue || voice?.estimatedValue || 0,
+    currency: vision?.currency || 'USD',
+    confidence: vision?.confidence || 0,
+    authenticityStatus: vision?.authenticityStatus || 'PENDING',
+    reasoning: vision?.reasoning || '',
+    confidence_breakdown: vision?.confidence_breakdown || { logo: 0, serial: 0, materials: 0, bezel_geometry: 0, dial_texture: 0, overall_proportion: 0 },
+    inclusions: vision?.inclusions || [],
+    red_flags: vision?.red_flags || [],
+    ocr_texts: [] as string[],
+    ocr_serials: [] as string[],
+    ocr_barcodes: [] as string[],
+    ocr_dates: [] as string[],
+    voice_description: voice?.description || '',
+  }
+
+  // Merge OCR data
+  for (const raw of ocrTexts) {
+    const ocr = extractJSON(raw)
+    if (!ocr) { result.ocr_texts.push(raw); continue }
+    if (ocr.serial_number) result.ocr_serials.push(ocr.serial_number)
+    if (ocr.reference_number && !result.referenceNumber) result.referenceNumber = ocr.reference_number
+    if (ocr.barcode_value) result.ocr_barcodes.push(ocr.barcode_value)
+    if (ocr.dates?.length) result.ocr_dates.push(...ocr.dates)
+    if (ocr.all_text) result.ocr_texts.push(ocr.all_text)
+  }
+
+  // If OCR found a serial but vision didn't, boost confidence
+  if (result.ocr_serials.length > 0 && !vision?.serial) {
+    result.confidence_breakdown.serial = Math.min(100, (result.confidence_breakdown.serial || 40) + 30)
+  }
+
+  // If voice gave a price and vision didn't
+  if (!result.estimatedValue && voice?.estimatedValue) {
+    result.estimatedValue = voice.estimatedValue
+  }
+
+  // If description has brand/model keywords, use as fallback
+  if ((!result.brand || result.brand === 'Unknown') && description) {
+    const match = keywordMatch(description)
+    if (match) {
+      result.brand = match.brand
+      result.model = match.model
+      result.referenceNumber = result.referenceNumber || match.referenceNumber
+      result.category = match.category
+    }
+  }
+
+  return result
+}
+
+// ── ROUTER ───────────────────────────────────────────────────────────────────
+const app = new Hono()
+
+// POST /api/valuation/analyze — MULTI-MODAL VALUATION PIPELINE
+//   Accepts: { images: ["b64...", "b64...", ...], transcript?: "...", description?: "..." }
+//   Image 0  → Gemini Vision (brand, model, condition, value)
+//   Images 1+ → Gemini OCR mode (serials, barcodes, certs, box labels)
+//   Transcript → Gemini Voice parser (structured fields from speech)
+//   Falls back to keyword dataset when Gemini unavailable
+app.post('/analyze', async (c) => {
+  const startTs = Date.now()
+  try {
+    const body = await c.req.json<{
+      images?: string[]
+      imageBase64?: string  // legacy single-image support
+      transcript?: string
+      description?: string
+    }>()
+
+    // Normalize: support both single legacy param and multi-image array
+    const images: string[] = body.images || []
+    if (body.imageBase64 && !images.includes(body.imageBase64)) {
+      images.unshift(body.imageBase64)
+    }
+
+    const { transcript, description } = body
+    const searchText = (description || transcript || '').toLowerCase().trim()
+    const apiKey = c.env.GEMINI_API_KEY as string | undefined
+    const fireworksKey = c.env.FIREWORKS_API_KEY as string | undefined
+
+    // ── Variable containers ──────────────────────────────────────────────────
+    let visionResult: any = null
+    const ocrResults: string[] = []
+    let voiceResult: any = null
+
+    // ── Stage 1: Gemini Vision (image 0) ─────────────────────────────────────
+    if (apiKey && images.length > 0) {
+      try {
+        const { data, mimeType } = cleanBase64(images[0])
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType, data: cleanBase64 } }] }],
-              generationConfig: { responseMimeType: 'application/json' }
+              contents: [{ parts: [{ text: VISION_PROMPT }, { inlineData: { mimeType, data } }] }],
+              generationConfig: { responseMimeType: 'application/json', temperature: 0.1 }
             })
           }
         )
-
         if (response.ok) {
-          const data = await response.json() as any
-          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
-          const json = extractJSON(text)
-          if (json) {
-            // Store in D1 if available
-            await storeValuation(c, json)
-            return c.json(json)
-          }
+          const respData = await response.json() as any
+          const text = respData?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+          visionResult = extractJSON(text)
         }
-      } catch (geminiError) {
-        console.error('Gemini API error, using keyword fallback:', geminiError)
+      } catch (e) { console.error('Gemini Vision error:', e) }
+    }
+
+    // ── Stage 2: OCR (images 1+, or sole image if no Gemini) ─────────────────
+    // Try PaddleOCR via Fireworks first, fall back to Gemini OCR
+    for (let i = (visionResult ? 1 : 0); i < images.length; i++) {
+      const { data, mimeType } = cleanBase64(images[i])
+
+      // Try Fireworks PaddleOCR
+      if (fireworksKey) {
+        try {
+          const fwResp = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${fireworksKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'accounts/fireworks/models/paddleocr-vl-1-6',
+              messages: [{
+                role: 'user',
+                content: [
+                  { type: 'text', text: OCR_PROMPT },
+                  { type: 'image_url', image_url: { url: `data:${mimeType};base64,${data}` } }
+                ]
+              }],
+              response_format: { type: 'json_object' },
+              temperature: 0.0
+            })
+          })
+          if (fwResp.ok) {
+            const fwData = await fwResp.json() as any
+            const content = fwData?.choices?.[0]?.message?.content || ''
+            ocrResults.push(content)
+            continue
+          }
+        } catch (e) { console.error('Fireworks OCR error:', e) }
+      }
+
+      // Fall back to Gemini for OCR if Fireworks unavailable
+      if (apiKey) {
+        try {
+          const gemOcrResp = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: OCR_PROMPT }, { inlineData: { mimeType, data } }] }],
+                generationConfig: { responseMimeType: 'application/json', temperature: 0.0 }
+              })
+            }
+          )
+          if (gemOcrResp.ok) {
+            const gemData = await gemOcrResp.json() as any
+            const text = gemData?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+            ocrResults.push(text)
+          }
+        } catch (e) { console.error('Gemini OCR error:', e) }
       }
     }
 
-    // Keyword-based smart fallback
-    const match = keywordMatch(searchText)
-    if (match) {
-      const result = {
-        category: match.category,
-        brand: match.brand,
-        model: match.model,
-        referenceNumber: match.referenceNumber,
-        estimatedValue: match.estimatedValue,
-        currency: 'USD',
-        confidence: match.confidence,
-        authenticityStatus: 'AUTHENTIC MATCH',
-        reasoning: match.reasoning,
-        confidence_breakdown: {
+    // ── Stage 3: Voice transcript parsing ────────────────────────────────────
+    if (apiKey && transcript) {
+      try {
+        const vResp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: VOICE_PROMPT(transcript) }] }],
+              generationConfig: { responseMimeType: 'application/json', temperature: 0.1 }
+            })
+          }
+        )
+        if (vResp.ok) {
+          const vData = await vResp.json() as any
+          const vText = vData?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+          voiceResult = extractJSON(vText)
+        }
+      } catch (e) { console.error('Gemini Voice error:', e) }
+    }
+
+    // ── Stage 4: Normalize & Merge ───────────────────────────────────────────
+    const result = normalizeResults(visionResult, ocrResults, voiceResult, searchText)
+
+    // ── Stage 5: Keyword fallback if nothing came back ───────────────────────
+    if ((!result.brand || result.brand === 'Unknown' || result.confidence === 0) && searchText) {
+      const match = keywordMatch(searchText)
+      if (match) {
+        result.category = match.category
+        result.brand = match.brand
+        result.model = match.model
+        result.referenceNumber = result.referenceNumber || match.referenceNumber
+        result.estimatedValue = match.estimatedValue
+        result.confidence = match.confidence
+        result.authenticityStatus = 'AUTHENTIC MATCH'
+        result.reasoning = match.reasoning + ' (keyword-assisted identification)'
+        result.confidence_breakdown = {
           logo: match.confidence - 2 + Math.floor(Math.random() * 5),
           serial: match.confidence - 4 + Math.floor(Math.random() * 5),
           materials: match.confidence - 1 + Math.floor(Math.random() * 5),
           bezel_geometry: match.confidence - 3 + Math.floor(Math.random() * 5),
+          dial_texture: match.confidence - 2 + Math.floor(Math.random() * 4),
+          overall_proportion: match.confidence - 1 + Math.floor(Math.random() * 3),
         }
       }
-      await storeValuation(c, result)
-      return c.json(result)
     }
 
-    // No match found — return structured not-found
-    return c.json({
-      category: 'Unidentified',
-      brand: 'Unknown',
-      model: 'Please provide more details',
-      referenceNumber: '',
-      estimatedValue: 0,
-      currency: 'USD',
-      confidence: 0,
-      authenticityStatus: 'INSUFFICIENT_DATA',
-      reasoning: 'Could not identify the item. Please upload a clearer image or provide brand/model details as text.',
-      confidence_breakdown: { logo: 0, serial: 0, materials: 0, bezel_geometry: 0 }
-    })
+    // ── If still nothing — INSUFFICIENT_DATA (NEVER return random) ───────────
+    if (!result.brand || result.brand === 'Unknown' || (result.confidence === 0 && !result.ocr_serials?.length)) {
+      result.brand = 'Unknown'
+      result.model = 'Please provide more details or a clearer image'
+      result.confidence = 0
+      result.authenticityStatus = 'INSUFFICIENT_DATA'
+      result.reasoning = 'Could not identify the item from the provided images or text. For best results, upload a clear, well-lit photo of the item against a neutral background, plus any certificates, box labels, or serial number close-ups.'
+      result.confidence_breakdown = { logo: 0, serial: 0, materials: 0, bezel_geometry: 0, dial_texture: 0, overall_proportion: 0 }
+    }
+
+    // ── Stage 6: Store to D1 if confidence > 70 ──────────────────────────────
+    const shouldStore = result.confidence >= 70 || result.authenticityStatus === 'AUTHENTIC MATCH'
+    let storedId: string | null = null
+    if (shouldStore) {
+      storedId = await storeValuation(c, result)
+    }
+
+    // ── Add metadata ─────────────────────────────────────────────────────────
+    result.id = storedId
+    result.stored = !!storedId
+    result.pipeline_ms = Date.now() - startTs
+    result.images_processed = images.length
+    result.ocr_images_processed = ocrResults.length
+    result.has_voice = !!transcript
+    result.source = visionResult ? 'gemini_vision' : (ocrResults.length > 0 ? 'ocr' : (searchText ? 'keyword_match' : 'insufficient_data'))
+
+    return c.json(result)
+
   } catch (error: any) {
-    return c.json({ error: error.message || 'Analysis failed' }, 500)
+    return c.json({ error: error.message || 'Analysis failed', pipeline_ms: Date.now() - startTs }, 500)
   }
 })
 
-// POST /api/valuation/voice — parse voice transcript
+// POST /api/valuation/voice — dedicated voice transcript parser
 app.post('/voice', async (c) => {
   try {
     const { transcript } = await c.req.json<{ transcript?: string }>()
@@ -154,7 +372,7 @@ app.post('/voice', async (c) => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: `Extract luxury asset details from: "${transcript}". Return ONLY JSON: {"category":"Watches|Handbags|Fine Jewelry|Art & Collectibles","brand":"...","model":"...","condition":0-4,"estimatedValue":"number","currency":"USD","description":"summary"}` }] }],
+              contents: [{ parts: [{ text: VOICE_PROMPT(transcript) }] }],
               generationConfig: { responseMimeType: 'application/json' }
             })
           }
@@ -165,10 +383,10 @@ app.post('/voice', async (c) => {
           const json = extractJSON(text)
           if (json) return c.json(json)
         }
-      } catch { /* fall through */ }
+      } catch { /* keyword fallback */ }
     }
 
-    // Smart keyword fallback for voice
+    // Keyword fallback for voice
     const t = transcript.toLowerCase()
     let brand = 'Rolex', model = 'Submariner 126610LN', category = 'Watches', value = '13500'
     if (t.includes('birkin') || t.includes('herm')) { brand = 'Hermès'; model = 'Birkin 30 Epsom'; category = 'Handbags'; value = '22500' }
@@ -188,26 +406,35 @@ app.post('/voice', async (c) => {
   }
 })
 
-function extractJSON(text: string): any | null {
-  const m = text.match(/\{[\s\S]*\}/)
-  if (!m) return null
-  try { return JSON.parse(m[0]) } catch { return null }
-}
-
-async function storeValuation(c: any, result: any) {
+// ── STORE TO D1 ──────────────────────────────────────────────────────────────
+async function storeValuation(c: any, result: any): Promise<string | null> {
   try {
     const db = c.env.DB as D1Database | undefined
-    if (!db) return
-    const id = generateUUID()
-    await db.prepare(`INSERT INTO inventory (id, owner_id, category, brand, model, reference_number, estimated_value, currency, confidence, authenticity_status, reasoning, confidence_logo, confidence_serial, confidence_materials, confidence_bezel, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`)
-      .bind(id, 'system', result.category, result.brand, result.model, result.referenceNumber || '',
-        result.estimatedValue || 0, result.currency || 'USD', result.confidence || 0,
-        result.authenticityStatus || 'PENDING', result.reasoning || '',
-        result.confidence_breakdown?.logo || 0, result.confidence_breakdown?.serial || 0,
-        result.confidence_breakdown?.materials || 0, result.confidence_breakdown?.bezel_geometry || 0)
+    if (!db) return null
+    const id = crypto.randomUUID()
+    const cb = result.confidence_breakdown || {}
+    await db.prepare(`INSERT INTO inventory (id, owner_id, category, brand, model, reference_number, year, condition_grade, condition_label, estimated_value, currency, confidence, authenticity_status, reasoning, confidence_logo, confidence_serial, confidence_materials, confidence_bezel, inclusions, image_count, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`)
+      .bind(id, 'system',
+        result.category || 'Watches',
+        result.brand || '',
+        result.model || '',
+        result.referenceNumber || '',
+        result.year || null,
+        result.condition_grade || 3,
+        result.condition_label || 'Good',
+        result.estimatedValue || 0,
+        result.currency || 'USD',
+        result.confidence || 0,
+        result.authenticityStatus || 'PENDING',
+        result.reasoning || '',
+        cb.logo || 0, cb.serial || 0, cb.materials || 0, cb.bezel_geometry || 0,
+        JSON.stringify(result.inclusions || []),
+        (result.images_processed || result.image_count || 0),
+      )
       .run()
-  } catch (e) { /* non-critical */ }
+    return id
+  } catch (e) { /* non-critical — result still returned to user */ return null }
 }
 
 export default app

@@ -17,6 +17,7 @@ import { DossierPage } from './pages/dossier'
 type Bindings = {
   DB: D1Database
   GEMINI_API_KEY?: string
+  FIREWORKS_API_KEY?: string
   APP_NAME?: string
   APP_VERSION?: string
 }
