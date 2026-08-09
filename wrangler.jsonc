@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "curatedlux",
+  "compatibility_date": "2025-08-09",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "curatedlux-db",
+      "database_id": ""
+    }
+  ],
+  "vars": {
+    "APP_NAME": "CuratedLux",
+    "APP_VERSION": "2.0.0"
+  }
+}
