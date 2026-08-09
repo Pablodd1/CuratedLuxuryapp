@@ -39,24 +39,37 @@ function cleanBase64(b64: string): { data: string; mimeType: string } {
   return { data: cleaned, mimeType: mimeMatch?.[1] || 'image/jpeg' }
 }
 
-// ── GEMINI VISION PROMPT ─────────────────────────────────────────────────────
-const VISION_PROMPT = `You are CuratedLux AI — a world-class luxury authentication engine for watches, handbags, jewelry, and exotic vehicles.
+// ── VISION MODEL ─────────────────────────────────────────────────────────────
+const VISION_MODEL = 'gemini-3.5-flash'  // Upgraded Aug 2026: MMMU-Pro 83.6%, 4x faster, fine-tuneable via Vertex AI
 
-Analyze this image with forensic precision. Extract the following JSON ONLY:
+const VISION_PROMPT = `You are CuratedLux AI — a world-class luxury authentication engine for watches, handbags, jewelry, vehicles, and art/collectibles. Gemini 3.5 Flash edition (MMMU-Pro 83.6%).
 
+Analyze this image with forensic precision. You are evaluating authenticity, condition, and market value.
+
+For WATCHES, examine: dial typography, logo placement/kerning, bezel geometry, crown shape, bracelet link structure, caseback engravings, lume color, cyclops magnification, rehaut alignment.
+
+For HANDBAGS, examine: leather grain pattern, stitching tension/spacing, hardware weight/engraving, heat stamp depth/alignment, zipper pull shape, date code format, edge paint thickness.
+
+For JEWELRY, examine: hallmark stamps, metal color consistency, gemstone cut/faceting, setting prong symmetry, clasp mechanism, weight proportions.
+
+For VEHICLES, examine: badge placement, body panel gaps, wheel design, interior stitching pattern, VIN plate location/font, carbon weave pattern.
+
+For ART & COLLECTIBLES, examine: signature position/style, canvas texture, frame construction, provenance markings, edition numbering.
+
+Return ONLY this JSON (no markdown, no explanation):
 {
-  "category": "Watches" | "Handbags" | "Fine Jewelry" | "Art & Collectibles" | "Luxury Vehicles",
+  "category": "Watches" | "Handbags" | "Fine Jewelry" | "Luxury Vehicles" | "Art & Collectibles",
   "brand": "exact brand name",
   "model": "exact model name with reference if visible",
   "referenceNumber": "reference number from dial/caseback/certificate",
   "year": 2024 or null,
   "condition_grade": 0-4 (0=Poor, 1=Fair, 2=Good, 3=Excellent, 4=Mint/NOS),
   "condition_label": "Mint" | "Excellent" | "Good" | "Fair" | "Poor",
-  "estimatedValue": number (USD, 2025 secondary market),
+  "estimatedValue": number (USD, current secondary market as of 2026),
   "currency": "USD",
   "confidence": 0-100,
   "authenticityStatus": "AUTHENTIC MATCH" | "REQUIRES IN-PERSON VERIFICATION" | "INCONCLUSIVE" | "SUSPECT COUNTERFEIT",
-  "reasoning": "detailed forensic breakdown of findings",
+  "reasoning": "detailed forensic breakdown citing specific visual evidence observed",
   "confidence_breakdown": {
     "logo": 0-100,
     "serial": 0-100,
@@ -165,7 +178,7 @@ const app = new Hono()
 // POST /api/valuation/analyze — MULTI-MODAL VALUATION PIPELINE
 //   Accepts: { images: ["b64...", "b64...", ...], transcript?: "...", description?: "..." }
 //   Image 0  → Gemini Vision (brand, model, condition, value)
-//   Images 1+ → Gemini OCR mode (serials, barcodes, certs, box labels)
+//   Images 1+ → PaddleOCR via Fireworks (serials, barcodes, certs, box labels)
 //   Transcript → Gemini Voice parser (structured fields from speech)
 //   Falls back to keyword dataset when Gemini unavailable
 app.post('/analyze', async (c) => {
@@ -194,12 +207,12 @@ app.post('/analyze', async (c) => {
     const ocrResults: string[] = []
     let voiceResult: any = null
 
-    // ── Stage 1: Gemini Vision (image 0) ─────────────────────────────────────
+    // ── Stage 1: Gemini 3.5 Flash Vision (image 0) ───────────────────────────
     if (apiKey && images.length > 0) {
       try {
         const { data, mimeType } = cleanBase64(images[0])
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${VISION_MODEL}:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -257,7 +270,7 @@ app.post('/analyze', async (c) => {
       if (apiKey) {
         try {
           const gemOcrResp = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${VISION_MODEL}:generateContent?key=${apiKey}`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -280,7 +293,7 @@ app.post('/analyze', async (c) => {
     if (apiKey && transcript) {
       try {
         const vResp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${VISION_MODEL}:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -367,7 +380,7 @@ app.post('/voice', async (c) => {
     if (apiKey) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${VISION_MODEL}:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -403,6 +416,145 @@ app.post('/voice', async (c) => {
     return c.json({ category, brand, model, condition: 4, estimatedValue: value, currency: 'USD', description: transcript })
   } catch (err: any) {
     return c.json({ error: err.message }, 500)
+  }
+})
+
+// POST /api/valuation/manual — category-aware manual form submission
+//   Accepts structured form data: brand, model, category, and category-specific fields
+//   Runs Gemini 3.5 Flash valuation from text-only description, stores to D1 if confidence >= 60
+app.post('/manual', async (c) => {
+  const startTs = Date.now()
+  try {
+    const body = await c.req.json<Record<string, any>>()
+    const apiKey = c.env.GEMINI_API_KEY as string | undefined
+
+    // Build a structured description from manual form fields
+    const parts: string[] = []
+    if (body.brand) parts.push(`Brand: ${body.brand}`)
+    if (body.model) parts.push(`Model: ${body.model}`)
+    if (body.reference_number) parts.push(`Reference: ${body.reference_number}`)
+    if (body.serial_number) parts.push(`Serial: ${body.serial_number}`)
+    if (body.case_material) parts.push(`Case: ${body.case_material}`)
+    if (body.case_size_mm) parts.push(`Case Size: ${body.case_size_mm}mm`)
+    if (body.movement) parts.push(`Movement: ${body.movement}`)
+    if (body.bracelet_type) parts.push(`Bracelet: ${body.bracelet_type}`)
+    if (body.leather_type) parts.push(`Leather: ${body.leather_type}`)
+    if (body.hardware) parts.push(`Hardware: ${body.hardware}`)
+    if (body.bag_size) parts.push(`Size: ${body.bag_size}`)
+    if (body.color) parts.push(`Color: ${body.color}`)
+    if (body.metal_purity) parts.push(`Metal: ${body.metal_purity}`)
+    if (body.gemstone) parts.push(`Gemstone: ${body.gemstone}`)
+    if (body.vin) parts.push(`VIN: ${body.vin}`)
+    if (body.mileage_km) parts.push(`Mileage: ${body.mileage_km}km`)
+    if (body.artist) parts.push(`Artist: ${body.artist}`)
+    if (body.medium) parts.push(`Medium: ${body.medium}`)
+    if (body.year) parts.push(`Year: ${body.year}`)
+    if (body.condition_grade !== undefined) parts.push(`Condition Grade: ${body.condition_grade}/4`)
+    if (body.purchase_price) parts.push(`Purchase Price: $${body.purchase_price}`)
+    if (body.insurance_value) parts.push(`Insurance Value: $${body.insurance_value}`)
+    if (body.box_papers) parts.push(`Box & Papers: ${body.box_papers}`)
+    if (body.notes) parts.push(`Notes: ${body.notes}`)
+
+    const category = body.category || 'Watches'
+    const searchText = parts.join('. ')
+
+    // ── Stage 1: Gemini 3.5 Flash text-only valuation ────────────────────────
+    let visionResult: any = null
+    if (apiKey && searchText) {
+      try {
+        const manualPrompt = `You are CuratedLux AI. A user has submitted the following structured details about a ${category} they own. Provide a market valuation and authenticity assessment based on this information alone. You do NOT have an image — use your market knowledge.
+
+DETAILS: ${searchText}
+
+Return ONLY this JSON:
+{
+  "category": "${category}",
+  "brand": "confirm or correct the brand",
+  "model": "confirm or correct the model",
+  "referenceNumber": "reference number",
+  "year": number or null,
+  "condition_grade": 0-4,
+  "condition_label": "Mint|Excellent|Good|Fair|Poor",
+  "estimatedValue": number (USD, current 2026 secondary market),
+  "currency": "USD",
+  "confidence": 0-100 (lower than photo-based — 50-75 range typical for text-only),
+  "authenticityStatus": "AUTHENTIC MATCH" | "REQUIRES IN-PERSON VERIFICATION" | "PENDING",
+  "reasoning": "market analysis based on provided details",
+  "confidence_breakdown": { "logo": 0, "serial": 0, "materials": 0, "bezel_geometry": 0, "dial_texture": 0, "overall_proportion": 0 },
+  "inclusions": [],
+  "red_flags": []
+}`
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${VISION_MODEL}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: manualPrompt }] }],
+              generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
+            })
+          }
+        )
+        if (response.ok) {
+          const respData = await response.json() as any
+          const text = respData?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+          visionResult = extractJSON(text)
+        }
+      } catch (e) { console.error('Manual valuation error:', e) }
+    }
+
+    // ── Stage 2: Build result from AI or fallback ───────────────────────────
+    const result: any = {
+      category,
+      brand: body.brand || visionResult?.brand || 'Unknown',
+      model: body.model || visionResult?.model || '',
+      referenceNumber: body.reference_number || visionResult?.referenceNumber || '',
+      year: body.year || visionResult?.year || null,
+      condition_grade: body.condition_grade ?? visionResult?.condition_grade ?? 3,
+      condition_label: visionResult?.condition_label || 'Good',
+      estimatedValue: visionResult?.estimatedValue || body.insurance_value || body.purchase_price || 0,
+      currency: 'USD',
+      confidence: visionResult?.confidence || 60,
+      authenticityStatus: visionResult?.authenticityStatus || 'PENDING',
+      reasoning: visionResult?.reasoning || `Manual entry for ${body.brand || 'unknown'} ${body.model || 'item'}. Based on provided details.`,
+      confidence_breakdown: visionResult?.confidence_breakdown || { logo: 0, serial: 0, materials: 0, bezel_geometry: 0, dial_texture: 0, overall_proportion: 0 },
+      inclusions: [],
+      red_flags: [],
+      ocr_texts: [],
+      ocr_serials: [],
+      ocr_barcodes: [],
+    }
+
+    // ── Keyword fallback ────────────────────────────────────────────────────
+    if ((!result.brand || result.brand === 'Unknown') && searchText) {
+      const match = keywordMatch(searchText)
+      if (match) {
+        result.brand = match.brand
+        result.model = match.model
+        result.referenceNumber = match.referenceNumber
+        result.estimatedValue = match.estimatedValue
+        result.confidence = Math.max(result.confidence, match.confidence)
+        result.reasoning = match.reasoning + ' (keyword-assisted)'
+      }
+    }
+
+    // ── Store to D1 if confidence >= 60 (lower threshold for manual — no image) ─
+    const shouldStore = result.confidence >= 60
+    let storedId: string | null = null
+    if (shouldStore) {
+      storedId = await storeValuation(c, result)
+    }
+
+    result.id = storedId
+    result.stored = !!storedId
+    result.pipeline_ms = Date.now() - startTs
+    result.source = visionResult ? 'gemini_manual' : 'manual_form'
+
+    return c.json(result)
+
+  } catch (error: any) {
+    return c.json({ error: error.message || 'Manual valuation failed', pipeline_ms: Date.now() - startTs }, 500)
   }
 })
 

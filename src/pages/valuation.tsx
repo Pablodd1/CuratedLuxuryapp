@@ -13,8 +13,7 @@ export function ValuationPage() {
           </button>
           {/* Microphone */}
           <button id="voice-trigger-btn"
-            class="border-2 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/5 text-rose-400 py-3 rounded text-sm transition-colors flex items-center justify-center gap-2"
-            id="voice-trigger-btn">
+            class="border-2 border-rose-500/30 hover:border-rose-400/60 hover:bg-rose-500/5 text-rose-400 py-3 rounded text-sm transition-colors flex items-center justify-center gap-2">
             <i class="fas fa-microphone text-lg"></i> <span id="voice-label">Speak to Describe</span>
           </button>
           {/* Manual Form Toggle */}
