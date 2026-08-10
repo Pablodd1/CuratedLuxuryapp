@@ -2,6 +2,7 @@
 // Web Crypto API only (Workers-compatible — no Node crypto)
 
 import type { Context, MiddlewareHandler } from 'hono'
+/// <reference types="@cloudflare/workers-types" />
 
 // ---------- Types ----------
 
@@ -341,6 +342,58 @@ export const optionalAuth: MiddlewareHandler<{ Bindings: AuthBindings; Variables
   const user = await getCurrentUser(c)
   c.set('user', user)
   await next()
+}
+
+// ---------- Password Reset ----------
+
+export async function createResetToken(db: D1Database, user_id: string): Promise<{ raw_token: string; expires_at: string } | null> {
+  const raw_token = randomId('rst_')
+  const tokenHash = await sha256(raw_token)
+  const id = randomId('prt_')
+  const expires_at = new Date(Date.now() + 3600_000).toISOString() // 1 hour
+  try {
+    await db
+      .prepare(
+        `INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at, used)
+         VALUES (?, ?, ?, ?, 0)`
+      )
+      .bind(id, user_id, tokenHash, expires_at)
+      .run()
+    return { raw_token, expires_at }
+  } catch {
+    return null
+  }
+}
+
+async function sha256(input: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', utf8(input))
+  return b64urlEncode(digest)
+}
+
+export async function consumeResetToken(db: D1Database, rawToken: string): Promise<string | null> {
+  const tokenHash = await sha256(rawToken)
+  const row = await db
+    .prepare('SELECT * FROM password_reset_tokens WHERE token_hash = ? AND used = 0')
+    .bind(tokenHash)
+    .first<{ id: string; user_id: string; expires_at: string; used: number }>()
+  if (!row) return null
+  if (new Date(row.expires_at) < new Date()) return null // expired
+  // Mark as used
+  await db.prepare('UPDATE password_reset_tokens SET used = 1 WHERE id = ?').bind(row.id).run()
+  return row.user_id
+}
+
+export async function resetPassword(db: D1Database, user_id: string, newPassword: string): Promise<boolean> {
+  try {
+    const { hash, salt } = await hashPassword(newPassword)
+    await db
+      .prepare('UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?')
+      .bind(hash, salt, user_id)
+      .run()
+    return true
+  } catch {
+    return false
+  }
 }
 
 // ---------- Cookie helpers ----------

@@ -8,8 +8,12 @@ import {
   deleteSession,
   signJwt,
   verifyJwt,
+  verifyPassword,
   buildSessionCookie,
   clearSessionCookie,
+  createResetToken,
+  consumeResetToken,
+  resetPassword,
   type User,
 } from '../../lib/auth'
 import { getCurrentUser } from '../../lib/auth'
@@ -149,6 +153,59 @@ app.post('/token', async (c) => {
   const user = await getCurrentUser(c)
   if (!user) return c.json({ error: 'unauthorized' }, 401)
   return c.json({ api_token: user.api_token })
+})
+
+// POST /api/auth/forgot — initiate password reset (sends reset link)
+// In production: email via Resend/SendGrid. Dev mode: returns token in response.
+app.post('/forgot', async (c) => {
+  try {
+    const body = await c.req.json<{ email?: string }>()
+    const email = (body.email || '').trim().toLowerCase()
+    if (!email) return c.json({ error: 'email_required' }, 400)
+
+    const user = await getUserByEmail(c.env.DB, email)
+    // Always return success to prevent email enumeration
+    if (!user) return c.json({ success: true, message: 'If that account exists, a reset link has been sent.' })
+
+    const reset = await createResetToken(c.env.DB, user.id)
+    if (!reset) return c.json({ error: 'reset_init_failed' }, 500)
+
+    // TODO: email reset.raw_token via Resend / SendGrid in production
+    // For dev, return the reset link directly
+    const origin = c.req.header('origin') || 'https://curatedlux.pages.dev'
+    const resetLink = `${origin}/reset-password?token=${reset.raw_token}`
+
+    return c.json({
+      success: true,
+      message: 'If that account exists, a reset link has been sent.',
+      // DEV ONLY — remove in production when email is wired:
+      dev_reset_link: resetLink,
+      dev_reset_token: reset.raw_token,
+    })
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// POST /api/auth/reset — consume token and set new password
+app.post('/reset', async (c) => {
+  try {
+    const body = await c.req.json<{ token?: string; password?: string }>()
+    const token = (body.token || '').trim()
+    const password = body.password || ''
+    if (!token || !password) return c.json({ error: 'token_and_password_required' }, 400)
+    if (password.length < 8) return c.json({ error: 'password_too_short', message: 'Password must be at least 8 characters' }, 400)
+
+    const user_id = await consumeResetToken(c.env.DB, token)
+    if (!user_id) return c.json({ error: 'invalid_or_expired_token', message: 'Reset link is invalid or has expired (1-hour window)' }, 400)
+
+    const ok = await resetPassword(c.env.DB, user_id, password)
+    if (!ok) return c.json({ error: 'reset_failed' }, 500)
+
+    return c.json({ success: true, message: 'Password has been reset. You can now sign in.' })
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500)
+  }
 })
 
 export default app

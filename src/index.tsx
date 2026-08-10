@@ -20,6 +20,7 @@ import { EmbedPage } from './pages/embed'
 import { LoginPage } from './pages/login'
 import { AccountPage } from './pages/account'
 import { HistoryPage } from './pages/history'
+import { ResetPasswordPage } from './pages/reset-password'
 
 type Bindings = {
   DB?: D1Database
@@ -77,5 +78,6 @@ app.get('/login', (c) => c.html(<LoginPage mode="login" />))
 app.get('/signup', (c) => c.html(<LoginPage mode="signup" />))
 app.get('/account', (c) => c.html(<AccountPage />))
 app.get('/history', (c) => c.html(<HistoryPage />))
+app.get('/reset-password', (c) => c.html(<ResetPasswordPage />))
 
 export default app
