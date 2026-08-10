@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { optionalAuth, type User } from '../../lib/auth'
 
 // ── Luxury Editorial Dataset (2025 Market Edition) ──────────────────────────
 const LUXURY_DATASET = [
@@ -112,6 +113,12 @@ Return ONLY JSON:
   "description": "normalized summary of the listing"
 }`
 
+// ── ROUTER ───────────────────────────────────────────────────────────────────
+const app = new Hono<{ Bindings: { DB?: D1Database; GEMINI_API_KEY?: string; FIREWORKS_API_KEY?: string; AUTH_SECRET?: string }; Variables: { user: User | null } }>()
+
+// All endpoints are public — but we capture the current user if a session/bearer is present
+app.use('*', optionalAuth)
+
 // ── NORMALIZE: merge multiple AI outputs into one canonical form ─────────────
 function normalizeResults(vision: any, ocrTexts: string[], voice: any, description: string): any {
   const result: any = {
@@ -173,7 +180,7 @@ function normalizeResults(vision: any, ocrTexts: string[], voice: any, descripti
 }
 
 // ── ROUTER ───────────────────────────────────────────────────────────────────
-const app = new Hono()
+// (already declared at top — see line ~117)
 
 // POST /api/valuation/analyze — MULTI-MODAL VALUATION PIPELINE
 //   Accepts: { images: ["b64...", "b64...", ...], transcript?: "...", description?: "..." }
@@ -189,6 +196,7 @@ app.post('/analyze', async (c) => {
       imageBase64?: string  // legacy single-image support
       transcript?: string
       description?: string
+      source?: 'camera' | 'voice' | 'manual' | 'embed'
     }>()
 
     // Normalize: support both single legacy param and multi-image array
@@ -347,11 +355,11 @@ app.post('/analyze', async (c) => {
       result.confidence_breakdown = { logo: 0, serial: 0, materials: 0, bezel_geometry: 0, dial_texture: 0, overall_proportion: 0 }
     }
 
-    // ── Stage 6: Store to D1 if confidence > 70 ──────────────────────────────
+    // ── Stage 6: Store to D1 (inventory + scan_history) if confidence > 70 ───
     const shouldStore = result.confidence >= 70 || result.authenticityStatus === 'AUTHENTIC MATCH'
     let storedId: string | null = null
     if (shouldStore) {
-      storedId = await storeValuation(c, result)
+      storedId = await storeValuation(c, result, body.source || 'camera')
     }
 
     // ── Add metadata ─────────────────────────────────────────────────────────
@@ -543,7 +551,7 @@ Return ONLY this JSON:
     const shouldStore = result.confidence >= 60
     let storedId: string | null = null
     if (shouldStore) {
-      storedId = await storeValuation(c, result)
+      storedId = await storeValuation(c, result, 'manual')
     }
 
     result.id = storedId
@@ -559,15 +567,17 @@ Return ONLY this JSON:
 })
 
 // ── STORE TO D1 ──────────────────────────────────────────────────────────────
-async function storeValuation(c: any, result: any): Promise<string | null> {
+async function storeValuation(c: any, result: any, source: string): Promise<string | null> {
   try {
     const db = c.env.DB as D1Database | undefined
     if (!db) return null
     const id = crypto.randomUUID()
     const cb = result.confidence_breakdown || {}
+    const user = c.get('user')
+    const ownerId = user?.id || 'system'
     await db.prepare(`INSERT INTO inventory (id, owner_id, category, brand, model, reference_number, year, condition_grade, condition_label, estimated_value, currency, confidence, authenticity_status, reasoning, confidence_logo, confidence_serial, confidence_materials, confidence_bezel, inclusions, image_count, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`)
-      .bind(id, 'system',
+      .bind(id, ownerId,
         result.category || 'Watches',
         result.brand || '',
         result.model || '',
@@ -585,6 +595,65 @@ async function storeValuation(c: any, result: any): Promise<string | null> {
         (result.images_processed || result.image_count || 0),
       )
       .run()
+
+    // Mirror to scan_history for end-user history view
+    await db.prepare(
+      `INSERT INTO scan_history
+        (id, user_id, source, category, brand, model, reference_number, year,
+         condition_grade, condition_label, estimated_value, currency, confidence,
+         authenticity_status, reasoning, inclusions, red_flags, image_count,
+         scan_payload, scan_source_host, inventory_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+      .bind(
+        crypto.randomUUID(),
+        user?.id || null,
+        source || 'manual',
+        result.category || 'Watches',
+        result.brand || '',
+        result.model || '',
+        result.referenceNumber || '',
+        result.year || null,
+        result.condition_grade || 3,
+        result.condition_label || 'Good',
+        result.estimatedValue || 0,
+        result.currency || 'USD',
+        result.confidence || 0,
+        result.authenticityStatus || 'PENDING',
+        result.reasoning || '',
+        JSON.stringify(result.inclusions || []),
+        JSON.stringify(result.red_flags || []),
+        result.images_processed || result.image_count || 0,
+        JSON.stringify(result),
+        c.req.header('referer') || null,
+        id,
+        new Date().toISOString()
+      )
+      .run()
+
+    // Fan out webhook for scan.created event (any subscribed webhooks for this user)
+    try {
+      const { fanOutEvent } = await import('../../lib/webhooks')
+      await fanOutEvent(c, 'scan.created', {
+        id,
+        category: result.category,
+        brand: result.brand,
+        model: result.model,
+        reference_number: result.referenceNumber,
+        year: result.year,
+        condition_grade: result.condition_grade,
+        condition_label: result.condition_label,
+        estimated_value: result.estimatedValue,
+        currency: result.currency,
+        confidence: result.confidence,
+        authenticity_status: result.authenticityStatus,
+        reasoning: result.reasoning,
+        owner_id: ownerId,
+        source,
+        created_at: new Date().toISOString(),
+      })
+    } catch (e) { /* webhook fan-out is non-blocking */ }
+
     return id
   } catch (e) { /* non-critical — result still returned to user */ return null }
 }

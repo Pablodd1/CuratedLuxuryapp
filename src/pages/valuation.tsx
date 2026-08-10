@@ -1,8 +1,8 @@
 import { Layout } from './layout'
 
-export function ValuationPage() {
+export function ValuationPage({ embed = false }: { embed?: boolean }) {
   return (
-    <Layout title="Scan" active="scan">
+    <Layout title="Scan" active="scan" embed={embed}>
       <div class="max-w-6xl mx-auto">
         {/* Primary Action Bar: Camera + Mic + Manual */}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
