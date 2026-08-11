@@ -40,6 +40,83 @@ function cleanBase64(b64: string): { data: string; mimeType: string } {
   return { data: cleaned, mimeType: mimeMatch?.[1] || 'image/jpeg' }
 }
 
+// ── AI GUARDRAILS: brand-material contradiction + hallucination detection ──
+const GUARDRAIL_RULES: { brands: string[]; check: (r: any) => string | null }[] = [
+  { brands: ['Hermès', 'Hermes', 'hermes', 'hermès'],
+    check: (r) => {
+      const m = (r.reasoning || '').toLowerCase()
+      if (m.includes('synthetic') || m.includes('faux leather') || m.includes('vegan leather') || m.includes('pu leather'))
+        return 'CONTRADICTION: Hermès does not use synthetic materials. If leather appears synthetic, item is likely counterfeit.'
+      if (r.model?.toLowerCase().includes('birkin') && (r.estimatedValue || 0) < 5000)
+        return 'VALUE ANOMALY: Authentic Birkin bags trade above $10,000. Valuation may be hallucinated.'
+      return null
+    }
+  },
+  { brands: ['Rolex', 'rolex'],
+    check: (r) => {
+      if (r.condition_label === 'Mint' && (r.year || 0) > 0 && r.year < 2000)
+        return 'CONDITION ANOMALY: Pre-2000 Rolex marked Mint without service papers. Flag for verification.'
+      if (r.confidence > 90 && (r.estimatedValue || 0) < 1000)
+        return 'VALUE ANOMALY: High-confidence Rolex valuation below $1,000. Likely hallucinated or fake.'
+      return null
+    }
+  },
+  { brands: ['Patek Philippe', 'Patek', 'patek'],
+    check: (r) => {
+      if (r.estimatedValue > 500000 && r.confidence < 30)
+        return 'VALUE ANOMALY: Extreme valuation with low confidence. Requires human review.'
+      return null
+    }
+  },
+  { brands: ['Cartier', 'cartier'],
+    check: (r) => {
+      const m = (r.reasoning || '').toLowerCase()
+      if (m.includes('plated') || m.includes('gold plated') || m.includes('gold-filled'))
+        return 'CONTRADICTION: Cartier fine jewelry is solid precious metal, not plated. Suspect counterfeit.'
+      return null
+    }
+  },
+  { brands: ['Richard Mille', 'Richard', 'mille'],
+    check: (r) => {
+      if (r.estimatedValue > 0 && r.estimatedValue < 50000)
+        return 'VALUE ANOMALY: Authentic Richard Mille pieces trade above $50,000. Valuation suspect.'
+      return null
+    }
+  },
+  // Generic catch-all for extreme anomalies
+  { brands: ['*'],
+    check: (r) => {
+      if (r.confidence > 95 && !r.referenceNumber && !r.reasoning)
+        return 'CONFIDENCE ANOMALY: Very high confidence without reference number or reasoning. Likely hallucinated.'
+      if (r.estimatedValue > 1_000_000 && r.confidence < 20)
+        return 'VALUE ANOMALY: Million-dollar valuation with near-zero confidence. Rejected.'
+      return null
+    }
+  },
+]
+
+function applyGuardrails(result: any): string[] {
+  const warnings: string[] = []
+  for (const rule of GUARDRAIL_RULES) {
+    const brand = (result.brand || '').toLowerCase()
+    const matchesBrand = rule.brands.includes('*') || rule.brands.some(b => brand.includes(b.toLowerCase()))
+    if (!matchesBrand) continue
+    const warning = rule.check(result)
+    if (warning) {
+      warnings.push(warning)
+      result.red_flags = [...(result.red_flags || []), warning]
+    }
+  }
+  // Downgrade confidence if guardrails triggered
+  if (warnings.length >= 3) {
+    result.confidence = Math.min(result.confidence || 0, 35)
+    result.authenticityStatus = 'REQUIRES IN-PERSON VERIFICATION'
+  } else if (warnings.length >= 1) {
+    result.confidence = Math.min(result.confidence || 0, 60)
+  }
+  return warnings
+}
+
 // ── VISION MODEL ─────────────────────────────────────────────────────────────
 const VISION_MODEL = 'gemini-3.5-flash'  // Upgraded Aug 2026: MMMU-Pro 83.6%, 4x faster, fine-tuneable via Vertex AI
 
@@ -322,6 +399,13 @@ app.post('/analyze', async (c) => {
     // ── Stage 4: Normalize & Merge ───────────────────────────────────────────
     const result = normalizeResults(visionResult, ocrResults, voiceResult, searchText)
 
+    // ── Stage 4.5: AI Guardrails — brand contradiction + hallucination check ──
+    const guardrailWarnings = applyGuardrails(result)
+    if (guardrailWarnings.length > 0) {
+      result.guardrail_warnings = guardrailWarnings
+      console.log(`Guardrails triggered: ${guardrailWarnings.join('; ')}`)
+    }
+
     // ── Stage 5: Keyword fallback if nothing came back ───────────────────────
     if ((!result.brand || result.brand === 'Unknown' || result.confidence === 0) && searchText) {
       const match = keywordMatch(searchText)
@@ -546,6 +630,10 @@ Return ONLY this JSON:
         result.reasoning = match.reasoning + ' (keyword-assisted)'
       }
     }
+
+    // ── AI Guardrails for manual entries too ────────────────────────────────
+    const mfWarnings = applyGuardrails(result)
+    if (mfWarnings.length > 0) result.guardrail_warnings = mfWarnings
 
     // ── Store to D1 if confidence >= 60 (lower threshold for manual — no image) ─
     const shouldStore = result.confidence >= 60

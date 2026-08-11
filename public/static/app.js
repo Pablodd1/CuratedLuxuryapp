@@ -44,6 +44,26 @@ function $q(sel, ctx) { return (ctx || document).querySelector(sel); }
 function show(el) { el?.classList.remove('hidden'); }
 function hide(el) { el?.classList.add('hidden'); }
 
+// ── Image Compression: canvas resize to max 1024px before upload ──
+// Cuts payload ~80%, prevents Worker timeouts, preserves quality for AI analysis
+function compressImage(dataUrl, maxDim = 1024) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w <= maxDim && h <= maxDim) return resolve(dataUrl); // already small enough
+      const ratio = Math.min(maxDim / w, maxDim / h);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', 0.92));
+    };
+    img.src = dataUrl;
+  });
+}
+
 function renderConfidenceBar(label, score) {
   const pct = Math.min(100, Math.max(0, score || 0));
   const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-gold' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500';
@@ -307,8 +327,9 @@ function initValuation() {
       if (!file.type.startsWith('image/')) return;
       if (images.length >= MAX_IMAGES) { toast('Max 5 images per scan', 'warning'); return; }
       const reader = new FileReader();
-      reader.onload = () => {
-        images.push({ data: reader.result, name: file.name });
+      reader.onload = async () => {
+        const compressed = await compressImage(reader.result);
+        images.push({ data: compressed, name: file.name });
         renderPreviews();
       };
       reader.readAsDataURL(file);
@@ -400,6 +421,23 @@ function initValuation() {
           </div>
         </div>
 
+        <!-- Guided capture steps overlay -->
+        <div id="cl-guide-panel" class="bg-gradient-to-r from-gold/5 via-gold/8 to-gold/5 border border-gold/15 rounded-lg px-4 py-3 mb-2">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-1.5">
+              <span id="cl-step-icon" class="w-5 h-5 rounded-full bg-gold/20 flex items-center justify-center text-[10px] text-gold"><i class="fas fa-crosshairs"></i></span>
+              <span id="cl-step-label" class="text-xs font-semibold text-gold">Step 1 of 3</span>
+            </div>
+            <button id="cl-guide-skip" class="text-[10px] text-white/30 hover:text-white/60 transition-colors">Skip guide <i class="fas fa-forward ml-0.5"></i></button>
+          </div>
+          <p id="cl-step-instruction" class="text-sm text-white/80 font-medium">Frame the dial — position the watch face in the center circle</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span data-dot="0" class="cl-step-dot w-2.5 h-2.5 rounded-full bg-gold"></span>
+            <span data-dot="1" class="cl-step-dot w-2.5 h-2.5 rounded-full bg-gold/20"></span>
+            <span data-dot="2" class="cl-step-dot w-2.5 h-2.5 rounded-full bg-gold/20"></span>
+          </div>
+        </div>
+
         <!-- Video viewport with crosshair guides -->
         <div class="relative">
           <video id="cl-cam-video" class="w-full rounded-xl bg-black" autoplay playsinline muted></video>
@@ -446,6 +484,38 @@ function initValuation() {
     let macroOn = false
     let burstOn = false
     let micOn = false
+    let guideStep = 0         // 0=frame dial, 1=macro clasp, 2=box/papers
+    let guideSkipped = false
+
+    const GUIDE_STEPS = [
+      { icon: 'fa-crosshairs', label: 'Step 1 of 3', instruction: 'Frame the dial — position the watch face in the center circle' },
+      { icon: 'fa-magnifying-glass-plus', label: 'Step 2 of 3', instruction: 'Macro on the clasp — zoom in on engravings, hallmarks, or serial numbers' },
+      { icon: 'fa-box-archive', label: 'Step 3 of 3', instruction: 'Capture box & papers — photograph the original box, warranty card, and receipts' },
+    ]
+
+    function updateGuideStep(step) {
+      guideStep = step
+      const panel = modal.querySelector('#cl-guide-panel')
+      if (!panel || guideSkipped) return
+      const icon = modal.querySelector('#cl-step-icon i')
+      const label = modal.querySelector('#cl-step-label')
+      const instruction = modal.querySelector('#cl-step-instruction')
+      const dots = modal.querySelectorAll('.cl-step-dot')
+
+      if (icon) { icon.className = `fas ${GUIDE_STEPS[step].icon}` }
+      if (label) label.textContent = GUIDE_STEPS[step].label
+      if (instruction) instruction.textContent = GUIDE_STEPS[step].instruction
+      dots.forEach((d, i) => {
+        d.classList.toggle('bg-gold', i <= step)
+        d.classList.toggle('bg-gold/20', i > step)
+      })
+    }
+
+    function hideGuide() {
+      guideSkipped = true
+      const panel = modal.querySelector('#cl-guide-panel')
+      if (panel) panel.style.display = 'none'
+    }
     let audioContext = null
     let mediaRecorder = null
     let audioChunks = []
@@ -614,7 +684,23 @@ function initValuation() {
         canvas.getContext('2d').drawImage(videoEl, 0, 0)
         dataUrl = canvas.toDataURL('image/jpeg', 0.96)
       }
+      dataUrl = await compressImage(dataUrl);
       images.push({ data: dataUrl, name: `cam-${resolution}-${Date.now()}.jpg` })
+
+      // Advance guided capture step after each snap
+      if (!guideSkipped && guideStep < 2) {
+        updateGuideStep(guideStep + 1)
+        if (guideStep + 1 === 1) {
+          // Auto-enable macro for step 2 (clasp detail)
+          if (!macroOn) toggleMacro(true)
+        } else if (guideStep + 1 === 2) {
+          // Disable macro for step 3 (box/papers — wider shot)
+          if (macroOn) toggleMacro(false)
+        }
+      } else if (guideStep >= 2 && !guideSkipped) {
+        // All steps done — hide the guide
+        hideGuide()
+      }
 
       if (burstOn) {
         // Capture 2 more frames at 250ms intervals and pick the most-detailed one
@@ -749,6 +835,7 @@ function initValuation() {
     modal.querySelector('#cl-cam-torch').addEventListener('click', toggleTorch)
     modal.querySelector('#cl-cam-snap').addEventListener('click', snap)
     modal.querySelector('#cl-cam-close').addEventListener('click', cleanup)
+    modal.querySelector('#cl-guide-skip').addEventListener('click', hideGuide)
 
     // Set default resolution visible
     const defaultRes = modal.querySelector(`[data-res="${resolution}"]`)
