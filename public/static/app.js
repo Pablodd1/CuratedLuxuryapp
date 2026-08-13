@@ -44,6 +44,51 @@ function $q(sel, ctx) { return (ctx || document).querySelector(sel); }
 function show(el) { el?.classList.remove('hidden'); }
 function hide(el) { el?.classList.add('hidden'); }
 
+// ── Pre-analyze confirmation: shows photo count + description before submission ──
+function showAnalyzeConfirmation(photoCount, description) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6';
+    overlay.innerHTML = `
+      <div class="bg-card border border-gold/20 rounded-2xl p-6 max-w-sm w-full shadow-[0_0_40px_rgba(212,175,55,0.15)]">
+        <div class="text-center mb-5">
+          <div class="w-12 h-12 mx-auto rounded-full bg-gold/10 flex items-center justify-center mb-3">
+            <i class="fas fa-circle-check text-gold text-xl"></i>
+          </div>
+          <h3 class="text-lg font-serif font-bold text-white mb-1">Ready to Analyze?</h3>
+          <p class="text-white/40 text-xs">Review your submission before sending to AI authentication.</p>
+        </div>
+        <div class="space-y-2.5 mb-5">
+          <div class="flex items-center justify-between bg-surface rounded-lg px-3 py-2">
+            <span class="text-white/50 text-xs"><i class="fas fa-images mr-1.5 text-gold/60"></i>Photos captured</span>
+            <span class="text-white font-semibold text-sm">${photoCount}</span>
+          </div>
+          ${description ? `
+          <div class="flex items-center justify-between bg-surface rounded-lg px-3 py-2">
+            <span class="text-white/50 text-xs"><i class="fas fa-keyboard mr-1.5 text-gold/60"></i>Description</span>
+            <span class="text-white/70 text-xs max-w-[180px] truncate">"${description}"</span>
+          </div>` : ''}
+          <div class="flex items-center justify-between bg-surface rounded-lg px-3 py-2">
+            <span class="text-white/50 text-xs"><i class="fas fa-brain mr-1.5 text-gold/60"></i>AI pipeline</span>
+            <span class="text-white/70 text-xs">Gemini 3.5 + OCR</span>
+          </div>
+        </div>
+        ${photoCount < 2 ? `
+        <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 mb-4">
+          <p class="text-amber-300/80 text-[11px]"><i class="fas fa-triangle-exclamation mr-1"></i>For best results, capture at least 2 photos — the item + a serial/certificate close-up. OCR needs a second image to extract serials.</p>
+        </div>` : ''}
+        <div class="flex gap-3">
+          <button id="cl-confirm-cancel" class="flex-1 border border-white/10 hover:border-white/30 text-white/50 hover:text-white/80 py-2.5 rounded-lg text-sm transition-all">Cancel</button>
+          <button id="cl-confirm-go" class="flex-1 bg-gold hover:bg-gold-light text-black font-semibold py-2.5 rounded-lg text-sm transition-all">Analyze Now</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#cl-confirm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.querySelector('#cl-confirm-go').addEventListener('click', () => { overlay.remove(); resolve(true); });
+  });
+}
+
 // ── Image Compression: canvas resize to max 1024px before upload ──
 // Cuts payload ~80%, prevents Worker timeouts, preserves quality for AI analysis
 function compressImage(dataUrl, maxDim = 1024) {
@@ -421,20 +466,30 @@ function initValuation() {
           </div>
         </div>
 
+        <!-- Category selector -->
+        <div class="flex items-center gap-1.5 mb-2 flex-wrap">
+          <span class="text-[10px] text-white/30 uppercase tracking-wider mr-1">Asset type:</span>
+          <button data-cat="Watches" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-gold/40 bg-gold/10 text-gold transition-all">Watches</button>
+          <button data-cat="Handbags" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Handbags</button>
+          <button data-cat="Fine Jewelry" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Jewelry</button>
+          <button data-cat="Luxury Vehicles" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Vehicles</button>
+          <button data-cat="Art & Collectibles" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Art</button>
+        </div>
+
         <!-- Guided capture steps overlay -->
         <div id="cl-guide-panel" class="bg-gradient-to-r from-gold/5 via-gold/8 to-gold/5 border border-gold/15 rounded-lg px-4 py-3 mb-2">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-1.5">
               <span id="cl-step-icon" class="w-5 h-5 rounded-full bg-gold/20 flex items-center justify-center text-[10px] text-gold"><i class="fas fa-crosshairs"></i></span>
-              <span id="cl-step-label" class="text-xs font-semibold text-gold">Step 1 of 3</span>
+              <span id="cl-step-label" class="text-xs font-semibold text-gold">Step 1 of 4 — Dial / Face</span>
             </div>
-            <button id="cl-guide-skip" class="text-[10px] text-white/30 hover:text-white/60 transition-colors">Skip guide <i class="fas fa-forward ml-0.5"></i></button>
+            <div class="flex items-center gap-2">
+              <span id="cl-shot-count" class="text-[10px] text-white/40 font-mono">0 captured</span>
+              <button id="cl-guide-skip" class="text-[10px] text-white/30 hover:text-white/60 transition-colors">Skip guide <i class="fas fa-forward ml-0.5"></i></button>
+            </div>
           </div>
           <p id="cl-step-instruction" class="text-sm text-white/80 font-medium">Frame the dial — position the watch face in the center circle</p>
-          <div class="flex items-center gap-1.5 mt-2">
-            <span data-dot="0" class="cl-step-dot w-2.5 h-2.5 rounded-full bg-gold"></span>
-            <span data-dot="1" class="cl-step-dot w-2.5 h-2.5 rounded-full bg-gold/20"></span>
-            <span data-dot="2" class="cl-step-dot w-2.5 h-2.5 rounded-full bg-gold/20"></span>
+          <div id="cl-step-dots" class="flex items-center gap-1.5 mt-2">
           </div>
         </div>
 
@@ -484,31 +539,90 @@ function initValuation() {
     let macroOn = false
     let burstOn = false
     let micOn = false
-    let guideStep = 0         // 0=frame dial, 1=macro clasp, 2=box/papers
+    let guideStep = 0
     let guideSkipped = false
+    let activeCategory = 'Watches'  // changes the guided sequence per asset type
 
-    const GUIDE_STEPS = [
-      { icon: 'fa-crosshairs', label: 'Step 1 of 3', instruction: 'Frame the dial — position the watch face in the center circle' },
-      { icon: 'fa-magnifying-glass-plus', label: 'Step 2 of 3', instruction: 'Macro on the clasp — zoom in on engravings, hallmarks, or serial numbers' },
-      { icon: 'fa-box-archive', label: 'Step 3 of 3', instruction: 'Capture box & papers — photograph the original box, warranty card, and receipts' },
-    ]
+    // ── Category-aware guided photo sequences ───────────────────────────
+    // Each step tells the user WHAT to frame, HOW many shots are expected,
+    // and whether macro should be on. The API uses image[0] for vision ID
+    // and image[1+] for OCR (serials, certs, barcodes).
+    const GUIDE_SEQUENCES = {
+      Watches: [
+        { icon: 'fa-clock', shot: 'Dial / Face', instruction: 'Photograph the dial straight-on. Fill the center circle. Ensure logo, text, and hands are sharp and well-lit.', macro: false },
+        { icon: 'fa-magnifying-glass-plus', shot: 'Caseback / Serial', instruction: 'Flip the watch. Photograph the caseback engravings and serial number. Use MACRO if the text is small.', macro: true },
+        { icon: 'fa-link', shot: 'Clasp / Bracelet', instruction: 'Photograph the clasp and any end-link engravings. This confirms bracelet authenticity.', macro: true },
+        { icon: 'fa-box-archive', shot: 'Box & Papers', instruction: 'Photograph the warranty card, box label, and any receipts. OCR will extract serials and dates automatically.', macro: false },
+      ],
+      Handbags: [
+        { icon: 'fa-bag-shopping', shot: 'Full Bag — Front', instruction: 'Photograph the entire bag front, straight-on. Show the overall shape, leather grain, and hardware.', macro: false },
+        { icon: 'fa-fire', shot: 'Heat Stamp / Logo', instruction: 'Close-up on the brand heat stamp or foil logo. Must be sharp — check letter spacing and depth.', macro: true },
+        { icon: 'fa-hashtag', shot: 'Date Code / Serial', instruction: 'Find the date code or serial stamp (inside tag, under flap, or on strap). Photograph it clearly for OCR.', macro: true },
+        { icon: 'fa-grip-lines', shot: 'Stitching & Hardware', instruction: 'Photograph the stitching close-up and the hardware engravings (zippers, buckles, turn-lock).', macro: true },
+        { icon: 'fa-box-archive', shot: 'Box & Dust Bag', instruction: 'Photograph the original box, dust bag, and any authenticity cards.', macro: false },
+      ],
+      'Fine Jewelry': [
+        { icon: 'fa-gem', shot: 'Full Piece', instruction: 'Photograph the entire piece straight-on on a neutral background. Show overall design and proportions.', macro: false },
+        { icon: 'fa-stamp', shot: 'Hallmark / Stamp', instruction: 'Close-up on the metal hallmark (e.g., 750, Pt950, 18K). This confirms metal purity.', macro: true },
+        { icon: 'fa-snowflake', shot: 'Gemstone / Setting', instruction: 'Photograph the gemstone close-up — show the cut, facets, and prong setting.', macro: true },
+        { icon: 'fa-weight-hanging', shot: 'Clasp / Serial', instruction: 'Photograph the clasp mechanism and any serial engraving on the piece.', macro: true },
+      ],
+      'Luxury Vehicles': [
+        { icon: 'fa-car-side', shot: '3/4 Front', instruction: 'Photograph the vehicle from a 3/4 front angle. Show the badge, headlights, and body panel gaps.', macro: false },
+        { icon: 'fa-gauge-high', shot: 'Dashboard / Odometer', instruction: 'Photograph the dashboard — focus on the odometer reading and instrument cluster.', macro: false },
+        { icon: 'fa-id-card', shot: 'VIN Plate', instruction: 'Photograph the VIN plate (usually windshield corner or door jamb). OCR will extract the 17-digit number.', macro: true },
+        { icon: 'fa-couch', shot: 'Interior Details', instruction: 'Photograph the interior stitching, seats, and any badges or trim details.', macro: false },
+      ],
+      'Art & Collectibles': [
+        { icon: 'fa-image', shot: 'Full Work', instruction: 'Photograph the entire piece straight-on, centered. No glare or reflections on the surface.', macro: false },
+        { icon: 'fa-signature', shot: 'Signature', instruction: 'Close-up on the signature. Must be sharp enough to read the handwriting style.', macro: true },
+        { icon: 'fa-list-ol', shot: 'Edition / Number', instruction: 'Photograph any edition number, date, or markings (corner, back, or certificate).', macro: true },
+        { icon: 'fa-certificate', shot: 'Certificate / COA', instruction: 'Photograph the certificate of authenticity or provenance documents. OCR will extract text.', macro: false },
+      ],
+    }
+
+    function currentGuide() { return GUIDE_SEQUENCES[activeCategory] || GUIDE_SEQUENCES['Watches'] }
 
     function updateGuideStep(step) {
       guideStep = step
+      const seq = currentGuide()
       const panel = modal.querySelector('#cl-guide-panel')
       if (!panel || guideSkipped) return
       const icon = modal.querySelector('#cl-step-icon i')
       const label = modal.querySelector('#cl-step-label')
       const instruction = modal.querySelector('#cl-step-instruction')
-      const dots = modal.querySelectorAll('.cl-step-dot')
+      const dotsContainer = modal.querySelector('#cl-step-dots')
 
-      if (icon) { icon.className = `fas ${GUIDE_STEPS[step].icon}` }
-      if (label) label.textContent = GUIDE_STEPS[step].label
-      if (instruction) instruction.textContent = GUIDE_STEPS[step].instruction
-      dots.forEach((d, i) => {
-        d.classList.toggle('bg-gold', i <= step)
-        d.classList.toggle('bg-gold/20', i > step)
-      })
+      const cur = seq[step] || seq[seq.length - 1]
+      const total = seq.length
+
+      if (icon) { icon.className = `fas ${cur.icon}` }
+      if (label) label.textContent = `Step ${step + 1} of ${total} — ${cur.shot}`
+      if (instruction) instruction.textContent = cur.instruction
+
+      // Rebuild dots dynamically based on this category's step count
+      if (dotsContainer) {
+        dotsContainer.innerHTML = seq.map((_, i) =>
+          `<span class="cl-step-dot w-2.5 h-2.5 rounded-full ${i <= step ? 'bg-gold' : 'bg-gold/20'}"></span>`
+        ).join('')
+      }
+
+      // Auto-set macro per step's recommendation
+      if (cur.macro && !macroOn) {
+        toggleMacro(true)
+      } else if (!cur.macro && macroOn) {
+        toggleMacro(false)
+      }
+    }
+
+    // Re-render the guide when category changes (called from the selector)
+    function switchCategory(cat) {
+      activeCategory = cat
+      guideStep = 0
+      guideSkipped = false
+      const panel = modal.querySelector('#cl-guide-panel')
+      if (panel) panel.style.display = ''
+      updateGuideStep(0)
     }
 
     function hideGuide() {
@@ -685,21 +799,28 @@ function initValuation() {
         dataUrl = canvas.toDataURL('image/jpeg', 0.96)
       }
       dataUrl = await compressImage(dataUrl);
+
+      // ── Shot-quality gate: reject blurry photos ──────────────────────
+      const sharpness = await measureSharpness(dataUrl)
+      const SHARPNESS_FLOOR = 8  // empirical threshold — below this = too blurry
+      if (sharpness < SHARPNESS_FLOOR) {
+        toast('Photo too blurry — hold steady and retake. Tap the shutter again.', 'warning')
+        renderPreviews()
+        return  // don't save this frame, don't advance the guide
+      }
+
       images.push({ data: dataUrl, name: `cam-${resolution}-${Date.now()}.jpg` })
 
-      // Advance guided capture step after each snap
-      if (!guideSkipped && guideStep < 2) {
-        updateGuideStep(guideStep + 1)
-        if (guideStep + 1 === 1) {
-          // Auto-enable macro for step 2 (clasp detail)
-          if (!macroOn) toggleMacro(true)
-        } else if (guideStep + 1 === 2) {
-          // Disable macro for step 3 (box/papers — wider shot)
-          if (macroOn) toggleMacro(false)
+      // Advance guided capture step — now works with any sequence length
+      if (!guideSkipped) {
+        const seq = currentGuide()
+        if (guideStep < seq.length - 1) {
+          updateGuideStep(guideStep + 1)
+        } else {
+          // All guided steps completed — hide guide, show done message
+          hideGuide()
+          toast(`All ${seq.length} guided shots captured! You can analyze now or take more.`, 'success')
         }
-      } else if (guideStep >= 2 && !guideSkipped) {
-        // All steps done — hide the guide
-        hideGuide()
       }
 
       if (burstOn) {
@@ -724,6 +845,11 @@ function initValuation() {
       }
 
       renderPreviews()
+
+      // Update the shot counter in the guide panel
+      const shotCountEl = modal.querySelector('#cl-shot-count')
+      if (shotCountEl) shotCountEl.textContent = `${images.length} captured`
+
       toast('Captured', 'success')
     }
 
@@ -837,6 +963,21 @@ function initValuation() {
     modal.querySelector('#cl-cam-close').addEventListener('click', cleanup)
     modal.querySelector('#cl-guide-skip').addEventListener('click', hideGuide)
 
+    // ── Category selector wiring ───────────────────────────────────────
+    modal.querySelectorAll('.cl-cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Update active styling
+        modal.querySelectorAll('.cl-cat-btn').forEach(b => {
+          b.className = 'cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all'
+        })
+        btn.className = 'cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-gold/40 bg-gold/10 text-gold transition-all'
+        switchCategory(btn.dataset.cat)
+      })
+    })
+
+    // Initialize the guide with the default category's steps + dot indicators
+    updateGuideStep(0)
+
     // Set default resolution visible
     const defaultRes = modal.querySelector(`[data-res="${resolution}"]`)
     if (defaultRes) defaultRes.classList.add('border-gold', 'text-gold', 'bg-gold/10')
@@ -850,6 +991,13 @@ function initValuation() {
       if (images.length === 0 && !descriptionInput?.value.trim()) {
         toast('Upload an image or describe the item first', 'warning');
         return;
+      }
+
+      // ── Pre-analyze confirmation dialog ────────────────────────────
+      // Show the user exactly what they're about to submit before hitting the API.
+      if (images.length > 0) {
+        const confirmed = await showAnalyzeConfirmation(images.length, descriptionInput?.value?.trim());
+        if (!confirmed) return;
       }
 
       analyzeBtn.disabled = true;
