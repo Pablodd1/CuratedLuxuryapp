@@ -1,0 +1,241 @@
+[
+  {
+    "id": "rol-126610ln",
+    "category": "Watches",
+    "brand": "Rolex",
+    "model": "Submariner Date 41mm",
+    "referenceNumber": "126610LN",
+    "caseMaterial": "Oystersteel 904L",
+    "caseSizeMm": 41,
+    "movement": "Calibre 3235 Automatic (70h reserve)",
+    "braceletType": "Oyster 3-link with Glidelock",
+    "msrpUSD": 10250,
+    "baselineMarketValueUSD": 13800,
+    "keywords": ["rolex", "submariner", "126610ln", "sub", "black", "oystersteel", "cerachrom"],
+    "forensicIndicators": {
+      "logoFontKerning": "Rolex coronet 5-point symmetry, sharp laser etch; text kerning is uniform",
+      "rehautAlignment": "Double ROLEX engraving; X aligns with right minute markers, R with left, coronet at 12",
+      "cyclopsMagnification": "Exact 2.5x magnification with anti-reflective coating applied underneath (blue tint)",
+      "hallmarks": "Oystersteel 904L brushed finish on lugs, polished case flanks, laser coronet at 6 oclock crystal"
+    }
+  },
+  {
+    "id": "rol-126610lv",
+    "category": "Watches",
+    "brand": "Rolex",
+    "model": "Submariner Date \"Kermit / Starbucks\"",
+    "referenceNumber": "126610LV",
+    "caseMaterial": "Oystersteel 904L",
+    "caseSizeMm": 41,
+    "movement": "Calibre 3235 Automatic",
+    "braceletType": "Oyster with Glidelock",
+    "msrpUSD": 10800,
+    "baselineMarketValueUSD": 15800,
+    "keywords": ["rolex", "submariner", "126610lv", "kermit", "starbucks", "green"],
+    "forensicIndicators": {
+      "logoFontKerning": "Green Cerachrom bezel insert with platinum PVD numerals",
+      "rehautAlignment": "Engraved serial number at 6 oclock rehaut position",
+      "cyclopsMagnification": "2.5x date magnification with AR coating",
+      "hallmarks": "Glidelock extension clasp with micro-adjust notches"
+    }
+  },
+  {
+    "id": "pp-5711-1a",
+    "category": "Watches",
+    "brand": "Patek Philippe",
+    "model": "Nautilus Blue Dial",
+    "referenceNumber": "5711/1A-010",
+    "caseMaterial": "Stainless Steel",
+    "caseSizeMm": 40,
+    "movement": "Calibre 26-330 S C Automatic",
+    "braceletType": "Integrated Steel Bracelet",
+    "msrpUSD": 34890,
+    "baselineMarketValueUSD": 95000,
+    "keywords": ["patek", "philippe", "nautilus", "5711", "5711/1a", "blue dial"],
+    "forensicIndicators": {
+      "logoFontKerning": "Patek Philippe geneve logo font in crisp white, proprietary date font",
+      "rehautAlignment": "Horizontal embossed dial gradient from blue to black at perimeter",
+      "cyclopsMagnification": "N/A (Flat sapphire crystal with double AR coating)",
+      "hallmarks": "Patek Philippe Seal (double PP) engraved on movement bridge; Gyromax balance wheel"
+    }
+  },
+  {
+    "id": "ap-15500st",
+    "category": "Watches",
+    "brand": "Audemars Piguet",
+    "model": "Royal Oak Selfwinding 41mm",
+    "referenceNumber": "15500ST.OO.1220ST.01",
+    "caseMaterial": "Stainless Steel",
+    "caseSizeMm": 41,
+    "movement": "Calibre 4302 Automatic",
+    "braceletType": "Integrated Royal Oak Steel Bracelet",
+    "msrpUSD": 27800,
+    "baselineMarketValueUSD": 45000,
+    "keywords": ["audemars piguet", "ap", "royal oak", "15500st", "tapisserie", "blue dial"],
+    "forensicIndicators": {
+      "logoFontKerning": "Grande Tapisserie guilloche dial pattern with micro-grid texture",
+      "rehautAlignment": "8 white gold hexagonal bezel screws perfectly aligned in circular orbit",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "AP logo applied at 12 oclock; 22k gold skeletonized rotor visible through caseback"
+    }
+  },
+  {
+    "id": "rm-11-03",
+    "category": "Watches",
+    "brand": "Richard Mille",
+    "model": "Automatic Flyback Chronograph",
+    "referenceNumber": "RM 11-03",
+    "caseMaterial": "Carbon TPT / Titanium",
+    "caseSizeMm": 50,
+    "movement": "Calibre RMAC3 Automatic Skeleton",
+    "braceletType": "Vented Rubber Strap",
+    "msrpUSD": 160000,
+    "baselineMarketValueUSD": 310000,
+    "keywords": ["richard mille", "rm11-03", "rm11", "flyback", "carbon tpt", "skeleton"],
+    "forensicIndicators": {
+      "logoFontKerning": "Randomized damascus wave pattern in Carbon TPT layer structure",
+      "rehautAlignment": "Grade 5 titanium 5-point spline screws on case exterior",
+      "cyclopsMagnification": "Over-sized date window with dual calendar discs at 12 oclock",
+      "hallmarks": "Deeply milled caseback serial number; black PVD titanium baseplate"
+    }
+  },
+  {
+    "id": "hermes-b25-togo-ghw",
+    "category": "Handbags",
+    "brand": "Hermès",
+    "model": "Birkin 25 Togo GHW",
+    "referenceNumber": "B25-TOGO-GHW",
+    "leatherType": "Togo Leather",
+    "hardware": "Gold Plated Hardware (GHW)",
+    "bagSize": "25 cm",
+    "msrpUSD": 11400,
+    "baselineMarketValueUSD": 28500,
+    "keywords": ["hermes", "birkin", "b25", "togo", "ghw", "gold hardware", "quota bag"],
+    "forensicIndicators": {
+      "logoFontKerning": "HERMÈS PARIS MADE IN FRANCE heat stamp centered below front flap seam",
+      "rehautAlignment": "Hand-sewn saddle stitch (sellier) with signature 18-degree diagonal slant",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "Blind stamp code on interior left strap arm (e.g. W for 2024, B for 2023); no serial card"
+    }
+  },
+  {
+    "id": "hermes-k25-epsom-phw",
+    "category": "Handbags",
+    "brand": "Hermès",
+    "model": "Kelly 25 Sellier Epsom PHW",
+    "referenceNumber": "K25-EPSOM-PHW",
+    "leatherType": "Epsom Calfskin",
+    "hardware": "Palladium Hardware (PHW)",
+    "bagSize": "25 cm",
+    "msrpUSD": 11900,
+    "baselineMarketValueUSD": 26000,
+    "keywords": ["hermes", "kelly", "k25", "sellier", "epsom", "phw", "palladium"],
+    "forensicIndicators": {
+      "logoFontKerning": "Foil heat stamp cleanly embossed into Epsom grain without bleeding",
+      "rehautAlignment": "Clasp touret turn-lock operates smooth continuous resistance",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "Matching key and padlock serial numbers engraved on bottom face"
+    }
+  },
+  {
+    "id": "chanel-classic-medium-lghw",
+    "category": "Handbags",
+    "brand": "Chanel",
+    "model": "Classic Medium Double Flap Caviar",
+    "referenceNumber": "A01112-CAVIAR",
+    "leatherType": "Pebbled Caviar Leather",
+    "hardware": "Light Gold Hardware (LGHW)",
+    "bagSize": "25.5 cm",
+    "msrpUSD": 10800,
+    "baselineMarketValueUSD": 9500,
+    "keywords": ["chanel", "classic flap", "double flap", "caviar", "lghw", "medium flap"],
+    "forensicIndicators": {
+      "logoFontKerning": "CC turn-lock right C overlaps left C at top, left C overlaps right at bottom",
+      "rehautAlignment": "Diamond quilting stitches align seamlessly across back patch pocket and flap",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "Post-2021 interior metal NFC microchip plaque with random 8-char code"
+    }
+  },
+  {
+    "id": "cartier-love-b6035517",
+    "category": "Fine Jewelry",
+    "brand": "Cartier",
+    "model": "Love Bracelet 18k Yellow Gold",
+    "referenceNumber": "B6035517",
+    "metalPurity": "18k Yellow Gold (Au 750)",
+    "msrpUSD": 7350,
+    "baselineMarketValueUSD": 6200,
+    "keywords": ["cartier", "love bracelet", "yellow gold", "750", "b6035517", "18k"],
+    "forensicIndicators": {
+      "logoFontKerning": "Crisp Cartier cursive logo, size stamp (e.g. 17), 750 metal purity stamp",
+      "rehautAlignment": "Functional screw motifs perfectly aligned flush with gold surface",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "French Eagle Head gold guarantee hallmark on interior hinge mechanism; serial format AB 1234"
+    }
+  },
+  {
+    "id": "vca-alhambra-vcara41300",
+    "category": "Fine Jewelry",
+    "brand": "Van Cleef & Arpels",
+    "model": "Vintage Alhambra 5 Motifs Yellow Gold Onyx",
+    "referenceNumber": "VCARA41300",
+    "metalPurity": "18k Yellow Gold (Au 750) & Onyx",
+    "msrpUSD": 5100,
+    "baselineMarketValueUSD": 4900,
+    "keywords": ["van cleef", "vca", "alhambra", "onyx", "vintage alhambra", "vcara41300"],
+    "forensicIndicators": {
+      "logoFontKerning": "Stamped VCA or Van Cleef & Arpels (never just Van Cleef)",
+      "rehautAlignment": "Beaded perlee border beads are symmetrical around every clover motif",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "Au750 stamp and individual serial number engraved on lobster clasp tag"
+    }
+  },
+  {
+    "id": "ferrari-sf90-stradale",
+    "category": "Luxury Vehicles",
+    "brand": "Ferrari",
+    "model": "SF90 Stradale 4.0L V8 Hybrid",
+    "referenceNumber": "SF90-STRADALE",
+    "msrpUSD": 525000,
+    "baselineMarketValueUSD": 510000,
+    "keywords": ["ferrari", "sf90", "stradale", "v8 hybrid", "hypercar", "maranello"],
+    "forensicIndicators": {
+      "logoFontKerning": "Cavallino Rampante stallion badge on front nose cone and steering wheel boss",
+      "rehautAlignment": "17-digit VIN etched on lower windshield corner and passenger door jamb plate",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "4.0L Twin-Turbo V8 with 3 electric motors (986 hp system output), 8-speed DCT"
+    }
+  },
+  {
+    "id": "porsche-911-gt3-rs-992",
+    "category": "Luxury Vehicles",
+    "brand": "Porsche",
+    "model": "911 GT3 RS (992 Gen) 4.0L",
+    "referenceNumber": "992-GT3RS",
+    "msrpUSD": 241300,
+    "baselineMarketValueUSD": 485000,
+    "keywords": ["porsche", "911", "gt3 rs", "992", "weissach", "flat-6", "naturally aspirated"],
+    "forensicIndicators": {
+      "logoFontKerning": "PORSCHE rear light bar lettering and GT3 RS side graphics",
+      "rehautAlignment": "Active DRS swan-neck rear wing and front diffuser air vanes",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "4.0L NA Flat-6 engine (518 hp, 9000 RPM redline), carbon fiber hood and doors"
+    }
+  },
+  {
+    "id": "bugatti-chiron-w16",
+    "category": "Luxury Vehicles",
+    "brand": "Bugatti",
+    "model": "Chiron 8.0L W16 Quad-Turbo",
+    "referenceNumber": "CHIRON-W16",
+    "msrpUSD": 3000000,
+    "baselineMarketValueUSD": 3600000,
+    "keywords": ["bugatti", "chiron", "w16", "quad-turbo", "molsheim", "hypercar"],
+    "forensicIndicators": {
+      "logoFontKerning": "Solid enamel Macaron badge on horseshoe grille",
+      "rehautAlignment": "Signature C-line side curve separating duo-tone carbon body panels",
+      "cyclopsMagnification": "N/A",
+      "hallmarks": "8.0L Quad-Turbo W16 engine (1479 hp), top speed limited to 420 km/h"
+    }
+  }
+]
