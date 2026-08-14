@@ -72,26 +72,35 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
                   </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
+                <div class="grid grid-cols-2 gap-2 relative">
+                  <div class="relative">
                     <label class="block text-[10px] text-white/20 mb-0.5 tracking-wider uppercase">Brand</label>
-                    <input name="brand" required placeholder="Rolex" class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 transition-all" />
+                    <input id="mf-brand" name="brand" required placeholder="Rolex" autocomplete="off" class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 transition-all" />
                   </div>
-                  <div>
+                  <div class="relative">
                     <label class="block text-[10px] text-white/20 mb-0.5 tracking-wider uppercase">Model</label>
-                    <input name="model" required placeholder="Submariner Date" class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 transition-all" />
+                    <input id="mf-model" name="model" required placeholder="Submariner Date" autocomplete="off" class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 transition-all" />
                   </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
+                <div class="grid grid-cols-2 gap-2 relative">
+                  <div class="relative">
                     <label class="block text-[10px] text-white/20 mb-0.5 tracking-wider uppercase">Reference Number</label>
-                    <input name="reference_number" placeholder="126610LN" class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 transition-all" />
+                    <input id="mf-ref" name="reference_number" placeholder="126610LN" autocomplete="off" class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 transition-all" />
                   </div>
                   <div>
                     <label class="block text-[10px] text-white/20 mb-0.5 tracking-wider uppercase">Serial Number</label>
-                    <input name="serial_number" placeholder="If known" class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 transition-all" />
+                    <input id="mf-serial" name="serial_number" placeholder="If known" class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 transition-all" />
                   </div>
+                </div>
+
+                {/* Autocomplete Suggestions Panel */}
+                <div id="autocomplete-panel" class="hidden relative z-50 mb-2 bg-neutral-900/95 border border-gold/40 rounded-lg shadow-2xl overflow-hidden backdrop-blur-md">
+                  <div class="bg-gold/10 px-3 py-1.5 border-b border-gold/20 flex items-center justify-between text-[10px] text-gold font-mono font-bold tracking-wider uppercase">
+                    <span><i class="fas fa-magic mr-1"></i> Tier 4 Reference Suggestions</span>
+                    <button type="button" id="ac-close-btn" class="text-white/40 hover:text-white">&times;</button>
+                  </div>
+                  <div id="ac-results-list" class="max-h-48 overflow-y-auto divide-y divide-white/5"></div>
                 </div>
 
                 {/* Watches-specific fields */}

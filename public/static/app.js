@@ -1150,6 +1150,105 @@ function initValuation() {
       resultsContent.appendChild(metaDiv);
     }
   }
+
+  // ── Tier 4 Autocomplete Engine ───────────────────────────────────────
+  const brandInput = $id('mf-brand');
+  const modelInput = $id('mf-model');
+  const refInput = $id('mf-ref');
+  const catSelect = $id('mf-category');
+  const acPanel = $id('autocomplete-panel');
+  const acList = $id('ac-results-list');
+  const acClose = $id('ac-close-btn');
+
+  let acDebounce = null;
+
+  async function triggerAutocomplete(query) {
+    if (!acPanel || !acList) return;
+    if (!query || query.trim().length < 2) {
+      hide(acPanel);
+      return;
+    }
+    const cat = catSelect?.value || '';
+    try {
+      const res = await api(`/api/autocomplete/search?q=${encodeURIComponent(query)}&category=${encodeURIComponent(cat)}`);
+      const items = res.results || [];
+      if (items.length === 0) {
+        hide(acPanel);
+        return;
+      }
+
+      acList.innerHTML = items.map(item => `
+        <div class="ac-item p-2.5 hover:bg-gold/10 cursor-pointer transition-colors flex items-center justify-between"
+             data-brand="${fmtText(item.brand)}"
+             data-model="${fmtText(item.model)}"
+             data-ref="${fmtText(item.referenceNumber)}"
+             data-cat="${fmtText(item.category)}"
+             data-mat="${fmtText(item.caseMaterial)}"
+             data-size="${item.caseSizeMm || ''}"
+             data-mvmt="${fmtText(item.movement)}"
+             data-brac="${fmtText(item.braceletType)}"
+             data-val="${item.baselineMarketValueUSD}">
+          <div>
+            <div class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span>${fmtText(item.brand)} ${fmtText(item.model)}</span>
+              <span class="px-1.5 py-0.2 bg-gold/20 text-gold text-[9px] font-mono rounded">Ref: ${fmtText(item.referenceNumber)}</span>
+            </div>
+            <div class="text-[10px] text-white/40 mt-0.5">
+              ${fmtText(item.category)} ${item.caseMaterial ? '\u00b7 ' + item.caseMaterial : ''} ${item.movement ? '\u00b7 ' + item.movement : ''}
+            </div>
+          </div>
+          <div class="text-right font-mono text-xs font-bold text-gold">
+            $${(item.baselineMarketValueUSD || 0).toLocaleString()}
+          </div>
+        </div>
+      `).join('');
+
+      show(acPanel);
+
+      // Attach click events to autocomplete items
+      acList.querySelectorAll('.ac-item').forEach(el => {
+        el.addEventListener('click', () => {
+          if (brandInput) brandInput.value = el.dataset.brand || '';
+          if (modelInput) modelInput.value = el.dataset.model || '';
+          if (refInput) refInput.value = el.dataset.ref || '';
+          if (catSelect && el.dataset.cat) catSelect.value = el.dataset.cat;
+
+          const matSel = document.querySelector('[name="case_material"]');
+          if (matSel && el.dataset.mat) matSel.value = el.dataset.mat;
+
+          const sizeInp = document.querySelector('[name="case_size_mm"]');
+          if (sizeInp && el.dataset.size) sizeInp.value = el.dataset.size;
+
+          const mvmtSel = document.querySelector('[name="movement"]');
+          if (mvmtSel && el.dataset.mvmt) mvmtSel.value = el.dataset.mvmt;
+
+          const bracSel = document.querySelector('[name="bracelet_type"]');
+          if (bracSel && el.dataset.brac) bracSel.value = el.dataset.brac;
+
+          const insValInp = document.querySelector('[name="insurance_value"]');
+          if (insValInp && el.dataset.val && !insValInp.value) insValInp.value = el.dataset.val;
+
+          hide(acPanel);
+          toast(`Selected ${el.dataset.brand} ${el.dataset.model} (${el.dataset.ref})`, 'success');
+        });
+      });
+
+    } catch (err) {
+      hide(acPanel);
+    }
+  }
+
+  function handleAcInput(e) {
+    clearTimeout(acDebounce);
+    acDebounce = setTimeout(() => {
+      triggerAutocomplete(e.target.value);
+    }, 200);
+  }
+
+  if (brandInput) brandInput.addEventListener('input', handleAcInput);
+  if (modelInput) modelInput.addEventListener('input', handleAcInput);
+  if (refInput) refInput.addEventListener('input', handleAcInput);
+  if (acClose) acClose.addEventListener('click', () => hide(acPanel));
 }
 
 // ========== Inventory Page ==========
