@@ -918,18 +918,40 @@ function initValuation() {
       })
     }
 
+    let sharpnessWorker = null
+    try {
+      if (typeof Worker !== 'undefined') {
+        sharpnessWorker = new Worker('/static/sharpness-worker.js')
+      }
+    } catch { /* Fallback to main thread */ }
+
     function measureSharpness(dataUrl) {
       return new Promise(resolve => {
         const img = new Image()
         img.onload = () => {
           const c = document.createElement('canvas')
-          // Downscale for speed — sharpness proxy via edge energy
           c.width = 256
           const ratio = img.height / img.width
           c.height = Math.round(256 * ratio)
           const ctx = c.getContext('2d')
           ctx.drawImage(img, 0, 0, c.width, c.height)
-          const data = ctx.getImageData(0, 0, c.width, c.height).data
+          const imgData = ctx.getImageData(0, 0, c.width, c.height)
+
+          if (sharpnessWorker) {
+            const reqId = Date.now() + Math.random()
+            const handler = (e) => {
+              if (e.data && e.data.id === reqId) {
+                sharpnessWorker.removeEventListener('message', handler)
+                resolve(e.data.sharpness)
+              }
+            }
+            sharpnessWorker.addEventListener('message', handler)
+            sharpnessWorker.postMessage({ imageData: imgData, width: c.width, height: c.height, id: reqId })
+            return
+          }
+
+          // Fallback: In-thread Laplacian edge energy computation
+          const data = imgData.data
           let energy = 0
           let count = 0
           for (let y = 1; y < c.height - 1; y++) {
@@ -942,7 +964,7 @@ function initValuation() {
               count++
             }
           }
-          resolve(energy / count)
+          resolve(Math.round((energy / count) * 10) / 10)
         }
         img.src = dataUrl
       })

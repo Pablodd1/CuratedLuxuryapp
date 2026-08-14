@@ -61,10 +61,14 @@ export function DossierPage({ itemId }: { itemId?: string }) {
             <p class="text-[9px] text-white/8 mt-1.5">AI-Assisted Pre-Appraisal Estimate — Not a Certificate of Authenticity — CuratedLux v2.5.0</p>
           </div>
           <div class="flex gap-2 mt-4 justify-center">
-            <button id="export-dossier-btn"
-              class="border border-gold/20 hover:border-gold/40 text-gold/50 hover:text-gold px-3 py-1.5 rounded text-xs transition-all inline-flex items-center gap-1.5">
-              <i class="fas fa-download text-[10px]"></i> Export
+            <button id="export-dossier-btn" onclick="window.print()"
+              class="bg-gold hover:bg-gold-light text-black font-bold px-4 py-2 rounded text-xs transition-all inline-flex items-center gap-1.5 shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+              <i class="fas fa-print text-[10px]"></i> Print / Export PDF Certificate
             </button>
+            <a id="verify-dossier-link" href="#" target="_blank"
+              class="border border-gold/30 hover:border-gold text-gold/70 hover:text-gold px-3 py-2 rounded text-xs transition-all inline-flex items-center gap-1.5">
+              <i class="fas fa-shield-check text-[10px]"></i> Verify Authenticity
+            </a>
           </div>
         </div>
       </div>

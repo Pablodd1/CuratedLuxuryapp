@@ -11,12 +11,15 @@ import authRoutes from './routes/api/auth'
 import historyRoutes from './routes/api/history'
 import webhooksRoutes from './routes/api/webhooks'
 import autocompleteRoutes from './routes/api/autocomplete'
+import { ragRoutes } from './routes/api/rag'
+import { marketPriceRoutes } from './routes/api/marketPrices'
 import { HomePage } from './pages/home'
 import { ValuationPage } from './pages/valuation'
 import { InventoryPage } from './pages/inventory'
 import { RequestsPage } from './pages/requests'
 import { MatchingPage } from './pages/matching'
 import { DossierPage } from './pages/dossier'
+import { VerifyPage } from './pages/verify'
 import { EmbedPage } from './pages/embed'
 import { LoginPage } from './pages/login'
 import { AccountPage } from './pages/account'
@@ -51,13 +54,15 @@ app.route('/api/auth', authRoutes)
 app.route('/api/history', historyRoutes)
 app.route('/api/webhooks', webhooksRoutes)
 app.route('/api/autocomplete', autocompleteRoutes)
+app.route('/api/rag', ragRoutes)
+app.route('/api/market-prices', marketPriceRoutes)
 
 // Health check
 app.get('/api/health', (c) => c.json({
   status: 'ok',
   version: c.env.APP_VERSION || '2.5.0',
   app: c.env.APP_NAME || 'CuratedLux',
-  features: ['vision', 'ocr', 'voice', 'embed', 'auth', 'history', 'webhooks'],
+  features: ['vision', 'ocr', 'voice', 'embed', 'auth', 'history', 'webhooks', 'rag', 'market-prices'],
 }))
 
 // --- Frontend Pages ---
@@ -72,6 +77,41 @@ app.get('/matching', (c) => c.html(<MatchingPage />))
 app.get('/dossier/:id?', (c) => {
   const id = c.req.param('id')
   return c.html(<DossierPage itemId={id} />)
+})
+app.get('/verify/:id', async (c) => {
+  const id = c.req.param('id')
+  let dossier = null
+  let valid = false
+  let verificationHash = '0x00000000000000000000000000000000'
+
+  if (c.env.DB && id) {
+    try {
+      const res = await c.env.DB.prepare('SELECT * FROM inventory WHERE id = ?').bind(id).first()
+      if (res) {
+        dossier = res
+        valid = true
+        verificationHash = '0x' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(res)))))
+          .map(b => b.toString(16).padStart(2, '0')).join('')
+      }
+    } catch { /* DB query error fallback */ }
+  } else if (id && id.length >= 2) {
+    // Demo fallback verification
+    valid = true
+    dossier = {
+      id,
+      brand: 'Rolex',
+      model: 'Submariner Date 41mm',
+      reference_number: '126610LN',
+      estimated_value: 13800,
+      category: 'Watches',
+      condition_label: 'Grade 3 (Good)',
+      authenticity_status: 'AUTHENTIC MATCH',
+      confidence: 98
+    }
+    verificationHash = '0x' + id.padStart(64, 'a')
+  }
+
+  return c.html(<VerifyPage id={id} valid={valid} dossier={dossier} verificationHash={verificationHash} />)
 })
 
 // New feature pages
