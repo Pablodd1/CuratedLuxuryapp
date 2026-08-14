@@ -1135,6 +1135,95 @@ function initValuation() {
       if (valParent) valParent.after(ocrDiv);
     }
 
+    // ── Interactive Confirmation & Edit Panel ─────────────────────────
+    let editSection = $id('result-edit-section');
+    if (!editSection) {
+      editSection = document.createElement('div');
+      editSection.id = 'result-edit-section';
+      resultsContent.appendChild(editSection);
+    }
+
+    editSection.className = 'mt-4 pt-4 border-t border-gold/20 space-y-3';
+    editSection.innerHTML = `
+      <div class="bg-gold/5 border border-gold/20 rounded-lg p-3 space-y-3">
+        <div class="flex items-center justify-between text-xs text-gold font-mono font-bold tracking-wider uppercase">
+          <span><i class="fas fa-user-check mr-1"></i> Step 3: Final Verification &amp; Confirmation</span>
+          <button id="toggle-edit-fields-btn" type="button" class="text-white/40 hover:text-gold text-[10px]">
+            <i class="fas fa-pen mr-1"></i> Edit Fields
+          </button>
+        </div>
+
+        <div id="review-editable-fields" class="space-y-2 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[9px] text-white/30 uppercase block">Brand</label>
+              <input id="rev-brand" value="${data.brand || ''}" class="w-full bg-surface border border-white/10 rounded px-2 py-1 text-white text-xs" />
+            </div>
+            <div>
+              <label class="text-[9px] text-white/30 uppercase block">Model</label>
+              <input id="rev-model" value="${data.model || ''}" class="w-full bg-surface border border-white/10 rounded px-2 py-1 text-white text-xs" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[9px] text-white/30 uppercase block">Reference Number</label>
+              <input id="rev-ref" value="${data.referenceNumber || ''}" class="w-full bg-surface border border-white/10 rounded px-2 py-1 text-white text-xs font-mono" />
+            </div>
+            <div>
+              <label class="text-[9px] text-white/30 uppercase block">Market Value (USD)</label>
+              <input id="rev-value" type="number" value="${data.estimatedValue || 0}" class="w-full bg-surface border border-white/10 rounded px-2 py-1 text-gold text-xs font-mono font-bold" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Control Buttons -->
+        <div class="pt-2 grid grid-cols-2 gap-2">
+          <button id="rev-back-btn" type="button" class="border border-white/20 hover:border-gold/50 text-white/70 hover:text-gold py-2 rounded text-xs transition-all flex items-center justify-center gap-1.5">
+            <i class="fas fa-arrow-left"></i> Back / Retake
+          </button>
+          <button id="rev-save-btn" type="button" class="bg-gold hover:bg-gold-light text-black font-bold py-2 rounded text-xs transition-all shadow-[0_0_15px_rgba(180,150,30,0.2)] flex items-center justify-center gap-1.5">
+            <i class="fas fa-check-double"></i> Confirm &amp; Save
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Wire Back / Retake button
+    const backBtn = editSection.querySelector('#rev-back-btn');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        if (resultsContent) hide(resultsContent);
+        if (resultsEmpty) show(resultsEmpty);
+        toast('Returned to capture step. You can retake photos or edit description.', 'info');
+      });
+    }
+
+    // Wire Save & Confirm button
+    const saveBtn = editSection.querySelector('#rev-save-btn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const updated = {
+          brand: $id('rev-brand')?.value || data.brand,
+          model: $id('rev-model')?.value || data.model,
+          reference_number: $id('rev-ref')?.value || data.referenceNumber,
+          estimated_value: parseFloat($id('rev-value')?.value || data.estimatedValue || 0),
+          category: data.category || 'Watches',
+          condition_grade: data.condition_grade || 3,
+          condition_label: data.condition_label || 'Good',
+          status: 'active'
+        };
+        try {
+          const storedRes = await api('/api/inventory', { method: 'POST', data: updated });
+          toast('Valuation confirmed & stored in inventory database!', 'success');
+          if (storedRes.id) {
+            window.location.href = '/dossier/' + storedRes.id;
+          }
+        } catch (err) {
+          toast('Failed to save confirmation: ' + (err.message || err), 'error');
+        }
+      });
+    }
+
     // Pipeline metadata
     if (meta && resultsContent) {
       const metaDiv = document.createElement('div');
