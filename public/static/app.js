@@ -493,18 +493,40 @@ function initValuation() {
           </div>
         </div>
 
-        <!-- Video viewport with crosshair guides -->
-        <div class="relative">
+        <!-- Video viewport with crosshair guides & LIVE Floating HUD Banner -->
+        <div class="relative overflow-hidden rounded-xl bg-black">
           <video id="cl-cam-video" class="w-full rounded-xl bg-black" autoplay playsinline muted></video>
+          
+          <!-- LIVE TOP FLOATING HUD BANNER (On Top of Screen) -->
+          <div id="cl-live-hud-banner" class="absolute top-3 left-3 right-3 z-30 bg-black/75 border border-gold/40 rounded-lg p-2.5 backdrop-blur-md shadow-2xl flex items-center justify-between pointer-events-none transition-all">
+            <div class="flex items-center gap-2.5">
+              <span id="cl-hud-step-badge" class="px-2 py-0.5 bg-gold/20 border border-gold/40 text-gold text-[10px] font-mono font-bold rounded uppercase">Step 1/4</span>
+              <div>
+                <div id="cl-hud-shot-title" class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i class="fas fa-crosshairs text-gold text-[10px]"></i>
+                  <span>Dial / Face</span>
+                </div>
+                <div id="cl-hud-distance-text" class="text-[10px] font-mono text-gold/90 font-medium">
+                  📏 Distance: 25–35 cm (Straight-on)
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span id="cl-hud-instruction-short" class="text-[10px] text-white/70 block max-w-[140px] truncate">Center subject in reticle</span>
+              <span id="cl-hud-macro-badge" class="text-[9px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded hidden">MACRO ON</span>
+            </div>
+          </div>
+
           <!-- Two-thirds rule guides for product framing -->
           <div class="absolute inset-0 pointer-events-none">
             <div class="absolute top-1/3 left-0 right-0 h-px bg-white/10"></div>
             <div class="absolute top-2/3 left-0 right-0 h-px bg-white/10"></div>
             <div class="absolute left-1/3 top-0 bottom-0 w-px bg-white/10"></div>
             <div class="absolute left-2/3 top-0 bottom-0 w-px bg-white/10"></div>
-            <div class="absolute top-1/2 left-1/2 w-12 h-12 -translate-x-1/2 -translate-y-1/2 border border-gold/40 rounded-full"></div>
+            <!-- Central Golden Reticle -->
+            <div class="absolute top-1/2 left-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 border-2 border-gold/60 rounded-full animate-pulse shadow-[0_0_20px_rgba(212,175,55,0.3)]"></div>
           </div>
-          <div id="cl-cam-info" class="absolute bottom-2 left-2 text-[10px] font-mono text-gold/80 bg-black/40 px-2 py-0.5 rounded"></div>
+          <div id="cl-cam-info" class="absolute bottom-2 left-2 text-[10px] font-mono text-gold/80 bg-black/40 px-2 py-0.5 rounded z-30"></div>
         </div>
 
         <!-- Mic waveform + status -->
@@ -543,41 +565,38 @@ function initValuation() {
     let guideSkipped = false
     let activeCategory = 'Watches'  // changes the guided sequence per asset type
 
-    // ── Category-aware guided photo sequences ───────────────────────────
-    // Each step tells the user WHAT to frame, HOW many shots are expected,
-    // and whether macro should be on. The API uses image[0] for vision ID
-    // and image[1+] for OCR (serials, certs, barcodes).
+    // ── Category-aware guided photo sequences with DISTANCE & TARGET ZONES ──
     const GUIDE_SEQUENCES = {
       Watches: [
-        { icon: 'fa-clock', shot: 'Dial / Face', instruction: 'Photograph the dial straight-on. Fill the center circle. Ensure logo, text, and hands are sharp and well-lit.', macro: false },
-        { icon: 'fa-magnifying-glass-plus', shot: 'Caseback / Serial', instruction: 'Flip the watch. Photograph the caseback engravings and serial number. Use MACRO if the text is small.', macro: true },
-        { icon: 'fa-link', shot: 'Clasp / Bracelet', instruction: 'Photograph the clasp and any end-link engravings. This confirms bracelet authenticity.', macro: true },
-        { icon: 'fa-box-archive', shot: 'Box & Papers', instruction: 'Photograph the warranty card, box label, and any receipts. OCR will extract serials and dates automatically.', macro: false },
+        { icon: 'fa-clock', shot: 'Dial / Face', distance: '25–35 cm (Straight-on)', instruction: 'Photograph the dial straight-on. Position watch face inside center golden reticle. Ensure logo and hands are sharp.', macro: false },
+        { icon: 'fa-magnifying-glass-plus', shot: 'Caseback / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Flip watch. Photograph caseback engravings and serial number. Hold steady 10-15 cm away.', macro: true },
+        { icon: 'fa-link', shot: 'Clasp / Bracelet', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph clasp mechanism and end-link hallmarks up close.', macro: true },
+        { icon: 'fa-box-archive', shot: 'Box & Papers', distance: '20–30 cm (Full Card View)', instruction: 'Photograph warranty card, box label, and receipt. Keep card flat and well-lit for OCR.', macro: false },
       ],
       Handbags: [
-        { icon: 'fa-bag-shopping', shot: 'Full Bag — Front', instruction: 'Photograph the entire bag front, straight-on. Show the overall shape, leather grain, and hardware.', macro: false },
-        { icon: 'fa-fire', shot: 'Heat Stamp / Logo', instruction: 'Close-up on the brand heat stamp or foil logo. Must be sharp — check letter spacing and depth.', macro: true },
-        { icon: 'fa-hashtag', shot: 'Date Code / Serial', instruction: 'Find the date code or serial stamp (inside tag, under flap, or on strap). Photograph it clearly for OCR.', macro: true },
-        { icon: 'fa-grip-lines', shot: 'Stitching & Hardware', instruction: 'Photograph the stitching close-up and the hardware engravings (zippers, buckles, turn-lock).', macro: true },
-        { icon: 'fa-box-archive', shot: 'Box & Dust Bag', instruction: 'Photograph the original box, dust bag, and any authenticity cards.', macro: false },
+        { icon: 'fa-bag-shopping', shot: 'Full Bag — Front', distance: '40–60 cm (Full View)', instruction: 'Photograph entire bag front straight-on. Show full shape, leather grain, and handle alignment.', macro: false },
+        { icon: 'fa-fire', shot: 'Heat Stamp / Logo', distance: '10–15 cm (Macro Close-Up)', instruction: 'Close-up on brand heat stamp or foil logo. Must be sharp — check letter kerning and foil depth.', macro: true },
+        { icon: 'fa-hashtag', shot: 'Date Code / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Find date code or blind stamp inside tag or under flap. Photograph clearly for OCR.', macro: true },
+        { icon: 'fa-grip-lines', shot: 'Stitching & Hardware', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph stitching thread tension and hardware engravings (zipper pull, turn-lock).', macro: true },
+        { icon: 'fa-box-archive', shot: 'Box & Dust Bag', distance: '30–45 cm (Overview)', instruction: 'Photograph original box, dust bag, and authenticity booklet.', macro: false },
       ],
       'Fine Jewelry': [
-        { icon: 'fa-gem', shot: 'Full Piece', instruction: 'Photograph the entire piece straight-on on a neutral background. Show overall design and proportions.', macro: false },
-        { icon: 'fa-stamp', shot: 'Hallmark / Stamp', instruction: 'Close-up on the metal hallmark (e.g., 750, Pt950, 18K). This confirms metal purity.', macro: true },
-        { icon: 'fa-snowflake', shot: 'Gemstone / Setting', instruction: 'Photograph the gemstone close-up — show the cut, facets, and prong setting.', macro: true },
-        { icon: 'fa-weight-hanging', shot: 'Clasp / Serial', instruction: 'Photograph the clasp mechanism and any serial engraving on the piece.', macro: true },
+        { icon: 'fa-gem', shot: 'Full Piece', distance: '20–30 cm (Centered)', instruction: 'Photograph full piece on a neutral background. Show overall design and symmetry.', macro: false },
+        { icon: 'fa-stamp', shot: 'Hallmark / Stamp', distance: '8–12 cm (Ultra Macro)', instruction: 'Close-up on metal hallmark stamp (750, Pt950, 18K). Confirms metal purity.', macro: true },
+        { icon: 'fa-snowflake', shot: 'Gemstone / Setting', distance: '8–12 cm (Ultra Macro)', instruction: 'Photograph main gemstone close-up — show facet clarity and prong setting.', macro: true },
+        { icon: 'fa-weight-hanging', shot: 'Clasp / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph clasp mechanism and micro-serial engraving.', macro: true },
       ],
       'Luxury Vehicles': [
-        { icon: 'fa-car-side', shot: '3/4 Front', instruction: 'Photograph the vehicle from a 3/4 front angle. Show the badge, headlights, and body panel gaps.', macro: false },
-        { icon: 'fa-gauge-high', shot: 'Dashboard / Odometer', instruction: 'Photograph the dashboard — focus on the odometer reading and instrument cluster.', macro: false },
-        { icon: 'fa-id-card', shot: 'VIN Plate', instruction: 'Photograph the VIN plate (usually windshield corner or door jamb). OCR will extract the 17-digit number.', macro: true },
-        { icon: 'fa-couch', shot: 'Interior Details', instruction: 'Photograph the interior stitching, seats, and any badges or trim details.', macro: false },
+        { icon: 'fa-car-side', shot: '3/4 Front Angle', distance: '2–3 meters (Full Vehicle)', instruction: 'Photograph vehicle from 3/4 front angle. Show badge, headlight, and panel gaps.', macro: false },
+        { icon: 'fa-gauge-high', shot: 'Dashboard / Odometer', distance: '50–70 cm (Interior)', instruction: 'Photograph dashboard — focus clearly on digital/analog odometer reading.', macro: false },
+        { icon: 'fa-id-card', shot: 'VIN Plate', distance: '15–25 cm (Close-Up)', instruction: 'Photograph VIN plate at windshield base or door jamb for 17-digit OCR extraction.', macro: true },
+        { icon: 'fa-couch', shot: 'Interior Stitching', distance: '30–50 cm (Detail View)', instruction: 'Photograph seat leather stitching, headrest badge, and carbon fiber trim weave.', macro: false },
       ],
       'Art & Collectibles': [
-        { icon: 'fa-image', shot: 'Full Work', instruction: 'Photograph the entire piece straight-on, centered. No glare or reflections on the surface.', macro: false },
-        { icon: 'fa-signature', shot: 'Signature', instruction: 'Close-up on the signature. Must be sharp enough to read the handwriting style.', macro: true },
-        { icon: 'fa-list-ol', shot: 'Edition / Number', instruction: 'Photograph any edition number, date, or markings (corner, back, or certificate).', macro: true },
-        { icon: 'fa-certificate', shot: 'Certificate / COA', instruction: 'Photograph the certificate of authenticity or provenance documents. OCR will extract text.', macro: false },
+        { icon: 'fa-image', shot: 'Full Work', distance: '1–2 meters (Straight-on)', instruction: 'Photograph entire artwork centered, straight-on. Avoid reflections and harsh glare.', macro: false },
+        { icon: 'fa-signature', shot: 'Signature', distance: '15–25 cm (Close-Up)', instruction: 'Close-up on artist signature or maker stamp. Must be sharp to verify stroke style.', macro: true },
+        { icon: 'fa-list-ol', shot: 'Edition / Markings', distance: '15–25 cm (Close-Up)', instruction: 'Photograph edition numbering (e.g. 12/50) and corner/rear markings.', macro: true },
+        { icon: 'fa-certificate', shot: 'Certificate / COA', distance: '25–35 cm (Document View)', instruction: 'Photograph Certificate of Authenticity or provenance documentation.', macro: false },
       ],
     }
 
@@ -599,6 +618,24 @@ function initValuation() {
       if (icon) { icon.className = `fas ${cur.icon}` }
       if (label) label.textContent = `Step ${step + 1} of ${total} — ${cur.shot}`
       if (instruction) instruction.textContent = cur.instruction
+
+      // Update Live Floating HUD Overlay on top of camera screen
+      const hudBadge = modal.querySelector('#cl-hud-step-badge')
+      const hudTitle = modal.querySelector('#cl-hud-shot-title span')
+      const hudTitleIcon = modal.querySelector('#cl-hud-shot-title i')
+      const hudDist = modal.querySelector('#cl-hud-distance-text')
+      const hudInst = modal.querySelector('#cl-hud-instruction-short')
+      const hudMacro = modal.querySelector('#cl-hud-macro-badge')
+
+      if (hudBadge) hudBadge.textContent = `Step ${step + 1}/${total}`
+      if (hudTitle) hudTitle.textContent = cur.shot
+      if (hudTitleIcon) hudTitleIcon.className = `fas ${cur.icon} text-gold text-[10px]`
+      if (hudDist) hudDist.textContent = `📏 Distance: ${cur.distance || '25–35 cm'}`
+      if (hudInst) hudInst.textContent = cur.instruction.slice(0, 45) + '...'
+      if (hudMacro) {
+        if (cur.macro) hudMacro.classList.remove('hidden')
+        else hudMacro.classList.add('hidden')
+      }
 
       // Rebuild dots dynamically based on this category's step count
       if (dotsContainer) {
