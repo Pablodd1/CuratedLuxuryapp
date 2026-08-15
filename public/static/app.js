@@ -489,6 +489,33 @@ function initValuation() {
             </div>
           </div>
           <p id="cl-step-instruction" class="text-sm text-white/80 font-medium">Frame the dial — position the watch face in the center circle</p>
+
+          <!-- LIVE readiness checklist — updates while framing (green = good) -->
+          <div id="cl-live-checks" class="mt-2 grid grid-cols-3 gap-1.5">
+            <div id="cl-check-light" class="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-white/40">
+              <i class="fas fa-sun text-[9px]"></i><span>Light</span>
+            </div>
+            <div id="cl-check-steady" class="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-white/40">
+              <i class="fas fa-hand text-[9px]"></i><span>Steady</span>
+            </div>
+            <div id="cl-check-frame" class="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-white/40">
+              <i class="fas fa-expand text-[9px]"></i><span>Fill frame</span>
+            </div>
+          </div>
+
+          <!-- Example card: "like this / not this" -->
+          <div id="cl-example-card" class="mt-2 bg-black/30 border border-white/10 rounded-lg p-2">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] uppercase tracking-wider text-white/30 font-mono">Example</span>
+              <span class="text-[9px] text-white/30">tap to expand</span>
+            </div>
+            <div id="cl-example-svg" class="w-full" style="max-height:110px; overflow:hidden;"></div>
+            <div class="grid grid-cols-2 gap-2 mt-1">
+              <span id="cl-example-good" class="text-[9px] text-emerald-400/80 font-medium truncate"></span>
+              <span id="cl-example-bad" class="text-[9px] text-red-400/70 font-medium truncate text-right"></span>
+            </div>
+          </div>
+
           <div id="cl-step-dots" class="flex items-center gap-1.5 mt-2">
           </div>
         </div>
@@ -543,8 +570,9 @@ function initValuation() {
           <button id="cl-cam-flip" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-gold flex items-center justify-center" title="Flip">
             <i class="fas fa-camera-rotate"></i>
           </button>
-          <button id="cl-cam-snap" class="w-20 h-20 rounded-full bg-white border-4 border-gold flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+          <button id="cl-cam-snap" class="relative w-20 h-20 rounded-full bg-white border-4 border-gold flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.4)]" title="Take photo">
             <i class="fas fa-camera text-black text-2xl"></i>
+            <span id="cl-ready-ring" class="hidden absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-black text-[8px] font-mono font-bold animate-pulse">READY</span>
           </button>
           <button id="cl-cam-torch" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-gold flex items-center justify-center" title="Torch">
             <i class="fas fa-bolt"></i>
@@ -566,41 +594,181 @@ function initValuation() {
     let activeCategory = 'Watches'  // changes the guided sequence per asset type
 
     // ── Category-aware guided photo sequences with DISTANCE & TARGET ZONES ──
+    // example: key into EXAMPLES map → renders a "like this / not this" diagram card
     const GUIDE_SEQUENCES = {
       Watches: [
-        { icon: 'fa-clock', shot: 'Dial / Face', distance: '25–35 cm (Straight-on)', instruction: 'Photograph the dial straight-on. Position watch face inside center golden reticle. Ensure logo and hands are sharp.', macro: false },
-        { icon: 'fa-magnifying-glass-plus', shot: 'Caseback / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Flip watch. Photograph caseback engravings and serial number. Hold steady 10-15 cm away.', macro: true },
-        { icon: 'fa-link', shot: 'Clasp / Bracelet', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph clasp mechanism and end-link hallmarks up close.', macro: true },
-        { icon: 'fa-box-archive', shot: 'Box & Papers', distance: '20–30 cm (Full Card View)', instruction: 'Photograph warranty card, box label, and receipt. Keep card flat and well-lit for OCR.', macro: false },
+        { icon: 'fa-clock', shot: 'Dial / Face', distance: '25–35 cm (Straight-on)', instruction: 'Photograph the dial straight-on. Position watch face inside center golden reticle. Ensure logo and hands are sharp.', macro: false, example: 'dial' },
+        { icon: 'fa-magnifying-glass-plus', shot: 'Caseback / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Flip watch. Photograph caseback engravings and serial number. Hold steady 10-15 cm away.', macro: true, example: 'macro' },
+        { icon: 'fa-link', shot: 'Clasp / Bracelet', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph clasp mechanism and end-link hallmarks up close.', macro: true, example: 'macro' },
+        { icon: 'fa-box-archive', shot: 'Box & Papers', distance: '20–30 cm (Full Card View)', instruction: 'Photograph warranty card, box label, and receipt. Keep card flat and well-lit for OCR.', macro: false, example: 'card' },
       ],
       Handbags: [
-        { icon: 'fa-bag-shopping', shot: 'Full Bag — Front', distance: '40–60 cm (Full View)', instruction: 'Photograph entire bag front straight-on. Show full shape, leather grain, and handle alignment.', macro: false },
-        { icon: 'fa-fire', shot: 'Heat Stamp / Logo', distance: '10–15 cm (Macro Close-Up)', instruction: 'Close-up on brand heat stamp or foil logo. Must be sharp — check letter kerning and foil depth.', macro: true },
-        { icon: 'fa-hashtag', shot: 'Date Code / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Find date code or blind stamp inside tag or under flap. Photograph clearly for OCR.', macro: true },
-        { icon: 'fa-grip-lines', shot: 'Stitching & Hardware', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph stitching thread tension and hardware engravings (zipper pull, turn-lock).', macro: true },
-        { icon: 'fa-box-archive', shot: 'Box & Dust Bag', distance: '30–45 cm (Overview)', instruction: 'Photograph original box, dust bag, and authenticity booklet.', macro: false },
+        { icon: 'fa-bag-shopping', shot: 'Full Bag — Front', distance: '40–60 cm (Full View)', instruction: 'Photograph entire bag front straight-on. Show full shape, leather grain, and handle alignment.', macro: false, example: 'bag' },
+        { icon: 'fa-fire', shot: 'Heat Stamp / Logo', distance: '10–15 cm (Macro Close-Up)', instruction: 'Close-up on brand heat stamp or foil logo. Must be sharp — check letter kerning and foil depth.', macro: true, example: 'macro' },
+        { icon: 'fa-hashtag', shot: 'Date Code / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Find date code or blind stamp inside tag or under flap. Photograph clearly for OCR.', macro: true, example: 'macro' },
+        { icon: 'fa-grip-lines', shot: 'Stitching & Hardware', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph stitching thread tension and hardware engravings (zipper pull, turn-lock).', macro: true, example: 'macro' },
+        { icon: 'fa-box-archive', shot: 'Box & Dust Bag', distance: '30–45 cm (Overview)', instruction: 'Photograph original box, dust bag, and authenticity booklet.', macro: false, example: 'card' },
       ],
       'Fine Jewelry': [
-        { icon: 'fa-gem', shot: 'Full Piece', distance: '20–30 cm (Centered)', instruction: 'Photograph full piece on a neutral background. Show overall design and symmetry.', macro: false },
-        { icon: 'fa-stamp', shot: 'Hallmark / Stamp', distance: '8–12 cm (Ultra Macro)', instruction: 'Close-up on metal hallmark stamp (750, Pt950, 18K). Confirms metal purity.', macro: true },
-        { icon: 'fa-snowflake', shot: 'Gemstone / Setting', distance: '8–12 cm (Ultra Macro)', instruction: 'Photograph main gemstone close-up — show facet clarity and prong setting.', macro: true },
-        { icon: 'fa-weight-hanging', shot: 'Clasp / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph clasp mechanism and micro-serial engraving.', macro: true },
+        { icon: 'fa-gem', shot: 'Full Piece', distance: '20–30 cm (Centered)', instruction: 'Photograph full piece on a neutral background. Show overall design and symmetry.', macro: false, example: 'gem' },
+        { icon: 'fa-stamp', shot: 'Hallmark / Stamp', distance: '8–12 cm (Ultra Macro)', instruction: 'Close-up on metal hallmark stamp (750, Pt950, 18K). Confirms metal purity.', macro: true, example: 'macro' },
+        { icon: 'fa-snowflake', shot: 'Gemstone / Setting', distance: '8–12 cm (Ultra Macro)', instruction: 'Photograph main gemstone close-up — show facet clarity and prong setting.', macro: true, example: 'gem' },
+        { icon: 'fa-weight-hanging', shot: 'Clasp / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph clasp mechanism and micro-serial engraving.', macro: true, example: 'macro' },
       ],
       'Luxury Vehicles': [
-        { icon: 'fa-car-side', shot: '3/4 Front Angle', distance: '2–3 meters (Full Vehicle)', instruction: 'Photograph vehicle from 3/4 front angle. Show badge, headlight, and panel gaps.', macro: false },
-        { icon: 'fa-gauge-high', shot: 'Dashboard / Odometer', distance: '50–70 cm (Interior)', instruction: 'Photograph dashboard — focus clearly on digital/analog odometer reading.', macro: false },
-        { icon: 'fa-id-card', shot: 'VIN Plate', distance: '15–25 cm (Close-Up)', instruction: 'Photograph VIN plate at windshield base or door jamb for 17-digit OCR extraction.', macro: true },
-        { icon: 'fa-couch', shot: 'Interior Stitching', distance: '30–50 cm (Detail View)', instruction: 'Photograph seat leather stitching, headrest badge, and carbon fiber trim weave.', macro: false },
+        { icon: 'fa-car-side', shot: '3/4 Front Angle', distance: '2–3 meters (Full Vehicle)', instruction: 'Photograph vehicle from 3/4 front angle. Show badge, headlight, and panel gaps.', macro: false, example: 'car' },
+        { icon: 'fa-gauge-high', shot: 'Dashboard / Odometer', distance: '50–70 cm (Interior)', instruction: 'Photograph dashboard — focus clearly on digital/analog odometer reading.', macro: false, example: 'dash' },
+        { icon: 'fa-id-card', shot: 'VIN Plate', distance: '15–25 cm (Close-Up)', instruction: 'Photograph VIN plate at windshield base or door jamb for 17-digit OCR extraction.', macro: true, example: 'macro' },
+        { icon: 'fa-couch', shot: 'Interior Stitching', distance: '30–50 cm (Detail View)', instruction: 'Photograph seat leather stitching, headrest badge, and carbon fiber trim weave.', macro: false, example: 'macro' },
       ],
       'Art & Collectibles': [
-        { icon: 'fa-image', shot: 'Full Work', distance: '1–2 meters (Straight-on)', instruction: 'Photograph entire artwork centered, straight-on. Avoid reflections and harsh glare.', macro: false },
-        { icon: 'fa-signature', shot: 'Signature', distance: '15–25 cm (Close-Up)', instruction: 'Close-up on artist signature or maker stamp. Must be sharp to verify stroke style.', macro: true },
-        { icon: 'fa-list-ol', shot: 'Edition / Markings', distance: '15–25 cm (Close-Up)', instruction: 'Photograph edition numbering (e.g. 12/50) and corner/rear markings.', macro: true },
-        { icon: 'fa-certificate', shot: 'Certificate / COA', distance: '25–35 cm (Document View)', instruction: 'Photograph Certificate of Authenticity or provenance documentation.', macro: false },
+        { icon: 'fa-image', shot: 'Full Work', distance: '1–2 meters (Straight-on)', instruction: 'Photograph entire artwork centered, straight-on. Avoid reflections and harsh glare.', macro: false, example: 'art' },
+        { icon: 'fa-signature', shot: 'Signature', distance: '15–25 cm (Close-Up)', instruction: 'Close-up on artist signature or maker stamp. Must be sharp to verify stroke style.', macro: true, example: 'macro' },
+        { icon: 'fa-list-ol', shot: 'Edition / Markings', distance: '15–25 cm (Close-Up)', instruction: 'Photograph edition numbering (e.g. 12/50) and corner/rear markings.', macro: true, example: 'macro' },
+        { icon: 'fa-certificate', shot: 'Certificate / COA', distance: '25–35 cm (Document View)', instruction: 'Photograph Certificate of Authenticity or provenance documentation.', macro: false, example: 'card' },
       ],
     }
 
     function currentGuide() { return GUIDE_SEQUENCES[activeCategory] || GUIDE_SEQUENCES['Watches'] }
+
+    // ── "Like this / Not this" example diagrams (inline SVG — no external assets) ──
+    // Each key shows a correct framing (left) vs a bad one (right) with a one-line caption.
+    const EXAMPLES = {
+      dial: {
+        good: 'Dial fills the reticle, straight-on, sharp logo',
+        bad: 'Tilted, glare on crystal, too far away',
+        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
+          <circle cx="39" cy="42" r="22" fill="none" stroke="#d4af37" stroke-width="2"/>
+          <circle cx="39" cy="42" r="16" fill="#111827"/>
+          <line x1="39" y1="42" x2="39" y2="30" stroke="#e5e7eb" stroke-width="1.5"/>
+          <line x1="39" y1="42" x2="48" y2="46" stroke="#e5e7eb" stroke-width="1.5"/>
+          <ellipse cx="121" cy="42" rx="26" ry="16" fill="none" stroke="#d4af37" stroke-width="1.5" transform="rotate(-18 121 42)"/>
+          <ellipse cx="121" cy="38" rx="24" ry="10" fill="rgba(255,255,255,0.45)" transform="rotate(-18 121 38)"/>
+          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
+          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
+          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">centered · sharp</text>
+          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">tilted · glare</text>
+        </svg>`
+      },
+      macro: {
+        good: 'Engraving fills frame, camera steady and close',
+        bad: 'Too far — text unreadable, camera shaking',
+        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="39" y="46" text-anchor="middle" fill="#e5e7eb" font-size="11" font-family="monospace" letter-spacing="1">A7F2 904L</text>
+          <rect x="14" y="32" width="50" height="18" fill="none" stroke="#10b981" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
+          <text x="121" y="42" text-anchor="middle" fill="#6b7280" font-size="5.5" font-family="monospace">A7F2 904L</text>
+          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
+          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">close · readable</text>
+          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">too far · tiny</text>
+        </svg>`
+      },
+      card: {
+        good: 'Card flat, fills frame, even light',
+        bad: 'Curved card, shadow across the text',
+        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="12" y="24" width="54" height="34" rx="3" fill="#f9fafb"/>
+          <line x1="17" y1="32" x2="61" y2="32" stroke="#111827" stroke-width="2"/>
+          <line x1="17" y1="38" x2="50" y2="38" stroke="#6b7280" stroke-width="1"/>
+          <line x1="17" y1="43" x2="55" y2="43" stroke="#6b7280" stroke-width="1"/>
+          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
+          <path d="M 92 44 Q 121 34 150 44 L 150 54 Q 121 46 92 54 Z" fill="#d1d5db"/>
+          <path d="M 92 44 Q 121 34 150 44 L 150 48 Q 121 38 92 48 Z" fill="rgba(0,0,0,0.4)"/>
+          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
+          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">flat · even light</text>
+          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">curved · shadow</text>
+        </svg>`
+      },
+      bag: {
+        good: 'Whole bag in frame, straight-on, handles up',
+        bad: 'Bag cut off, shot from the side',
+        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
+          <path d="M 22 34 h 34 v 30 h -34 z" fill="#92400e" stroke="#d4af37"/>
+          <path d="M 30 34 q 9 -14 18 0" fill="none" stroke="#d4af37" stroke-width="2"/>
+          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
+          <path d="M 108 38 l 26 -6 v 26 l -26 6 z" fill="#92400e" stroke="#ef4444"/>
+          <path d="M 96 30 l 8 2" stroke="#ef4444" stroke-width="1" stroke-dasharray="2 2"/>
+          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
+          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">full · straight</text>
+          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">cut off · angled</text>
+        </svg>`
+      },
+      gem: {
+        good: 'Piece centered on plain background',
+        bad: 'Cluttered background, piece off-center',
+        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
+          <path d="M 33 30 l 12 -8 l 12 8 l -6 24 h -12 z" fill="#60a5fa" stroke="#d4af37"/>
+          <circle cx="39" cy="42" r="26" fill="none" stroke="#d4af37" stroke-width="1" stroke-dasharray="4 3"/>
+          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
+          <path d="M 128 38 l 10 -6 l 10 6 l -5 18 h -10 z" fill="#60a5fa" stroke="#ef4444" transform="rotate(14 133 40)"/>
+          <rect x="95" y="52" width="14" height="10" fill="#374151"/>
+          <circle cx="148" cy="26" r="6" fill="#374151"/>
+          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
+          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">plain · centered</text>
+          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">clutter · tilted</text>
+        </svg>`
+      },
+      car: {
+        good: '3/4 angle — badge, headlight AND side visible',
+        bad: 'Dead-on front, half the car out of frame',
+        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
+          <path d="M 10 52 l 8 -10 l 14 -4 l 12 -8 l 14 8 l 8 14 z" fill="#1f2937" stroke="#d4af37"/>
+          <circle cx="24" cy="54" r="4" fill="#111"/><circle cx="56" cy="54" r="4" fill="#111"/>
+          <circle cx="17" cy="46" r="2.5" fill="#fbbf24"/>
+          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
+          <path d="M 104 40 l 50 0 l -4 14 l -44 0 z" fill="#1f2937" stroke="#ef4444"/>
+          <path d="M 150 40 l 10 0" stroke="#ef4444" stroke-width="1" stroke-dasharray="2 2"/>
+          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
+          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">3/4 · badge+side</text>
+          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">flat · cut off</text>
+        </svg>`
+      },
+      dash: {
+        good: 'Odometer sharp and readable',
+        bad: 'Glare washing out the numbers',
+        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="14" y="30" width="50" height="20" rx="3" fill="#000"/>
+          <text x="39" y="44" text-anchor="middle" fill="#4ade80" font-size="9" font-family="monospace">042,138 km</text>
+          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
+          <rect x="92" y="30" width="50" height="20" rx="3" fill="#000"/>
+          <text x="117" y="44" text-anchor="middle" fill="#4ade80" font-size="9" font-family="monospace" opacity="0.25">042,138 km</text>
+          <ellipse cx="117" cy="40" rx="24" ry="10" fill="rgba(255,255,255,0.5)"/>
+          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
+          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">readable</text>
+          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">glare · washed</text>
+        </svg>`
+      },
+      art: {
+        good: 'Full work, edges parallel to frame',
+        bad: 'Keystoned (shot from side), glare spot',
+        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
+          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="16" y="22" width="46" height="36" fill="#1e3a5f" stroke="#d4af37"/>
+          <circle cx="39" cy="40" r="9" fill="#f59e0b"/>
+          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
+          <path d="M 96 24 L 146 20 L 150 58 L 100 62 Z" fill="#1e3a5f" stroke="#ef4444"/>
+          <ellipse cx="124" cy="38" rx="14" ry="8" fill="rgba(255,255,255,0.45)"/>
+          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
+          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">square · no glare</text>
+          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">skewed · glare</text>
+        </svg>`
+      },
+    }
 
     function updateGuideStep(step) {
       guideStep = step
@@ -618,6 +786,23 @@ function initValuation() {
       if (icon) { icon.className = `fas ${cur.icon}` }
       if (label) label.textContent = `Step ${step + 1} of ${total} — ${cur.shot}`
       if (instruction) instruction.textContent = cur.instruction
+
+      // Render the "like this / not this" example card for this step
+      const ex = EXAMPLES[cur.example]
+      const exSvg = modal.querySelector('#cl-example-svg')
+      const exGood = modal.querySelector('#cl-example-good')
+      const exBad = modal.querySelector('#cl-example-bad')
+      const exCard = modal.querySelector('#cl-example-card')
+      if (exCard) {
+        if (ex) {
+          exCard.style.display = ''
+          if (exSvg) exSvg.innerHTML = ex.svg
+          if (exGood) exGood.textContent = '✓ ' + ex.good
+          if (exBad) exBad.textContent = '✗ ' + ex.bad
+        } else {
+          exCard.style.display = 'none'
+        }
+      }
 
       // Update Live Floating HUD Overlay on top of camera screen
       const hudBadge = modal.querySelector('#cl-hud-step-badge')
@@ -711,6 +896,9 @@ function initValuation() {
         if (macroOn) await toggleMacro(true)
 
         if (micOn) startMicCapture(stream)
+
+        // Live readiness checks + READY shutter ring
+        startLiveQA()
       } catch (err) {
         toast('Camera access denied: ' + (err.message || err), 'error')
         cleanup()
@@ -980,7 +1168,110 @@ function initValuation() {
       } catch (e) { toast('Torch toggle failed', 'error') }
     }
 
+    // ── LIVE quality monitor ────────────────────────────────────────────
+    // Samples the live feed ~2x/sec and drives the readiness checklist +
+    // the READY ring on the shutter so users know the shot is good BEFORE
+    // they press. Checks: brightness (too dark/blown), steadiness (frame
+    // delta), and subject presence (center-region contrast).
+    let liveQaTimer = null
+    let prevSample = null
+    let lastReadyAt = 0
+
+    function setCheck(id, state, hint) {
+      const el = modal.querySelector(id)
+      if (!el) return
+      // state: 'good' | 'warn' | null (idle)
+      el.className = `flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded border transition-all ${
+        state === 'good' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+        : state === 'warn' ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+        : 'bg-white/5 border-white/10 text-white/40'}`
+      el.title = hint || ''
+    }
+
+    function setShutterReady(ready) {
+      const btn = modal.querySelector('#cl-cam-snap')
+      const ring = modal.querySelector('#cl-ready-ring')
+      if (!btn) return
+      if (ready) {
+        btn.classList.add('shadow-[0_0_40px_rgba(16,185,129,0.7)]')
+        btn.style.borderColor = '#10b981'
+        if (ring) ring.classList.remove('hidden')
+      } else {
+        btn.classList.remove('shadow-[0_0_40px_rgba(16,185,129,0.7)]')
+        btn.style.borderColor = ''
+        if (ring) ring.classList.add('hidden')
+      }
+    }
+
+    function startLiveQA() {
+      stopLiveQA()
+      const cvs = document.createElement('canvas')
+      cvs.width = 64; cvs.height = 48  // tiny — cheap
+      const ctx = cvs.getContext('2d', { willReadFrequently: true })
+      const RETICLE = { x0: 0.35, x1: 0.65, y0: 0.30, y1: 0.70 }  // center zone
+
+      liveQaTimer = setInterval(() => {
+        if (!stream || videoEl.readyState < 2) return
+        try { ctx.drawImage(videoEl, 0, 0, cvs.width, cvs.height) } catch { return }
+        const d = ctx.getImageData(0, 0, cvs.width, cvs.height).data
+
+        // 1. Brightness (average luma)
+        let sum = 0
+        for (let i = 0; i < d.length; i += 4) {
+          sum += 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2]
+        }
+        const avgLuma = sum / (d.length / 4)
+        const lightOk = avgLuma > 45 && avgLuma < 215
+        const lightWarn = !lightOk
+        setCheck('#cl-check-light', lightOk ? 'good' : 'warn',
+          lightOk ? 'Good lighting' : (avgLuma <= 45 ? 'Too dark — add light or use torch' : 'Too bright — avoid direct glare'))
+
+        // 2. Steadiness (mean abs diff vs previous frame)
+        let steadyOk = false
+        if (prevSample) {
+          let diff = 0, n = 0
+          for (let i = 0; i < d.length; i += 16) {
+            diff += Math.abs(d[i] - prevSample[i]); n++
+          }
+          const md = diff / n
+          steadyOk = md < 12   // small inter-frame motion = held steady
+          setCheck('#cl-check-steady', steadyOk ? 'good' : 'warn',
+            steadyOk ? 'Camera steady' : 'Hold still — phone is moving')
+        } else {
+          setCheck('#cl-check-steady', null)
+        }
+        prevSample = new Uint8Array(d)
+
+        // 3. Fill frame — contrast inside the center reticle zone
+        let cMin = 255, cMax = 0
+        for (let y = Math.floor(cvs.height*RETICLE.y0); y < cvs.height*RETICLE.y1; y++) {
+          for (let x = Math.floor(cvs.width*RETICLE.x0); x < cvs.width*RETICLE.x1; x++) {
+            const i = (y*cvs.width + x)*4
+            const l = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2]
+            if (l < cMin) cMin = l
+            if (l > cMax) cMax = l
+          }
+        }
+        const contrast = cMax - cMin
+        const frameOk = contrast > 28   // a subject in the reticle gives local contrast
+        setCheck('#cl-check-frame', frameOk ? 'good' : 'warn',
+          frameOk ? 'Subject in reticle' : 'Center the subject inside the golden circle')
+
+        // READY = all three good (steady needs a prior frame)
+        const ready = lightOk && steadyOk && frameOk
+        setShutterReady(ready)
+        if (ready) lastReadyAt = Date.now()
+      }, 500)
+    }
+
+    function stopLiveQA() {
+      if (liveQaTimer) { clearInterval(liveQaTimer); liveQaTimer = null }
+      prevSample = null
+      setShutterReady(false)
+    }
+
     function cleanup() {
+      stopLiveQA()
       try { if (stream) stream.getTracks().forEach(t => t.stop()) } catch {}
       try { if (audioContext) audioContext.close() } catch {}
       try { if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop() } catch {}
