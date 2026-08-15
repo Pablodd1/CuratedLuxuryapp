@@ -1,5 +1,9 @@
 /* CuratedLux v2.0 — Gold Luxury Minimal */
 
+/* Hide horizontal scrollbar on the mobile nav tab strip */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Hero gradient */
 .hero-gradient {
   background: radial-gradient(ellipse at 50% 0%, rgba(180,150,30,0.06) 0%, transparent 60%),

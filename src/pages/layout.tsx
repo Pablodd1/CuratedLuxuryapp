@@ -116,14 +116,20 @@ export function Layout({ title, active, children, embed = false }: { title: stri
         {!embed && (
           <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-gold/[0.06]">
             <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-11">
-              <div class="flex items-center">
-                <a href="/valuation" class="text-gold font-semibold tracking-widest text-xs mr-4 uppercase">
+              <div class="flex items-center min-w-0">
+                <button onclick="clxGoBack()"
+                  class="flex items-center gap-1.5 text-[11px] text-white/40 hover:text-gold transition-colors mr-3 shrink-0"
+                  title="Back to original site">
+                  <i class="fas fa-arrow-left text-[10px]"></i>
+                  <span class="hidden sm:inline">Back</span>
+                </button>
+                <a href="/valuation" class="text-gold font-semibold tracking-widest text-xs mr-4 uppercase shrink-0">
                   CuratedLux
                 </a>
-                <div class="flex items-center gap-0.5">
+                <div class="flex items-center gap-0.5 overflow-x-auto no-scrollbar">
                   {tabs.map(tab => (
                     <a href={tab.href}
-                      class={`px-3 py-1.5 rounded text-[11px] font-medium transition-colors ${
+                      class={`px-3 py-1.5 rounded text-[11px] font-medium transition-colors whitespace-nowrap ${
                         active === tab.label.toLowerCase()
                           ? 'bg-gold/[0.08] text-gold'
                           : 'text-white/30 hover:text-white/60'
@@ -134,12 +140,12 @@ export function Layout({ title, active, children, embed = false }: { title: stri
                   ))}
                 </div>
               </div>
-              <div class="flex items-center gap-3">
-                <a href="/history" class="text-[11px] text-white/30 hover:text-white/60">
-                  <i class="fas fa-clock-rotate-left mr-1"></i>History
+              <div class="flex items-center gap-3 shrink-0">
+                <a href="/history" class="text-[11px] text-white/30 hover:text-white/60 whitespace-nowrap">
+                  <i class="fas fa-clock-rotate-left mr-1"></i><span class="hidden sm:inline">History</span>
                 </a>
-                <a href="/account" class="text-[11px] text-white/30 hover:text-white/60">
-                  <i class="fas fa-user mr-1"></i>Account
+                <a href="/account" class="text-[11px] text-white/30 hover:text-white/60 whitespace-nowrap">
+                  <i class="fas fa-user mr-1"></i><span class="hidden sm:inline">Account</span>
                 </a>
               </div>
             </div>
@@ -147,10 +153,25 @@ export function Layout({ title, active, children, embed = false }: { title: stri
         )}
         {embed && (
           <div class="clx-embed-bar bg-black/40 backdrop-blur-sm border-b border-gold/10 px-4 py-1.5 flex items-center justify-between text-[10px] font-mono">
-            <span class="text-gold/70"><i class="fas fa-shield-halved mr-1"></i>CURATEDLUX · EMBED MODE</span>
+            <button onclick="clxGoBack()" class="text-gold/80 hover:text-gold transition-colors flex items-center gap-1">
+              <i class="fas fa-arrow-left"></i> Back to site
+            </button>
             <span class="text-white/30">press Esc to exit</span>
           </div>
         )}
+        <script>{html`
+          window.clxGoBack = function () {
+            // Embedded in an iframe → tell the parent to close/surrender the frame
+            if (window.parent !== window) {
+              try { window.parent.postMessage({ type: 'clx:exit' }, '*'); } catch (e) {}
+            }
+            // Then fall back to history, else the original site
+            if (document.referrer && document.referrer !== location.href) {
+              try { if (history.length > 1) { history.back(); return; } } catch (e) {}
+            }
+            location.href = 'https://watchfact.com';
+          };
+        `}</script>
         <main class={`flex-1 max-w-7xl mx-auto px-4 py-5 w-full${embed ? ' embed-main' : ''}`}>
           {children}
         </main>
