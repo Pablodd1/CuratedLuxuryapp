@@ -4,12 +4,17 @@
 // GET  /api/credits/posted     → the user's capped posted history
 import { Hono } from 'hono'
 import { getUserCredits, consumeCredit, logPostedItem, DEFAULT_CREDITS, POSTED_HISTORY_CAP } from '../../lib/credits'
+import { optionalAuth } from '../../lib/auth'
 
 type Bindings = {
   DB: any
 }
 
 const app = new Hono<{ Bindings: Bindings; Variables: { user: any } }>()
+
+// Populate c.get('user') from Bearer token / session cookie (audit C1: the guard
+// below read a variable no middleware ever set — every request 401'd).
+app.use('*', optionalAuth)
 
 // Require auth
 app.use('*', async (c, next) => {

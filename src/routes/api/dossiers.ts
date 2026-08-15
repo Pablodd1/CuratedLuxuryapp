@@ -1,6 +1,10 @@
 import { Hono } from 'hono'
+import { requireAuth, optionalAuth } from '../../lib/auth'
 
-const app = new Hono()
+const app = new Hono<{ Bindings: { DB: any } }>()
+
+// audit C3: attach auth context; mutations gated below
+app.use('*', optionalAuth)
 
 // GET /api/dossiers — list all dossiers with inventory join
 app.get('/', async (c) => {
@@ -19,7 +23,7 @@ app.get('/', async (c) => {
     const { results } = await db.prepare(sql).bind(...params).all()
     return c.json({ items: results, limit: Number(limit) || 50, offset: Number(offset) || 0 })
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
@@ -40,12 +44,12 @@ app.get('/:id', async (c) => {
 
     return c.json(dossier)
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
 // POST /api/dossiers — create a new dossier for an inventory item
-app.post('/', async (c) => {
+app.post('/', requireAuth, async (c) => {
   try {
     const db = c.env.DB
     const body = await c.req.json<{
@@ -61,75 +65,75 @@ app.post('/', async (c) => {
     if (!inv) return c.json({ error: 'Inventory item not found' }, 404)
 
     const id = crypto.randomUUID()
-    const qrCode = `CL-DOSSIER-${id.slice(0, 8).toUpperCase()}`
+    const user: any = c.get('user')
 
-    await db.prepare(`INSERT INTO dossiers (id, inventory_id, owner_id, appraiser_name, appraiser_signature, qr_verification_code, device_hash, notes, export_count, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`)
-      .bind(id, body.inventory_id, body.owner_id || 'demo-user',
+    // audit C3 + schema fix: prod dossiers table = (id, inventory_id, appraiser,
+    // notes, certificate_data, export_count, created_at). Previous INSERT referenced
+    // six columns that don't exist (owner_id, appraiser_name, appraiser_signature,
+    // qr_verification_code, device_hash, updated_at) — every create 500'd.
+    const certData = JSON.stringify({
+      appraiser_name: body.appraiser_name || 'CuratedLux AI Appraiser',
+      appraiser_signature: body.appraiser_signature || 'Digitally Certified by CuratedLux AI',
+      qr_verification_code: `CL-DOSSIER-${id.slice(0, 8).toUpperCase()}`,
+      created_by: user?.id || 'system',
+    })
+
+    await db.prepare(`INSERT INTO dossiers (id, inventory_id, appraiser, notes, certificate_data, export_count, created_at)
+      VALUES (?, ?, ?, ?, ?, 0, ?)`)
+      .bind(id, body.inventory_id,
         body.appraiser_name || 'CuratedLux AI Appraiser',
-        body.appraiser_signature || 'Digitally Certified by CuratedLux AI',
-        qrCode, '', body.notes || '', now, now)
+        body.notes || '', certData, now)
       .run()
 
     const dossier = await db.prepare(`SELECT d.*, i.brand, i.model, i.reference_number, i.estimated_value
       FROM dossiers d JOIN inventory i ON d.inventory_id = i.id WHERE d.id = ?`).bind(id).first()
 
-    // Log activity
-    await db.prepare('INSERT INTO activity_log (user_id, action, entity_type, entity_id, details) VALUES (?, ?, ?, ?, ?)')
-      .bind(body.owner_id || 'demo-user', 'CREATE_DOSSIER', 'dossier', id, `Dossier created for inventory ${body.inventory_id}`)
-      .run()
-
     return c.json(dossier, 201)
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
 // PUT /api/dossiers/:id — update dossier fields
-app.put('/:id', async (c) => {
+app.put('/:id', requireAuth, async (c) => {
   try {
     const id = c.req.param('id')
+    const user: any = c.get('user')
     const body = await c.req.json()
     const now = new Date().toISOString()
 
     const existing = await c.env.DB.prepare('SELECT * FROM dossiers WHERE id = ?').bind(id).first()
     if (!existing) return c.json({ error: 'Not found' }, 404)
 
-    await c.env.DB.prepare(`UPDATE dossiers SET appraiser_name=?, appraiser_signature=?, notes=?, updated_at=? WHERE id=?`)
-      .bind(body.appraiser_name ?? existing.appraiser_name,
-        body.appraiser_signature ?? existing.appraiser_signature,
-        body.notes ?? existing.notes, now, id)
+    await c.env.DB.prepare(`UPDATE dossiers SET appraiser=?, notes=? WHERE id=?`)
+      .bind(body.appraiser_name ?? existing.appraiser,
+        body.notes ?? existing.notes, id)
       .run()
 
     const updated = await c.env.DB.prepare(`SELECT d.*, i.brand, i.model, i.reference_number, i.estimated_value
       FROM dossiers d JOIN inventory i ON d.inventory_id = i.id WHERE d.id = ?`).bind(id).first()
     return c.json(updated)
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
 // POST /api/dossiers/:id/export — increment export counter
-app.post('/:id/export', async (c) => {
+app.post('/:id/export', requireAuth, async (c) => {
   try {
     const id = c.req.param('id')
     const dossier = await c.env.DB.prepare('SELECT * FROM dossiers WHERE id = ?').bind(id).first()
     if (!dossier) return c.json({ error: 'Not found' }, 404)
 
     const result = await c.env.DB.prepare(
-      'UPDATE dossiers SET export_count = export_count + 1, updated_at = ? WHERE id = ?'
-    ).bind(new Date().toISOString(), id).run()
+      'UPDATE dossiers SET export_count = export_count + 1 WHERE id = ?'
+    ).bind(id).run()
 
     const updated = await c.env.DB.prepare('SELECT * FROM dossiers WHERE id = ?').bind(id).first()
 
-    // Log activity
-    await c.env.DB.prepare('INSERT INTO activity_log (user_id, action, entity_type, entity_id, details) VALUES (?, ?, ?, ?, ?)')
-      .bind('demo-user', 'EXPORT_DOSSIER', 'dossier', id, `Dossier exported (count: ${updated.export_count})`)
-      .run()
-
-    return c.json({ success: true, export_count: updated.export_count })
+    return c.json({ success: true, export_count: (updated as any)?.export_count })
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 

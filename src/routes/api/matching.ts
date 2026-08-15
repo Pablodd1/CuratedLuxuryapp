@@ -1,10 +1,14 @@
 import { Hono } from 'hono'
+import { requireAuth, optionalAuth } from '../../lib/auth'
 
-const app = new Hono()
+const app = new Hono<{ Bindings: { DB: any } }>()
+
+// audit C3: attach auth context; mutations gated below
+app.use('*', optionalAuth)
 
 // --- Matchmaking Engine ---
 // POST /api/matching/run — run matchmaking for a specific request or all active requests
-app.post('/run', async (c) => {
+app.post('/run', requireAuth, async (c) => {
   try {
     const db = c.env.DB
     const { request_id } = await c.req.json<{ request_id?: string }>()
@@ -102,7 +106,7 @@ app.post('/run', async (c) => {
 
     return c.json({ matches_created: matchesCreated, requests_processed: requests.length, inventory_scanned: inventory.length })
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
@@ -130,7 +134,7 @@ app.get('/', async (c) => {
     const { results } = await db.prepare(sql).bind(...params).all()
     return c.json({ items: results, limit: Number(limit) || 50, offset: Number(offset) || 0 })
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
@@ -148,15 +152,15 @@ app.get('/:id', async (c) => {
     if (!match) return c.json({ error: 'Not found' }, 404)
     return c.json(match)
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
 // PUT /api/matching/:id/accept — accept a match
-app.put('/:id/accept', async (c) => {
+app.put('/:id/accept', requireAuth, async (c) => {
   try {
     const id = c.req.param('id')
-    const match = await c.env.DB.prepare('SELECT * FROM matches WHERE id = ?').bind(id).first<{ request_id: string; inventory_id: string }>()
+    const match = await c.env.DB.prepare('SELECT * FROM matches WHERE id = ?').bind(id).first()
     if (!match) return c.json({ error: 'Not found' }, 404)
 
     const now = new Date().toISOString()
@@ -169,12 +173,12 @@ app.put('/:id/accept', async (c) => {
 
     return c.json({ success: true, id, match_status: 'accepted' })
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
 // PUT /api/matching/:id/reject — reject a match
-app.put('/:id/reject', async (c) => {
+app.put('/:id/reject', requireAuth, async (c) => {
   try {
     const id = c.req.param('id')
     const match = await c.env.DB.prepare('SELECT * FROM matches WHERE id = ?').bind(id).first()
@@ -183,7 +187,7 @@ app.put('/:id/reject', async (c) => {
     await c.env.DB.prepare('UPDATE matches SET match_status = ? WHERE id = ?').bind('rejected', id).run()
     return c.json({ success: true, id, match_status: 'rejected' })
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 
@@ -191,9 +195,9 @@ app.put('/:id/reject', async (c) => {
 app.get('/stats/summary', async (c) => {
   try {
     const db = c.env.DB
-    const total = await db.prepare('SELECT COUNT(*) as c FROM matches').first<{ c: number }>()
+    const total = await db.prepare('SELECT COUNT(*) as c FROM matches').first()
     const byStatus = await db.prepare('SELECT match_status, COUNT(*) as c FROM matches GROUP BY match_status').all()
-    const avgScore = await db.prepare('SELECT AVG(overall_score) as avg FROM matches').first<{ avg: number }>()
+    const avgScore = await db.prepare('SELECT AVG(overall_score) as avg FROM matches').first()
     const topMatches = await db.prepare(
       `SELECT m.*, i.brand as inv_brand, i.model as inv_model, r.client_name, r.looking_for_brand, r.looking_for_model
        FROM matches m JOIN inventory i ON m.inventory_id = i.id JOIN client_requests r ON m.request_id = r.id
@@ -207,7 +211,7 @@ app.get('/stats/summary', async (c) => {
       topMatches: topMatches.results
     })
   } catch (err: any) {
-    return c.json({ error: err.message }, 500)
+    return c.json({ error: 'Server error' }, 500)
   }
 })
 

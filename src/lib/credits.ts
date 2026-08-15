@@ -34,23 +34,27 @@ export async function consumeCredit(
   userId: string,
   reason = 'authentication'
 ): Promise<CreditState> {
-  const state = await getUserCredits(db, userId)
-  if (state.credits <= 0) {
-    throw new Error('NO_CREDITS')
-  }
-
-  await db.prepare(
-    'UPDATE users SET credits = credits - 1, credits_used = credits_used + 1 WHERE id = ?'
+  // audit H4: atomic decrement — the WHERE credits > 0 guard makes the
+  // read-check-write race impossible (concurrent posts can't both pass).
+  const res = await db.prepare(
+    'UPDATE users SET credits = credits - 1, credits_used = credits_used + 1 WHERE id = ? AND credits > 0'
   ).bind(userId).run()
 
-  // Audit ledger
+  if (!res?.meta?.changes || res.meta.changes < 1) {
+    const state = await getUserCredits(db, userId)
+    if (state.credits <= 0) throw new Error('NO_CREDITS')
+    // credits existed but row didn't update — treat as failure, don't double-spend
+    throw new Error('CREDIT_UPDATE_FAILED')
+  }
+
+  // Audit ledger (best-effort)
   try {
     await db.prepare(
       'INSERT INTO credit_ledger (id, user_id, delta, reason, created_at) VALUES (?, ?, -1, ?, ?)'
     ).bind(crypto.randomUUID(), userId, reason, new Date().toISOString()).run()
   } catch { /* ledger is best-effort */ }
 
-  return { credits: state.credits - 1, creditsUsed: state.creditsUsed + 1 }
+  return getUserCredits(db, userId)
 }
 
 /**

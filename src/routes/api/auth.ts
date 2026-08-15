@@ -45,6 +45,52 @@ function embedOrigin(req: Request): string | null {
   }
 }
 
+// ── Audit H3: brute-force throttle ──────────────────────────────────────────
+// Two layers: fast in-memory (per isolate) + durable D1 counter (shared across
+// all isolates/colos). D1 is authoritative; memory short-circuits when warm.
+const authFails = new Map<string, { n: number; ts: number }>()
+const AUTH_FAIL_LIMIT = 8
+const AUTH_WINDOW_MS = 15 * 60_000
+
+function memThrottled(key: string): boolean {
+  const f = authFails.get(key)
+  if (!f || Date.now() - f.ts > AUTH_WINDOW_MS) return false
+  return f.n >= AUTH_FAIL_LIMIT
+}
+function memRecord(key: string) {
+  const now = Date.now()
+  const f = authFails.get(key)
+  if (!f || now - f.ts > AUTH_WINDOW_MS) { authFails.set(key, { n: 1, ts: now }); return }
+  f.n++
+}
+function memClear(key: string) { authFails.delete(key) }
+function clientKey(c: any, email: string): string {
+  return `${email}|${c.req.header('cf-connecting-ip') || 'unknown'}`
+}
+
+// D1-backed counters (table: sessions reused pattern — dedicated table created
+// via REST during audit; tolerant if absent).
+async function d1Throttled(db: any, key: string): Promise<boolean> {
+  try {
+    const row = await db.prepare('SELECT fails, ts FROM auth_throttle WHERE k = ?').bind(key).first()
+    if (!row) return false
+    if (Date.now() - Number(row.ts) > AUTH_WINDOW_MS) return false
+    return Number(row.fails) >= AUTH_FAIL_LIMIT
+  } catch { return false }
+}
+async function d1Record(db: any, key: string) {
+  try {
+    await db.prepare(`INSERT INTO auth_throttle (k, fails, ts) VALUES (?, 1, ?)
+      ON CONFLICT(k) DO UPDATE SET
+        fails = CASE WHEN ? - ts > ${AUTH_WINDOW_MS} THEN 1 ELSE fails + 1 END,
+        ts = CASE WHEN ? - ts > ${AUTH_WINDOW_MS} THEN ? ELSE ts END`)
+      .bind(key, Date.now(), Date.now(), Date.now(), Date.now()).run()
+  } catch { /* table missing — memory layer still applies */ }
+}
+async function d1Clear(db: any, key: string) {
+  try { await db.prepare('DELETE FROM auth_throttle WHERE k = ?').bind(key).run() } catch {}
+}
+
 // POST /api/auth/signup — { email, password, display_name }
 app.post('/signup', async (c) => {
   try {
@@ -55,6 +101,11 @@ app.post('/signup', async (c) => {
     if (!email || !password) return c.json({ error: 'email_and_password_required' }, 400)
     if (password.length < 8) return c.json({ error: 'password_too_short', message: 'Password must be at least 8 characters' }, 400)
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return c.json({ error: 'invalid_email' }, 400)
+    // audit H3: signup spam throttle (memory OR durable D1 counter)
+    const skey = clientKey(c, email)
+    if (memThrottled(skey) || await d1Throttled(c.env.DB, skey)) {
+      return c.json({ error: 'too_many_attempts', message: 'Too many attempts — try again in 15 minutes' }, 429)
+    }
 
     const existing = await getUserByEmail(c.env.DB, email)
     if (existing) return c.json({ error: 'email_taken', message: 'Account already exists — try signing in' }, 409)
@@ -93,11 +144,25 @@ app.post('/login', async (c) => {
     const password = body.password || ''
     if (!email || !password) return c.json({ error: 'email_and_password_required' }, 400)
 
+    // audit H3: throttle before touching the DB (memory OR durable D1 counter)
+    const ckey = clientKey(c, email)
+    if (memThrottled(ckey) || await d1Throttled(c.env.DB, ckey)) {
+      return c.json({ error: 'too_many_attempts', message: 'Too many failed attempts — try again in 15 minutes' }, 429)
+    }
+
     const user = await getUserByEmail(c.env.DB, email)
-    if (!user) return c.json({ error: 'invalid_credentials' }, 401)
+    if (!user) {
+      memRecord(ckey); c.executionCtx.waitUntil(d1Record(c.env.DB, ckey))
+      return c.json({ error: 'invalid_credentials' }, 401)
+    }
 
     const ok = await verifyPassword(password, user.password_hash, user.password_salt)
-    if (!ok) return c.json({ error: 'invalid_credentials' }, 401)
+    if (!ok) {
+      memRecord(ckey); c.executionCtx.waitUntil(d1Record(c.env.DB, ckey))
+      return c.json({ error: 'invalid_credentials' }, 401)
+    }
+    memClear(ckey)
+    c.executionCtx.waitUntil(d1Clear(c.env.DB, ckey))
 
     const { token, session_id, expires_at } = await signJwt(c.env, {
       sub: user.id,

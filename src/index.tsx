@@ -39,7 +39,22 @@ type Bindings = {
 const app = new Hono<{ Bindings: Bindings }>()
 
 // Middleware
-app.use('/api/*', cors())
+// audit M2: explicit origin allowlist instead of cors() wildcard. Embed hosts
+// (watchfact.com etc.) send an Origin header; same-origin pages send none.
+app.use('/api/*', cors({
+  origin: (origin) => {
+    const allowed = [
+      'https://curatedlux.pages.dev',
+      'https://watchfact.com',
+      'https://www.watchfact.com',
+    ]
+    if (!origin) return null            // same-origin / curl — nothing to allow
+    return allowed.includes(origin) ? origin : null
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}))
 app.use('/api/*', logger())
 
 // Static assets from public/static/
@@ -96,21 +111,12 @@ app.get('/verify/:id', async (c) => {
           .map(b => b.toString(16).padStart(2, '0')).join('')
       }
     } catch { /* DB query error fallback */ }
-  } else if (id && id.length >= 2) {
-    // Demo fallback verification
-    valid = true
-    dossier = {
-      id,
-      brand: 'Rolex',
-      model: 'Submariner Date 41mm',
-      reference_number: '126610LN',
-      estimated_value: 13800,
-      category: 'Watches',
-      condition_label: 'Grade 3 (Good)',
-      authenticity_status: 'AUTHENTIC MATCH',
-      confidence: 98
-    }
-    verificationHash = '0x' + id.padStart(64, 'a')
+  } else if (id) {
+    // audit C4: unknown ids must NOT verify. The previous demo fallback marked
+    // ANY 2+ char id as a valid AUTHENTIC MATCH Rolex with a fabricated hash —
+    // a counterfeit could be "proven" by linking /verify/anything.
+    valid = false
+    dossier = null
   }
 
   return c.html(<VerifyPage id={id} valid={valid} dossier={dossier} verificationHash={verificationHash} />)

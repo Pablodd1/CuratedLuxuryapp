@@ -196,6 +196,23 @@ const app = new Hono<{ Bindings: { DB?: D1Database; GEMINI_API_KEY?: string; FIR
 // All endpoints are public — but we capture the current user if a session/bearer is present
 app.use('*', optionalAuth)
 
+// ── Audit H1: request guards ────────────────────────────────────────────────
+// In-memory per-isolate rate limiter (Workers): not perfect across colos but
+// stops simple loops. 10 analyzes/min/IP for anonymous, 30/min for authed.
+const rlBucket = new Map<string, { n: number; ts: number }>()
+function rateLimited(key: string, max: number): boolean {
+  const now = Date.now()
+  const b = rlBucket.get(key)
+  if (!b || now - b.ts > 60_000) { rlBucket.set(key, { n: 1, ts: now }); return false }
+  b.n++
+  return b.n > max
+}
+function imagesGuard(list: string[] | undefined, maxCount: number, maxB64Len: number): boolean {
+  if (!list) return false
+  if (list.length > maxCount) return true
+  return list.some(x => typeof x !== 'string' || x.length > maxB64Len)
+}
+
 // ── NORMALIZE: merge multiple AI outputs into one canonical form ─────────────
 function normalizeResults(vision: any, ocrTexts: string[], voice: any, description: string): any {
   const result: any = {
@@ -275,6 +292,21 @@ app.post('/analyze', async (c) => {
       description?: string
       source?: 'camera' | 'voice' | 'manual' | 'embed'
     }>()
+
+    // ── Abuse caps (audit H1) ────────────────────────────────────────────────
+    // Unauthenticated callers may still try the pipeline, but with a small
+    // quota so a script loop can't drain the Gemini/Fireworks budget.
+    const user: any = c.get('user')
+    const MAX_IMAGES = 5
+    const MAX_IMG_B64 = 4 * 1024 * 1024 // ~3MB binary per image
+    const rlKey = `analyze:${user?.id || c.req.header('cf-connecting-ip') || 'anon'}`
+    if (rateLimited(rlKey, user ? 30 : 10)) {
+      return c.json({ error: 'rate_limited', message: 'Too many analyses — wait a minute' }, 429)
+    }
+    const rawImages = [...(body.images || []), ...(body.imageBase64 && !(body.images || []).includes(body.imageBase64) ? [body.imageBase64] : [])]
+    if (imagesGuard(rawImages, MAX_IMAGES, MAX_IMG_B64)) {
+      return c.json({ error: 'payload_too_large', message: `Max ${MAX_IMAGES} images, ~3MB each` }, 413)
+    }
 
     // Normalize: support both single legacy param and multi-image array
     const images: string[] = body.images || []

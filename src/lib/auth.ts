@@ -318,12 +318,10 @@ export async function getCurrentUser(c: Context<{ Bindings: AuthBindings }>): Pr
       if (user) return user
     }
   }
-  // 3. gsk-hosted-identity header fallback (read-only — site is on cf-byok-deploy)
-  const gsEmail = c.req.header('x-genspark-user-email')
-  if (gsEmail) {
-    const u = await getUserByEmail(c.env.DB, gsEmail)
-    if (u) return u
-  }
+  // SECURITY (audit C2): the previous x-genspark-user-email header fallback trusted a
+  // raw client-supplied header with no signature — a full account-takeover vector
+  // (become any user by knowing their email). Removed. Auth = Bearer JWT/API token
+  // or the session cookie, nothing else.
   return null
 }
 
@@ -340,6 +338,16 @@ export const requireAuth: MiddlewareHandler<{ Bindings: AuthBindings; Variables:
 
 export const optionalAuth: MiddlewareHandler<{ Bindings: AuthBindings; Variables: { user: User | null } }> = async (c, next) => {
   const user = await getCurrentUser(c)
+  c.set('user', user)
+  await next()
+}
+
+// ---------- Role gate (audit H5: role existed but was never enforced) ----------
+
+export const requireRole = (...roles: User['role'][]): MiddlewareHandler<{ Bindings: AuthBindings; Variables: { user: User } }> => async (c: any, next) => {
+  const user = await getCurrentUser(c)
+  if (!user) return c.json({ error: 'unauthorized', message: 'Sign in required' }, 401)
+  if (!roles.includes(user.role)) return c.json({ error: 'forbidden', message: 'Insufficient role' }, 403)
   c.set('user', user)
   await next()
 }
@@ -406,6 +414,7 @@ export function buildSessionCookie(token: string, expiresAtISO: string): string 
     `Expires=${new Date(exp * 1000).toUTCString()}`,
     `HttpOnly`,
     `SameSite=Lax`,
+    `Secure`, // audit M1: pages.dev is always HTTPS — enforce Secure
   ]
   return flags.join('; ')
 }

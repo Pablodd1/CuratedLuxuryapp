@@ -21,7 +21,7 @@ function toast(msg, type = 'info') {
   const el = document.createElement('div');
   el.className = `toast toast-${type}`;
   const icons = { info: 'fa-circle-info', error: 'fa-circle-exclamation', success: 'fa-circle-check', warning: 'fa-triangle-exclamation' };
-  el.innerHTML = `<i class="fas ${icons[type] || icons.info} mr-2"></i>${msg}`;
+  el.innerHTML = `<i class="fas ${icons[type] || icons.info} mr-2"></i>${esc(msg)}`;
   document.body.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(10px)'; }, 2800);
   setTimeout(() => el.remove(), 3300);
@@ -43,6 +43,19 @@ function $id(id) { return document.getElementById(id); }
 function $q(sel, ctx) { return (ctx || document).querySelector(sel); }
 function show(el) { el?.classList.remove('hidden'); }
 function hide(el) { el?.classList.add('hidden'); }
+
+// ── Audit H2: HTML-escape every user/AI string before innerHTML ──────────────
+// Brand/model/ref fields come from AI parsing of attacker-controlled photos or
+// from direct inventory writes — never trust them in template literals.
+function esc(v) {
+  if (v === null || v === undefined) return '';
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 // ── Pre-analyze confirmation: shows photo count + description before submission ──
 function showAnalyzeConfirmation(photoCount, description) {
@@ -1392,10 +1405,10 @@ function initValuation() {
       header.innerHTML = `
         <div class="flex items-start justify-between">
           <div>
-            <h3 class="text-xl font-serif font-bold text-white">${data.brand || 'Unknown'} ${data.model || ''}</h3>
+            <h3 class="text-xl font-serif font-bold text-white">${esc(data.brand) || 'Unknown'} ${esc(data.model)}</h3>
             <p class="text-white/40 text-sm mt-0.5">
-              ${data.category || '\u2014'} ${data.referenceNumber ? '\u00b7 Ref: ' + data.referenceNumber : ''}
-              ${data.year ? '\u00b7 ' + data.year : ''}
+              ${esc(data.category) || '\u2014'} ${data.referenceNumber ? '\u00b7 Ref: ' + esc(data.referenceNumber) : ''}
+              ${data.year ? '\u00b7 ' + esc(data.year) : ''}
             </p>
           </div>
           <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${
@@ -2221,7 +2234,13 @@ function initDossier() {
 
 function fmtText(val) {
   if (!val) return '\u2014';
-  return String(val);
+  // audit H2: escape HTML — fmtText feeds innerHTML template literals everywhere
+  return String(val)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ========== Page Router ==========
