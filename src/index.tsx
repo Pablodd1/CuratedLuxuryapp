@@ -11,6 +11,7 @@ import authRoutes from './routes/api/auth'
 import historyRoutes from './routes/api/history'
 import webhooksRoutes from './routes/api/webhooks'
 import autocompleteRoutes from './routes/api/autocomplete'
+import creditsRoutes from './routes/api/credits'
 import { ragRoutes } from './routes/api/rag'
 import { marketPriceRoutes } from './routes/api/marketPrices'
 import { HomePage } from './pages/home'
@@ -54,6 +55,7 @@ app.route('/api/auth', authRoutes)
 app.route('/api/history', historyRoutes)
 app.route('/api/webhooks', webhooksRoutes)
 app.route('/api/autocomplete', autocompleteRoutes)
+app.route('/api/credits', creditsRoutes)
 app.route('/api/rag', ragRoutes)
 app.route('/api/market-prices', marketPriceRoutes)
 

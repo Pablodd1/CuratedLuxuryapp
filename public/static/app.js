@@ -1273,7 +1273,38 @@ function initValuation() {
         };
         try {
           const storedRes = await api('/api/inventory', { method: 'POST', data: updated });
-          toast('Valuation confirmed & stored in inventory database!', 'success');
+
+          // Consume one authentication credit + log to capped posted history.
+          // Non-blocking: if the user is unauthenticated or out of credits, we
+          // still show the result but report the credit status honestly.
+          let creditMsg = '';
+          try {
+            const cred = await api('/api/credits/post', {
+              method: 'POST',
+              data: {
+                inventory_id: storedRes.id || null,
+                category: updated.category,
+                brand: updated.brand,
+                model: updated.model,
+                referenceNumber: updated.reference_number,
+                estimatedValue: updated.estimated_value,
+                condition_label: updated.condition_label,
+                confidence: data.confidence || 0,
+                authenticityStatus: data.authenticityStatus || 'PENDING',
+                source: data.source || 'ai'
+              }
+            });
+            creditMsg = ` · ${cred.credits} credit${cred.credits === 1 ? '' : 's'} left`;
+          } catch (cerr) {
+            const creditErr = cerr?.response?.data?.error || cerr?.message || '';
+            if (creditErr.includes('NO_CREDITS')) {
+              creditMsg = ' · ⚠️ out of credits';
+            } else {
+              creditMsg = ' · (credits unavailable)';
+            }
+          }
+
+          toast(`Valuation confirmed & stored${creditMsg}`, 'success');
           if (storedRes.id) {
             window.location.href = '/dossier/' + storedRes.id;
           }
