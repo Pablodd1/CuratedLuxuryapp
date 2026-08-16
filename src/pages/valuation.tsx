@@ -10,8 +10,8 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
           <span id="credits-balance-text" class="text-xs font-mono text-gold font-semibold">—</span>
         </div>
 
-        {/* Primary Action Bar: Camera + Mic + Manual */}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+        {/* Primary Action Bar: Camera + Mic (Manual Entry removed per product decision) */}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
           {/* Camera */}
           <button id="camera-trigger-btn"
             class="bg-gold hover:bg-gold-light text-black font-semibold py-3 rounded text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(180,150,30,0.15)] hover:shadow-[0_0_30px_rgba(180,150,30,0.25)]">
@@ -22,11 +22,7 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
             class="border-2 border-gold/20 hover:border-gold/50 hover:bg-gold/[0.04] text-gold py-3 rounded text-sm transition-all flex items-center justify-center gap-2">
             <i class="fas fa-microphone text-lg"></i> <span id="voice-label">Speak to Describe</span>
           </button>
-          {/* Manual Form Toggle */}
-          <button id="manual-form-toggle"
-            class="border border-white/10 hover:border-gold/30 text-white/40 hover:text-gold py-3 rounded text-sm transition-all flex items-center justify-center gap-2">
-            <i class="fas fa-pen-to-square"></i> Manual Entry
-          </button>
+          {/* Manual Entry button removed — voice + photo auto-fill the form */}
         </div>
 
         {/* Voice Status Bar */}
