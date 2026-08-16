@@ -464,7 +464,7 @@ function initValuation() {
       <div class="relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-4">
         <button id="cl-cam-close" class="absolute top-2 right-2 z-40 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
 
-        <!-- Mode & Quality Toolbar -->
+        <!-- Mode & Quality Toolbar (compact top row) -->
         <div class="flex items-center justify-between gap-2 mb-2 px-1 flex-wrap">
           <div class="flex items-center gap-1">
             <button data-res="4k" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">4K</button>
@@ -486,7 +486,7 @@ function initValuation() {
           </div>
         </div>
 
-        <!-- Category selector -->
+        <!-- Category selector (compact, horizontal) -->
         <div class="flex items-center gap-1.5 mb-2 flex-wrap">
           <span class="text-[10px] text-white/30 uppercase tracking-wider mr-1">Asset type:</span>
           <button data-cat="Watches" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-gold/40 bg-gold/10 text-gold transition-all">Watches</button>
@@ -496,50 +496,82 @@ function initValuation() {
           <button data-cat="Art & Collectibles" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Art</button>
         </div>
 
-        <!-- Guided capture steps overlay -->
-        <div id="cl-guide-panel" class="bg-gradient-to-r from-gold/5 via-gold/8 to-gold/5 border border-gold/15 rounded-lg px-3 py-3 mb-2">
-          <div class="flex items-center justify-between mb-2">
+        <!-- CAMERA-FIRST: video fills available height; guide overlays bottom -->
+        <div class="clx-camera-feed relative overflow-hidden rounded-xl bg-black">
+          <video id="cl-cam-video" class="w-full bg-black" autoplay playsinline muted></video>
+
+          <!-- LIVE TOP FLOATING HUD BANNER -->
+          <div id="cl-live-hud-banner" class="absolute top-2 left-2 right-2 z-30 bg-black/75 border border-gold/40 rounded-lg px-3 py-2 backdrop-blur-md shadow-2xl flex items-center justify-between pointer-events-none">
+            <div class="flex items-center gap-2">
+              <span id="cl-hud-step-badge" class="px-2 py-0.5 bg-gold/20 border border-gold/40 text-gold text-[10px] font-mono font-bold rounded uppercase">Step 1/4</span>
+              <div>
+                <div id="cl-hud-shot-title" class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i class="fas fa-crosshairs text-gold text-[10px]"></i>
+                  <span>Dial / Face</span>
+                </div>
+                <div id="cl-hud-distance-text" class="text-[10px] font-mono text-gold/90 font-medium">📏 Distance</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span id="cl-hud-instruction-short" class="text-[10px] text-white/70 block max-w-[130px] truncate"></span>
+              <span id="cl-hud-macro-badge" class="text-[9px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded hidden">MACRO ON</span>
+            </div>
+          </div>
+
+          <!-- Framing guides + gold reticle -->
+          <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-1/3 left-0 right-0 h-px bg-white/10"></div>
+            <div class="absolute top-2/3 left-0 right-0 h-px bg-white/10"></div>
+            <div class="absolute left-1/3 top-0 bottom-0 w-px bg-white/10"></div>
+            <div class="absolute left-2/3 top-0 bottom-0 w-px bg-white/10"></div>
+            <div class="absolute top-1/2 left-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 border-2 border-gold/60 rounded-full animate-pulse shadow-[0_0_20px_rgba(212,175,55,0.3)]"></div>
+          </div>
+          <div id="cl-cam-info" class="absolute bottom-2 left-2 text-[10px] font-mono text-gold/80 bg-black/40 px-2 py-0.5 rounded z-30"></div>
+        </div>
+
+        <!-- Compact guide dock BELOW the camera (not pushing it off screen) -->
+        <div id="cl-guide-panel" class="mt-2 bg-zinc-900/95 border border-gold/15 rounded-xl px-3 py-2.5">
+          <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-1.5 min-w-0">
               <span id="cl-step-icon" class="w-6 h-6 shrink-0 rounded-full bg-gold/20 flex items-center justify-center text-[10px] text-gold"><i class="fas fa-crosshairs"></i></span>
               <span id="cl-step-label" class="text-xs font-semibold text-gold whitespace-nowrap overflow-hidden text-ellipsis">Step 1 of 4 — Dial / Face</span>
+              <span id="cl-shot-count" class="text-[10px] text-white/40 font-mono shrink-0">0/4</span>
             </div>
-            <!-- per-step captured thumbnail shows once this step is shot -->
-            <img id="cl-step-thumb" class="hidden w-9 h-9 rounded-lg object-cover border border-emerald-500/40 ring-1 ring-emerald-500/30 shrink-0" alt="captured" />
-            <span id="cl-shot-count" class="text-[10px] text-white/40 font-mono shrink-0">0/4</span>
+            <img id="cl-step-thumb" class="hidden w-8 h-8 rounded-lg object-cover border border-emerald-500/40 ring-1 ring-emerald-500/30 shrink-0 ml-1" alt="captured" />
           </div>
 
-          <p id="cl-step-instruction" class="text-[15px] leading-snug text-white font-semibold">Frame the dial — fill the golden circle</p>
+          <p id="cl-step-instruction" class="text-sm leading-snug text-white font-semibold">Frame the dial — fill the golden circle</p>
 
-          <!-- Specific details to capture for THIS shot (accuracy-first) -->
-          <div id="cl-step-details" class="mt-2 space-y-1"></div>
+          <!-- Details checklist + example (collapsible on mobile) -->
+          <button id="cl-details-toggle" type="button" class="mt-1.5 inline-flex items-center gap-1 text-[10px] text-gold/80 hover:text-gold font-mono uppercase tracking-wider">
+            <i class="fas fa-list-check text-[9px]"></i> <span>Capture details</span> <i class="fas fa-chevron-down text-[8px]"></i>
+          </button>
+          <div id="cl-step-details" class="hidden mt-1.5 space-y-1"></div>
 
-          <!-- Big Take Picture CTA -->
-          <button id="cl-mega-snap" class="mt-3 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)]">
+          <!-- Big TAKE PICTURE CTA -->
+          <button id="cl-mega-snap" class="mt-2 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)]">
             <i class="fas fa-camera-retro text-base"></i> Take Picture
           </button>
 
-          <!-- Step nav: Skip on left, Next on right. Next unlocks after a capture or a skip. -->
+          <!-- Step nav row -->
           <div class="mt-2 flex items-center gap-2">
             <button id="cl-guide-skip-step" class="flex-1 py-2.5 rounded-lg border border-white/15 text-white/50 hover:text-white/80 text-xs font-medium transition-colors">Skip shot</button>
             <button id="cl-guide-skip" class="flex-1 py-2.5 rounded-lg border border-white/10 text-white/30 hover:text-white/50 text-xs transition-colors">Skip all</button>
-            <button id="cl-guide-next" class="flex-1 py-2.5 rounded-lg bg-white/10 text-white/25 text-xs font-semibold transition-all disabled:cursor-not-allowed" disabled>Next →</button>
+            <button id="cl-guide-next" class="flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all disabled:cursor-not-allowed bg-white/10 text-white/25" disabled>Next →</button>
           </div>
 
-          <!-- LIVE readiness checklist (compact) -->
+          <!-- LIVE readiness checklist -->
           <div id="cl-live-checks" class="mt-2 grid grid-cols-3 gap-1.5">
-            <div id="cl-check-light" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40">
-              <i class="fas fa-sun text-[9px]"></i><span>Light</span>
-            </div>
-            <div id="cl-check-steady" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40">
-              <i class="fas fa-hand text-[9px]"></i><span>Steady</span>
-            </div>
-            <div id="cl-check-frame" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40">
-              <i class="fas fa-expand text-[9px]"></i><span>Fill</span>
-            </div>
+            <div id="cl-check-light" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-sun text-[9px]"></i><span>Light</span></div>
+            <div id="cl-check-steady" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-hand text-[9px]"></i><span>Steady</span></div>
+            <div id="cl-check-frame" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-expand text-[9px]"></i><span>Fill</span></div>
           </div>
 
-          <!-- Example card (collapses on mobile) -->
-          <div id="cl-example-card" class="mt-2 bg-black/30 border border-white/10 rounded-lg p-2">
+          <!-- Per-step captured preview strip -->
+          <div id="cl-step-dots" class="flex items-center gap-1.5 mt-2"></div>
+
+          <!-- Example card (kept, collapsible) -->
+          <div id="cl-example-card" class="mt-2 bg-black/30 border border-white/10 rounded-lg p-2 hidden">
             <div class="flex items-center justify-between mb-1">
               <span class="text-[9px] uppercase tracking-wider text-white/30 font-mono">Example</span>
               <span class="text-[9px] text-white/30">tap to expand</span>
@@ -548,47 +580,8 @@ function initValuation() {
               <div id="cl-example-svg" class="w-full" style="max-height:110px; overflow:hidden;"></div>
             </div>
           </div>
-
-          <!-- Per-step captured preview strip (built dynamically) -->
-          <div id="cl-step-dots" class="flex items-center gap-1.5 mt-2">
-          </div>
         </div>
 
-        <!-- Video viewport with crosshair guides & LIVE Floating HUD Banner -->
-        <div class="clx-camera-feed relative overflow-hidden rounded-xl bg-black">
-          <video id="cl-cam-video" class="w-full rounded-xl bg-black" autoplay playsinline muted></video>
-          
-          <!-- LIVE TOP FLOATING HUD BANNER (On Top of Screen) -->
-          <div id="cl-live-hud-banner" class="absolute top-3 left-3 right-3 z-30 bg-black/75 border border-gold/40 rounded-lg p-2.5 backdrop-blur-md shadow-2xl flex items-center justify-between pointer-events-none transition-all">
-            <div class="flex items-center gap-2.5">
-              <span id="cl-hud-step-badge" class="px-2 py-0.5 bg-gold/20 border border-gold/40 text-gold text-[10px] font-mono font-bold rounded uppercase">Step 1/4</span>
-              <div>
-                <div id="cl-hud-shot-title" class="text-xs font-bold text-white flex items-center gap-1.5">
-                  <i class="fas fa-crosshairs text-gold text-[10px]"></i>
-                  <span>Dial / Face</span>
-                </div>
-                <div id="cl-hud-distance-text" class="text-[10px] font-mono text-gold/90 font-medium">
-                  📏 Distance: 25–35 cm (Straight-on)
-                </div>
-              </div>
-            </div>
-            <div class="text-right">
-              <span id="cl-hud-instruction-short" class="text-[10px] text-white/70 block max-w-[140px] truncate">Center subject in reticle</span>
-              <span id="cl-hud-macro-badge" class="text-[9px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded hidden">MACRO ON</span>
-            </div>
-          </div>
-
-          <!-- Two-thirds rule guides for product framing -->
-          <div class="absolute inset-0 pointer-events-none">
-            <div class="absolute top-1/3 left-0 right-0 h-px bg-white/10"></div>
-            <div class="absolute top-2/3 left-0 right-0 h-px bg-white/10"></div>
-            <div class="absolute left-1/3 top-0 bottom-0 w-px bg-white/10"></div>
-            <div class="absolute left-2/3 top-0 bottom-0 w-px bg-white/10"></div>
-            <!-- Central Golden Reticle -->
-            <div class="absolute top-1/2 left-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 border-2 border-gold/60 rounded-full animate-pulse shadow-[0_0_20px_rgba(212,175,55,0.3)]"></div>
-          </div>
-          <div id="cl-cam-info" class="absolute bottom-2 left-2 text-[10px] font-mono text-gold/80 bg-black/40 px-2 py-0.5 rounded z-30"></div>
-        </div>
 
         <!-- Mic waveform + status -->
         <div id="cl-mic-panel" class="hidden mt-3 bg-black/40 rounded-lg p-3 border border-rose-400/20">
@@ -627,6 +620,8 @@ function initValuation() {
     let guideSkipped = false
     let activeCategory = 'Watches'  // changes the guided sequence per asset type
     let stepCaptured = new Set()     // indices of guided shots already taken (accuracy accounting)
+
+    const TIER_LABEL = { hero: '⭐ hero shot', macro: '🔬 detail — high accuracy', detail: 'detail', standard: 'standard' }
 
     // ── Category-aware guided photo sequences with DISTANCE & TARGET ZONES ──
     // example: key into EXAMPLES map → renders a "like this / not this" diagram card
@@ -868,8 +863,7 @@ function initValuation() {
       if (shotCount) shotCount.textContent = `${stepCaptured.size}/${total}`
       if (instruction) instruction.textContent = cur.instruction + `  (${cur.distance || ''})`
 
-      // Specific details for THIS shot + tier badge (accuracy weight)
-      const TIER_LABEL = { hero: '⭐ hero shot', macro: '🔬 detail — high accuracy', detail: 'detail', standard: 'standard' }
+      // Details checklist is hidden by default; filled for the toggle to reveal
       if (detailsContainer) {
         const tierText = TIER_LABEL[cur.tier] || ''
         detailsContainer.innerHTML = (cur.details || []).map(d =>
@@ -1463,6 +1457,15 @@ function initValuation() {
     if (nextBtn) nextBtn.addEventListener('click', nextStep)
     const skipShot = modal.querySelector('#cl-guide-skip-step')
     if (skipShot) skipShot.addEventListener('click', skipStep)
+    // toggle the "Capture details" checklist visibility
+    const detailsToggle = modal.querySelector('#cl-details-toggle')
+    const detailsBox = modal.querySelector('#cl-step-details')
+    if (detailsToggle && detailsBox) {
+      detailsToggle.addEventListener('click', () => {
+        const open = detailsBox.classList.toggle('hidden')
+        detailsToggle.querySelector('.fa-chevron-down').style.transform = open ? '' : 'rotate(180deg)'
+      })
+    }
     // tapping the framed step chip jumps to that step
     // (handled inside updateGuideStep via dotsContainer delegation)
 

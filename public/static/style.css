@@ -7,24 +7,18 @@
 /* ── Camera modal — mobile-first stacking (guide on top, video below) ── */
 #cl-cam-video {
   width: 100%;
-  max-height: 42vh;          /* keep camera feeding inside the fold on phones */
-  object-fit: contain;
+  height: 46vh;              /* camera is the DOMINANT element on phones */
+  object-fit: cover;
+  background: #000;
 }
 @media (min-width: 768px) {
-  #cl-cam-video { max-height: 54vh; }
+  #cl-cam-video { height: 54vh; object-fit: contain; }
 }
-
-/* Example card: keep it compact on phones so the one-line instruction stays
-   above the camera without the tall SVG crowding it. Collapse to a slim chip
-   that expands on tap; fully open on larger screens. */
-#cl-example-card { cursor: pointer; }
-#cl-example-card .cl-example-body { display: none; }
-#cl-example-card.cl-example-open .cl-example-body { display: block; }
-#cl-example-card { max-height: 34px; overflow: hidden; }
-#cl-example-card.cl-example-open { max-height: none; overflow: visible; }
-@media (min-width: 768px) {
-  #cl-example-card { max-height: none; overflow: visible; }
-  #cl-example-card .cl-example-body { display: block; }
+/* Guide dock stays compact below the camera; the whole modal scrolls if tall */
+#cl-guide-panel {
+  max-height: 38vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Hero gradient */
