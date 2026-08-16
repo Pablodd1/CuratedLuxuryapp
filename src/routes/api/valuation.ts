@@ -307,6 +307,7 @@ app.post('/analyze', async (c) => {
       transcript?: string
       description?: string
       source?: 'camera' | 'voice' | 'manual' | 'embed'
+      shotTiers?: string[]  // per-image accuracy tier: hero | macro | detail | standard
     }>()
 
     // ── Abuse caps (audit H1) ────────────────────────────────────────────────
@@ -498,6 +499,38 @@ app.post('/analyze', async (c) => {
       result.authenticityStatus = 'INSUFFICIENT_DATA'
       result.reasoning = 'Could not identify the item from the provided images or text. For best results, upload a clear, well-lit photo of the item against a neutral background, plus any certificates, box labels, or serial number close-ups.'
       result.confidence_breakdown = { logo: 0, serial: 0, materials: 0, bezel_geometry: 0, dial_texture: 0, overall_proportion: 0 }
+    }
+
+    // ── Stage 5.5: Shot-tier accuracy weighting (user-provided shotTiers) ─────
+    // Hero + macro images carry the authentication weight. If the user captured
+    // a macro (serial/hallmark/date-code/VIN) macro shot, OR an OCR serial came
+    // back, we can trust a keyword match more. If they skipped key macro shots
+    // on a text-only guess, don't over-claim authenticity.
+    const shotTiers: string[] = (body.shotTiers || []).filter((t: string) => t && t !== 'standard')
+    const hasMacroShot = shotTiers.includes('macro') || shotTiers.includes('hero')
+    const ocrStrong = (result.ocr_serials && result.ocr_serials.length > 0) || (result.ocr_barcodes && result.ocr_barcodes.length > 0)
+    if (result.confidence > 0 && result.authenticityStatus === 'AUTHENTIC MATCH' && !ocrStrong) {
+      // AUTHENTIC claimed without any OCR serial/barcode, no macro detail shot →
+      // soften toward review (honesty guard). A description-only guess (no photos
+      // at all) should NEVER claim AUTHENTIC MATCH.
+      if (shotTiers.length === 0 && images.length === 0) {
+        result.confidence = Math.min(result.confidence, 72)
+        result.authenticityStatus = 'REVIEW_REQUIRED'
+        result.reasoning = (result.reasoning || '') + ' (Estimate from description only — capture photos for authentication)'
+      } else if (shotTiers.length > 0 && !hasMacroShot) {
+        result.confidence = Math.min(result.confidence, 68)
+        result.authenticityStatus = 'REVIEW_REQUIRED'
+        result.reasoning = (result.reasoning || '') + ' (No macro/serial photo — manual verification advised)'
+      } else if (shotTiers.length === 0) {
+        result.confidence = Math.min(result.confidence, 72)
+        result.reasoning = (result.reasoning || '') + ' (Photos present but no macro/serial verified)'
+      }
+    }
+    if (ocrStrong || hasMacroShot) {
+      // A macro or OCR serial is the strongest signal — nudge sub-confidence up.
+      if (result.confidence_breakdown) {
+        result.confidence_breakdown.serial = Math.min(100, (result.confidence_breakdown.serial || 0) + 5)
+      }
     }
 
     // ── Stage 6: Store to D1 (inventory + scan_history) if confidence > 70 ───
