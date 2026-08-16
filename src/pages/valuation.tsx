@@ -4,6 +4,12 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
   return (
     <Layout title="Scan" active="scan" embed={embed}>
       <div class="max-w-6xl mx-auto">
+        {/* Credit balance banner — updates live from /api/credits/balance */}
+        <div id="credits-banner" class="hidden mb-3 flex items-center justify-between px-3 py-2 rounded-lg border border-gold/20 bg-gold/[0.04]">
+          <span class="text-[11px] text-white/50"><i class="fas fa-coins text-gold/60 mr-1.5"></i>Authentication credits</span>
+          <span id="credits-balance-text" class="text-xs font-mono text-gold font-semibold">—</span>
+        </div>
+
         {/* Primary Action Bar: Camera + Mic + Manual */}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
           {/* Camera */}

@@ -1495,6 +1495,23 @@ function initValuation() {
   }
 
   // ── Analyze Button (uses /api/valuation/analyze) ──────────────────────────
+
+  // ── Credit banner: fetch remaining auth credits + refresh after posting ──
+  async function refreshCredits() {
+    try {
+      const res = await api('/api/credits/balance')
+      const banner = $id('credits-banner')
+      const text = $id('credits-balance-text')
+      if (banner && text) {
+        const c = res?.credits
+        banner.classList.remove('hidden')
+        text.textContent = (typeof c === 'number') ? `${c} ${c === 1 ? 'credit' : 'credits'} left` : '—'
+        text.style.color = (typeof c === 'number' && c <= 5) ? '#f59e0b' : ''
+      }
+    } catch { /* unauthenticated or banner absent — stay hidden */ }
+  }
+  refreshCredits()
+
   if (analyzeBtn) {
     analyzeBtn.addEventListener('click', async () => {
       if (images.length === 0 && !descriptionInput?.value.trim()) {
@@ -1760,6 +1777,7 @@ function initValuation() {
           }
 
           toast(`Valuation confirmed & stored${creditMsg}`, 'success');
+          refreshCredits()  // update the live balance banner
           if (storedRes.id) {
             window.location.href = '/dossier/' + storedRes.id;
           }
