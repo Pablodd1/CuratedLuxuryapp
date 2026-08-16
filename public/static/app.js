@@ -452,13 +452,16 @@ function initValuation() {
   // ════════════════════════════════════════════════════════════════════════
   async function openCamera() {
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-4';
+    // Mobile-first: scrollable so the guide (top) and video never overlap on
+    // phones. The inner card is a flex column [guide · video · controls] that
+    // fits height and scrolls when content exceeds the viewport.
+    modal.className = 'fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm overflow-y-auto overscroll-contain';
     modal.innerHTML = `
-      <div class="relative max-w-2xl w-full">
-        <button id="cl-cam-close" class="absolute -top-2 -right-2 z-20 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
+      <div class="relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-4">
+        <button id="cl-cam-close" class="absolute top-2 right-2 z-40 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
 
         <!-- Mode & Quality Toolbar -->
-        <div class="flex items-center justify-between gap-2 mb-2 px-1">
+        <div class="flex items-center justify-between gap-2 mb-2 px-1 flex-wrap">
           <div class="flex items-center gap-1">
             <button data-res="4k" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">4K</button>
             <button data-res="1080" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">1080p</button>
@@ -516,16 +519,18 @@ function initValuation() {
             </div>
           </div>
 
-          <!-- Example card: "like this / not this" -->
+          <!-- Example card: like this / not this (collapses on mobile) -->
           <div id="cl-example-card" class="mt-2 bg-black/30 border border-white/10 rounded-lg p-2">
             <div class="flex items-center justify-between mb-1">
               <span class="text-[9px] uppercase tracking-wider text-white/30 font-mono">Example</span>
               <span class="text-[9px] text-white/30">tap to expand</span>
             </div>
-            <div id="cl-example-svg" class="w-full" style="max-height:110px; overflow:hidden;"></div>
-            <div class="grid grid-cols-2 gap-2 mt-1">
-              <span id="cl-example-good" class="text-[9px] text-emerald-400/80 font-medium truncate"></span>
-              <span id="cl-example-bad" class="text-[9px] text-red-400/70 font-medium truncate text-right"></span>
+            <div class="cl-example-body">
+              <div id="cl-example-svg" class="w-full" style="max-height:110px; overflow:hidden;"></div>
+              <div class="grid grid-cols-2 gap-2 mt-1">
+                <span id="cl-example-good" class="text-[9px] text-emerald-400/80 font-medium truncate"></span>
+                <span id="cl-example-bad" class="text-[9px] text-red-400/70 font-medium truncate text-right"></span>
+              </div>
             </div>
           </div>
 
@@ -534,7 +539,7 @@ function initValuation() {
         </div>
 
         <!-- Video viewport with crosshair guides & LIVE Floating HUD Banner -->
-        <div class="relative overflow-hidden rounded-xl bg-black">
+        <div class="clx-camera-feed relative overflow-hidden rounded-xl bg-black">
           <video id="cl-cam-video" class="w-full rounded-xl bg-black" autoplay playsinline muted></video>
           
           <!-- LIVE TOP FLOATING HUD BANNER (On Top of Screen) -->
@@ -799,6 +804,10 @@ function initValuation() {
       if (icon) { icon.className = `fas ${cur.icon}` }
       if (label) label.textContent = `Step ${step + 1} of ${total} — ${cur.shot}`
       if (instruction) instruction.textContent = cur.instruction
+
+      // Collapse the example chip on mobile when moving between steps
+      const exCardEl = panel.closest?.('#cl-example-card') || modal.querySelector('#cl-example-card')
+      if (exCardEl && window.innerWidth < 768) exCardEl.classList.remove('cl-example-open')
 
       // Render the "like this / not this" example card for this step
       const ex = EXAMPLES[cur.example]
@@ -1325,6 +1334,12 @@ function initValuation() {
     modal.querySelector('#cl-cam-snap').addEventListener('click', snap)
     modal.querySelector('#cl-cam-close').addEventListener('click', cleanup)
     modal.querySelector('#cl-guide-skip').addEventListener('click', hideGuide)
+
+    // Tap the collapsed example chip on mobile to expand/collapse it
+    const exCard = modal.querySelector('#cl-example-card')
+    if (exCard) {
+      exCard.addEventListener('click', () => exCard.classList.toggle('cl-example-open'))
+    }
 
     // ── Category selector wiring ───────────────────────────────────────
     modal.querySelectorAll('.cl-cat-btn').forEach(btn => {
