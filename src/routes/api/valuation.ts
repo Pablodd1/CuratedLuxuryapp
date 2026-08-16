@@ -16,7 +16,7 @@ const LUXURY_DATASET = [
   { keywords: ['bugatti', 'chiron', 'w16'], brand: 'Bugatti', model: 'Chiron Pur Sport', category: 'Luxury Vehicles', referenceNumber: 'BUG-CHI-PS-2025', estimatedValue: 4200000, confidence: 99, reasoning: 'Horseshoe grille ratio, C-bar side profile, exposed 3D printed titanium exhaust tips matched.' },
 ]
 
-function keywordMatch(text: string): (typeof LUXURY_DATASET)[number] | null {
+function keywordMatch(text: string): { item: (typeof LUXURY_DATASET)[number]; score: number; strong: boolean } | null {
   const lower = text.toLowerCase()
   let best: (typeof LUXURY_DATASET)[number] | null = null
   let bestScore = 0
@@ -24,7 +24,23 @@ function keywordMatch(text: string): (typeof LUXURY_DATASET)[number] | null {
     const score = item.keywords.filter(k => lower.includes(k)).length
     if (score > bestScore) { bestScore = score; best = item }
   }
-  return bestScore >= 1 ? best : null
+  if (!best || bestScore < 1) return null
+  // STRONG = multiple keyword hits including a model-level identifier (e.g.
+  // 'submariner', 'birkin', 'sf90' — not just the brand name). Brand-only
+  // matches ('cartier' alone) are WEAK: the dataset entry may describe a
+  // completely different product than the user's item.
+  const MODEL_WORDS = ['submariner','daytona','cosmograph','nautilus','royal oak','rm ','11-03','tonneau',
+    'birkin','kelly','sellier','crocodile','love','bracelet','sf90','stradale','911','gt3','992',
+    'chiron','pur sport','w16','126610','116500','126500','5711','5811','15500','16202']
+  // word-boundary match for short tokens (rs/gt3) so they don't substring-match
+  // inside other words ('rs' ⊂ 'audemars')
+  const hasModelWord = MODEL_WORDS.some(w => lower.includes(w))
+    || /\b(rs|gt3)\b/.test(lower)
+  const isBrandOnly = bestScore === 1 && !hasModelWord
+  // STRONG requires a model-level identifier in the user text. Without one,
+  // multi-word brand names ('audemars piguet') and generic keywords
+  // ('cartier' + 'gold') would still fake a confident match.
+  return { item: best, score: bestScore, strong: hasModelWord && !isBrandOnly && bestScore >= 2 }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -263,10 +279,10 @@ function normalizeResults(vision: any, ocrTexts: string[], voice: any, descripti
   if ((!result.brand || result.brand === 'Unknown') && description) {
     const match = keywordMatch(description)
     if (match) {
-      result.brand = match.brand
-      result.model = match.model
-      result.referenceNumber = result.referenceNumber || match.referenceNumber
-      result.category = match.category
+      result.brand = match.item.brand
+      result.model = match.item.model
+      result.referenceNumber = result.referenceNumber || match.item.referenceNumber
+      result.category = match.item.category
     }
   }
 
@@ -442,21 +458,34 @@ app.post('/analyze', async (c) => {
     if ((!result.brand || result.brand === 'Unknown' || result.confidence === 0) && searchText) {
       const match = keywordMatch(searchText)
       if (match) {
-        result.category = match.category
-        result.brand = match.brand
-        result.model = match.model
-        result.referenceNumber = result.referenceNumber || match.referenceNumber
-        result.estimatedValue = match.estimatedValue
-        result.confidence = match.confidence
-        result.authenticityStatus = 'AUTHENTIC MATCH'
-        result.reasoning = match.reasoning + ' (keyword-assisted identification)'
-        result.confidence_breakdown = {
-          logo: match.confidence - 2 + Math.floor(Math.random() * 5),
-          serial: match.confidence - 4 + Math.floor(Math.random() * 5),
-          materials: match.confidence - 1 + Math.floor(Math.random() * 5),
-          bezel_geometry: match.confidence - 3 + Math.floor(Math.random() * 5),
-          dial_texture: match.confidence - 2 + Math.floor(Math.random() * 4),
-          overall_proportion: match.confidence - 1 + Math.floor(Math.random() * 3),
+        const m = match.item
+        result.category = m.category
+        result.brand = m.brand
+        result.model = m.model
+        result.referenceNumber = result.referenceNumber || m.referenceNumber
+        if (match.strong) {
+          // Multi-keyword model-level match — dataset identification stands.
+          result.estimatedValue = m.estimatedValue
+          result.confidence = m.confidence
+          result.authenticityStatus = 'AUTHENTIC MATCH'
+          result.reasoning = m.reasoning + ' (keyword-assisted identification)'
+          result.confidence_breakdown = {
+            logo: m.confidence - 2, serial: m.confidence - 4, materials: m.confidence - 1,
+            bezel_geometry: m.confidence - 3, dial_texture: m.confidence - 2,
+            overall_proportion: m.confidence - 1,
+          }
+        } else {
+          // WEAK match (brand-only or single generic keyword): the dataset entry
+          // may be a different product than the user's. NEVER stamp authentic or
+          // auto-value — route to human review with capped confidence.
+          result.estimatedValue = 0
+          result.confidence = Math.min(m.confidence, 60)
+          result.authenticityStatus = 'REVIEW_REQUIRED'
+          result.reasoning = `Partial keyword match on "${m.brand}" (${match.score} keyword${match.score === 1 ? '' : 's'}). The identified model may not match your item — verify before posting. ` + (result.reasoning || '')
+          result.confidence_breakdown = {
+            logo: match.score * 20, serial: 0, materials: 0,
+            bezel_geometry: 0, dial_texture: 0, overall_proportion: 0,
+          }
         }
       }
     }

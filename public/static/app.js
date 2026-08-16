@@ -1413,6 +1413,7 @@ function initValuation() {
           </div>
           <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${
             data.authenticityStatus === 'AUTHENTIC MATCH' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+            data.authenticityStatus === 'REVIEW_REQUIRED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
             data.authenticityStatus === 'REQUIRES IN-PERSON VERIFICATION' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
             'bg-red-500/10 text-red-400 border-red-500/20'
           }">${data.authenticityStatus || 'PENDING'}</span>
