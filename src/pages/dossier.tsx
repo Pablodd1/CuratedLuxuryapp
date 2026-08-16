@@ -65,7 +65,11 @@ export function DossierPage({ itemId }: { itemId?: string }) {
               class="bg-gold hover:bg-gold-light text-black font-bold px-4 py-2 rounded text-xs transition-all inline-flex items-center gap-1.5 shadow-[0_0_15px_rgba(212,175,55,0.3)]">
               <i class="fas fa-print text-[10px]"></i> Print / Export PDF Certificate
             </button>
-            <a id="verify-dossier-link" href="#" target="_blank"
+            <button id="share-dossier-btn"
+              class="border border-gold/30 hover:border-gold text-gold/70 hover:text-gold px-3 py-2 rounded text-xs transition-all inline-flex items-center gap-1.5">
+              <i class="fas fa-share-nodes text-[10px]"></i> Share
+            </button>
+            <a id="verify-dossier-link" href="#" target="_blank" rel="noopener"
               class="border border-gold/30 hover:border-gold text-gold/70 hover:text-gold px-3 py-2 rounded text-xs transition-all inline-flex items-center gap-1.5">
               <i class="fas fa-shield-check text-[10px]"></i> Verify Authenticity
             </a>

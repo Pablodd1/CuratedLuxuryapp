@@ -2345,6 +2345,35 @@ function initDossier() {
           } catch (err) { /* toast handled */ }
         };
       }
+
+      // ── Share: Web Share API (mobile native sheet) + copy-link fallback ──
+      const verifyUrl = `${location.origin}/verify/${d.id}`
+      const vlink = $id('verify-dossier-link')
+      if (vlink) vlink.href = verifyUrl   // point "Verify Authenticity" at the real page
+
+      const shareBtn = $id('share-dossier-btn')
+      if (shareBtn) {
+        shareBtn.onclick = async () => {
+          const shareData = {
+            title: `${d.brand || ''} ${d.model || ''} — CuratedLux Verification`,
+            text: `CuratedLux AI verification for ${d.brand || ''} ${d.model || ''}. Tap to verify authenticity.`,
+            url: verifyUrl,
+          }
+          try {
+            if (navigator.share) {
+              await navigator.share(shareData)
+              toast('Shared!', 'success')
+            } else if (navigator.clipboard) {
+              await navigator.clipboard.writeText(verifyUrl)
+              toast('Verification link copied to clipboard', 'success')
+            } else {
+              window.prompt('Copy verification link:', verifyUrl)
+            }
+          } catch (e) {
+            if (e?.name !== 'AbortError') toast('Share failed', 'error')
+          }
+        }
+      }
     } catch (err) {
       toast('Failed to load dossier', 'error');
     }

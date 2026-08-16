@@ -103,7 +103,18 @@ app.get('/verify/:id', async (c) => {
 
   if (c.env.DB && id) {
     try {
-      const res = await c.env.DB.prepare('SELECT * FROM inventory WHERE id = ?').bind(id).first()
+      // 1. Direct inventory id
+      let res = await c.env.DB.prepare('SELECT * FROM inventory WHERE id = ?').bind(id).first()
+      if (!res) {
+        // 2. Dossier id → resolve the underlying inventory item so a shared
+        //    /verify/{dossierId} link talks to the same verified asset.
+        const dos = await c.env.DB
+          .prepare('SELECT inventory_id, certificate_data FROM dossiers WHERE id = ?')
+          .bind(id).first() as any
+        if (dos?.inventory_id) {
+          res = await c.env.DB.prepare('SELECT * FROM inventory WHERE id = ?').bind(dos.inventory_id).first()
+        }
+      }
       if (res) {
         dossier = res
         valid = true
@@ -111,7 +122,8 @@ app.get('/verify/:id', async (c) => {
           .map(b => b.toString(16).padStart(2, '0')).join('')
       }
     } catch { /* DB query error fallback */ }
-  } else if (id) {
+  }
+  if (!valid && id) {
     // audit C4: unknown ids must NOT verify. The previous demo fallback marked
     // ANY 2+ char id as a valid AUTHENTIC MATCH Rolex with a fabricated hash —
     // a counterfeit could be "proven" by linking /verify/anything.
