@@ -20,6 +20,9 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* Photo thumbnail rail — starts below the HUD banner so they never overlap */
+#cl-thumb-rail { top: 4.5rem; }
+@media (min-width: 768px) { #cl-thumb-rail { top: 3.5rem; } }
 
 /* Hero gradient */
 .hero-gradient {

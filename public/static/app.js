@@ -501,7 +501,7 @@ function initValuation() {
           <video id="cl-cam-video" class="w-full bg-black" autoplay playsinline muted></video>
 
           <!-- LIVE TOP FLOATING HUD BANNER -->
-          <div id="cl-live-hud-banner" class="absolute top-2 left-2 right-2 z-30 bg-black/75 border border-gold/40 rounded-lg px-3 py-2 backdrop-blur-md shadow-2xl flex items-center justify-between pointer-events-none">
+          <div id="cl-live-hud-banner" class="absolute top-2 left-2 right-14 z-30 bg-black/75 border border-gold/40 rounded-lg px-3 py-2 backdrop-blur-md shadow-2xl flex items-center justify-between pointer-events-none">
             <div class="flex items-center gap-2">
               <span id="cl-hud-step-badge" class="px-2 py-0.5 bg-gold/20 border border-gold/40 text-gold text-[10px] font-mono font-bold rounded uppercase">Step 1/4</span>
               <div>
@@ -518,6 +518,9 @@ function initValuation() {
             </div>
           </div>
 
+          <!-- PHOTO THUMBNAIL RAIL — every captured shot shown as a small icon on the side -->
+          <div id="cl-thumb-rail" class="absolute top-2 right-2 z-30 flex flex-col gap-1.5 max-h-[70%] overflow-y-auto"></div>
+
           <!-- Framing guides + gold reticle -->
           <div class="absolute inset-0 pointer-events-none">
             <div class="absolute top-1/3 left-0 right-0 h-px bg-white/10"></div>
@@ -531,6 +534,12 @@ function initValuation() {
 
         <!-- Compact guide dock BELOW the camera (not pushing it off screen) -->
         <div id="cl-guide-panel" class="mt-2 bg-zinc-900/95 border border-gold/15 rounded-xl px-3 py-2.5">
+          <!-- Prominent progress banner: how many photos taken / needed -->
+          <div class="flex items-center justify-between mb-2 px-2.5 py-2 rounded-lg bg-gold/10 border border-gold/25">
+            <span class="text-sm font-bold text-gold"><i class="fas fa-images mr-1.5"></i><span id="cl-progress-count">0</span> of <span id="cl-progress-total">4</span> photos taken</span>
+            <span id="cl-progress-remaining" class="text-[11px] text-white/50 font-medium">4 more needed</span>
+          </div>
+
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-1.5 min-w-0">
               <span id="cl-step-icon" class="w-6 h-6 shrink-0 rounded-full bg-gold/20 flex items-center justify-center text-[10px] text-gold"><i class="fas fa-crosshairs"></i></span>
@@ -560,12 +569,18 @@ function initValuation() {
             <button id="cl-guide-next" class="flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all disabled:cursor-not-allowed bg-white/10 text-white/25" disabled>Next →</button>
           </div>
 
+          <!-- ANALYZE NOW — always visible once ≥1 photo taken, works on iPhone + Android -->
+          <button id="cl-analyze-now-btn" class="hidden mt-2 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+            <i class="fas fa-wand-magic-sparkles text-base"></i> Analyze Now
+          </button>
+
           <!-- LIVE readiness checklist -->
           <div id="cl-live-checks" class="mt-2 grid grid-cols-3 gap-1.5">
             <div id="cl-check-light" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-sun text-[9px]"></i><span>Light</span></div>
             <div id="cl-check-steady" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-hand text-[9px]"></i><span>Steady</span></div>
             <div id="cl-check-frame" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-expand text-[9px]"></i><span>Fill</span></div>
           </div>
+
 
           <!-- Per-step captured preview strip -->
           <div id="cl-step-dots" class="flex items-center gap-1.5 mt-2"></div>
@@ -841,6 +856,28 @@ function initValuation() {
       },
     }
 
+    // Renders every captured photo as a small green-checked icon on the side
+    // rail inside the camera view, so the user always sees "this shot was
+    // saved" without leaving the camera. Tap a thumbnail to jump to (and
+    // retake) that step.
+    function renderThumbRail() {
+      const rail = modal.querySelector('#cl-thumb-rail')
+      if (!rail) return
+      const seq = currentGuide()
+      rail.innerHTML = images.map((img, i) => {
+        if (!img || !img.data) return ''
+        const stepInfo = seq[i]
+        const label = stepInfo ? stepInfo.shot : `Photo ${i + 1}`
+        return `<button class="cl-rail-thumb relative w-11 h-11 rounded-lg overflow-hidden border-2 border-emerald-500/70 shadow-lg" data-step="${i}" title="${esc(label)} — captured">
+          <img src="${img.data}" class="w-full h-full object-cover" />
+          <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-black text-[9px] font-bold flex items-center justify-center border border-black/40"><i class="fas fa-check"></i></span>
+        </button>`
+      }).join('')
+      rail.querySelectorAll('.cl-rail-thumb').forEach(btn => {
+        btn.addEventListener('click', () => updateGuideStep(parseInt(btn.dataset.step, 10)))
+      })
+    }
+
     function updateGuideStep(step) {
       guideStep = step
       const seq = currentGuide()
@@ -862,6 +899,31 @@ function initValuation() {
       if (label) label.textContent = `Step ${step + 1} of ${total} — ${cur.shot}`
       if (shotCount) shotCount.textContent = `${stepCaptured.size}/${total}`
       if (instruction) instruction.textContent = cur.instruction + `  (${cur.distance || ''})`
+
+      // Prominent progress banner: "N of TOTAL photos taken" + remaining count
+      const progCount = modal.querySelector('#cl-progress-count')
+      const progTotal = modal.querySelector('#cl-progress-total')
+      const progRemaining = modal.querySelector('#cl-progress-remaining')
+      const takenCount = images.filter(Boolean).length
+      if (progCount) progCount.textContent = String(takenCount)
+      if (progTotal) progTotal.textContent = String(total)
+      if (progRemaining) {
+        const remaining = Math.max(0, total - stepCaptured.size)
+        progRemaining.textContent = remaining === 0 ? 'All set — ready to analyze!' : `${remaining} more needed`
+        progRemaining.className = remaining === 0 ? 'text-[11px] text-emerald-400 font-semibold' : 'text-[11px] text-white/50 font-medium'
+      }
+
+      // ANALYZE NOW button: visible the moment there is at least 1 usable photo
+      // or a typed/spoken description — reachable without leaving the camera,
+      // works identically on iPhone (Safari) and Android (Chrome).
+      const analyzeNowBtn = modal.querySelector('#cl-analyze-now-btn')
+      if (analyzeNowBtn) {
+        const hasContent = takenCount > 0 || !!descriptionInput?.value?.trim() || !!window._voiceTranscript
+        analyzeNowBtn.classList.toggle('hidden', !hasContent)
+      }
+
+      // Render every captured photo as a small icon on the side rail
+      renderThumbRail()
 
       // Details checklist is hidden by default; filled for the toggle to reveal
       if (detailsContainer) {
@@ -1457,6 +1519,15 @@ function initValuation() {
     if (nextBtn) nextBtn.addEventListener('click', nextStep)
     const skipShot = modal.querySelector('#cl-guide-skip-step')
     if (skipShot) skipShot.addEventListener('click', skipStep)
+    // Analyze Now — jump straight from camera to analysis, no need to close
+    // the camera and hunt for the button on the page (iPhone + Android alike).
+    const analyzeNowBtn = modal.querySelector('#cl-analyze-now-btn')
+    if (analyzeNowBtn) {
+      analyzeNowBtn.addEventListener('click', async () => {
+        cleanup()               // close the camera modal first
+        await runAnalyze()      // then run the shared analyze flow
+      })
+    }
     // toggle the "Capture details" checklist visibility
     const detailsToggle = modal.querySelector('#cl-details-toggle')
     const detailsBox = modal.querySelector('#cl-step-details')
@@ -1515,54 +1586,55 @@ function initValuation() {
   }
   refreshCredits()
 
+  // ── Analyze logic (shared: page button + in-camera "Analyze Now" button) ──
+  async function runAnalyze() {
+    if (images.filter(Boolean).length === 0 && !descriptionInput?.value.trim()) {
+      toast('Take a photo or describe the item first', 'warning');
+      return;
+    }
+
+    const filledImages = images.filter(Boolean)          // drop undefined holes
+    if (filledImages.length > 0) {
+      const confirmed = await showAnalyzeConfirmation(filledImages.length, descriptionInput?.value?.trim());
+      if (!confirmed) return;
+    }
+
+    if (analyzeBtn) analyzeBtn.disabled = true;
+    if (analyzeSpinner) show(analyzeSpinner);
+    if (resultsEmpty) hide(resultsEmpty);
+    if (resultsContent) hide(resultsContent);
+
+    try {
+      const payload = {
+        images: filledImages.map(i => i.data),
+        shotTiers: filledImages.map(i => i.tier || 'standard'), // accuracy weight
+        description: descriptionInput?.value.trim() || undefined,
+        transcript: window._voiceTranscript || undefined,
+      };
+
+      const res = await api('/api/valuation/analyze', {
+        method: 'POST',
+        data: payload,
+      });
+
+      let data = res;
+      if (res.result) data = res.result;
+
+      renderValuationResult(data, res);
+      window._voiceTranscript = null;
+      toast(res.stored ? 'Asset authenticated and stored' : 'Analysis complete \u2014 review required', res.stored ? 'success' : 'warning');
+      // scroll the review panel into view (especially useful right after closing camera)
+      resultsContent?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      toast(err.response?.data?.error || 'Analysis failed', 'error');
+    } finally {
+      if (analyzeBtn) analyzeBtn.disabled = false;
+      if (analyzeSpinner) hide(analyzeSpinner);
+    }
+  }
+
   if (analyzeBtn) {
-    analyzeBtn.addEventListener('click', async () => {
-      if (images.length === 0 && !descriptionInput?.value.trim()) {
-        toast('Upload an image or describe the item first', 'warning');
-        return;
-      }
-
-      // ── Pre-analyze confirmation dialog ────────────────────────────
-      // Show the user exactly what they're about to submit before hitting the API.
-      // images is now step-indexed (skipped steps leave holes) — gather only
-      // filled slots, preserving capture order, and attach per-shot tier.
-      const filledImages = images.filter(Boolean)          // drop undefined holes
-      if (filledImages.length > 0) {
-        const confirmed = await showAnalyzeConfirmation(filledImages.length, descriptionInput?.value?.trim());
-        if (!confirmed) return;
-      }
-
-      analyzeBtn.disabled = true;
-      if (analyzeSpinner) show(analyzeSpinner);
-      if (resultsEmpty) hide(resultsEmpty);
-      if (resultsContent) hide(resultsContent);
-
-      try {
-        const payload = {
-          images: filledImages.map(i => i.data),
-          shotTiers: filledImages.map(i => i.tier || 'standard'), // accuracy weight
-          description: descriptionInput?.value.trim() || undefined,
-          transcript: window._voiceTranscript || undefined,
-        };
-
-        const res = await api('/api/valuation/analyze', {
-          method: 'POST',
-          data: payload,
-        });
-
-        let data = res;
-        if (res.result) data = res.result;
-
-        renderValuationResult(data, res);
-        window._voiceTranscript = null;
-        toast(res.stored ? 'Asset authenticated and stored' : 'Analysis complete \u2014 review required', res.stored ? 'success' : 'warning');
-      } catch (err) {
-        toast(err.response?.data?.error || 'Analysis failed', 'error');
-      } finally {
-        analyzeBtn.disabled = false;
-        if (analyzeSpinner) hide(analyzeSpinner);
-      }
-    });
+    analyzeBtn.addEventListener('click', runAnalyze);
   }
 
   // ── Render valuation result ──────────────────────────────────────────────
