@@ -397,7 +397,8 @@ function initValuation() {
 
   function renderPreviews() {
     if (!previewsArea || !dropContent) return;
-    if (images.length === 0) {
+    const filled = images.filter(Boolean)          // step-indexed array may have skip holes
+    if (filled.length === 0) {
       hide(previewsArea);
       show(dropContent);
       return;
@@ -406,7 +407,7 @@ function initValuation() {
     show(previewsArea);
     previewsArea.innerHTML = '';
 
-    images.forEach((img, i) => {
+    filled.forEach((img, i) => {
       const thumb = document.createElement('div');
       thumb.className = 'relative inline-block m-1 cursor-pointer group';
       thumb.innerHTML = `
@@ -416,14 +417,17 @@ function initValuation() {
       `;
       thumb.querySelector('button').addEventListener('click', e => {
         e.stopPropagation();
-        images.splice(i, 1);
+        // Clear this slot from the step-indexed array (keep others' step slots)
+        const realIdx = images.indexOf(img)
+        if (realIdx >= 0) images[realIdx] = undefined
+        stepCaptured.delete(realIdx)   // re-opens that step as not-yet-acquired
         renderPreviews();
       });
       previewsArea.appendChild(thumb);
     });
 
     // Add more button
-    if (images.length < MAX_IMAGES) {
+    if (filled.length < MAX_IMAGES) {
       const addBtn = document.createElement('button');
       addBtn.className = 'w-16 h-16 rounded-lg border-2 border-dashed border-white/10 hover:border-gold/40 inline-flex items-center justify-center text-white/30 hover:text-gold transition-colors m-1';
       addBtn.innerHTML = '<i class="fas fa-plus text-lg"></i>';
@@ -493,33 +497,48 @@ function initValuation() {
         </div>
 
         <!-- Guided capture steps overlay -->
-        <div id="cl-guide-panel" class="bg-gradient-to-r from-gold/5 via-gold/8 to-gold/5 border border-gold/15 rounded-lg px-4 py-3 mb-2">
+        <div id="cl-guide-panel" class="bg-gradient-to-r from-gold/5 via-gold/8 to-gold/5 border border-gold/15 rounded-lg px-3 py-3 mb-2">
           <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-1.5">
-              <span id="cl-step-icon" class="w-5 h-5 rounded-full bg-gold/20 flex items-center justify-center text-[10px] text-gold"><i class="fas fa-crosshairs"></i></span>
-              <span id="cl-step-label" class="text-xs font-semibold text-gold">Step 1 of 4 — Dial / Face</span>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span id="cl-step-icon" class="w-6 h-6 shrink-0 rounded-full bg-gold/20 flex items-center justify-center text-[10px] text-gold"><i class="fas fa-crosshairs"></i></span>
+              <span id="cl-step-label" class="text-xs font-semibold text-gold whitespace-nowrap overflow-hidden text-ellipsis">Step 1 of 4 — Dial / Face</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span id="cl-shot-count" class="text-[10px] text-white/40 font-mono">0 captured</span>
-              <button id="cl-guide-skip" class="text-[10px] text-white/30 hover:text-white/60 transition-colors">Skip guide <i class="fas fa-forward ml-0.5"></i></button>
-            </div>
+            <!-- per-step captured thumbnail shows once this step is shot -->
+            <img id="cl-step-thumb" class="hidden w-9 h-9 rounded-lg object-cover border border-emerald-500/40 ring-1 ring-emerald-500/30 shrink-0" alt="captured" />
+            <span id="cl-shot-count" class="text-[10px] text-white/40 font-mono shrink-0">0/4</span>
           </div>
-          <p id="cl-step-instruction" class="text-sm text-white/80 font-medium">Frame the dial — position the watch face in the center circle</p>
 
-          <!-- LIVE readiness checklist — updates while framing (green = good) -->
+          <p id="cl-step-instruction" class="text-[15px] leading-snug text-white font-semibold">Frame the dial — fill the golden circle</p>
+
+          <!-- Specific details to capture for THIS shot (accuracy-first) -->
+          <div id="cl-step-details" class="mt-2 space-y-1"></div>
+
+          <!-- Big Take Picture CTA -->
+          <button id="cl-mega-snap" class="mt-3 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)]">
+            <i class="fas fa-camera-retro text-base"></i> Take Picture
+          </button>
+
+          <!-- Step nav: Skip on left, Next on right. Next unlocks after a capture or a skip. -->
+          <div class="mt-2 flex items-center gap-2">
+            <button id="cl-guide-skip-step" class="flex-1 py-2.5 rounded-lg border border-white/15 text-white/50 hover:text-white/80 text-xs font-medium transition-colors">Skip shot</button>
+            <button id="cl-guide-skip" class="flex-1 py-2.5 rounded-lg border border-white/10 text-white/30 hover:text-white/50 text-xs transition-colors">Skip all</button>
+            <button id="cl-guide-next" class="flex-1 py-2.5 rounded-lg bg-white/10 text-white/25 text-xs font-semibold transition-all disabled:cursor-not-allowed" disabled>Next →</button>
+          </div>
+
+          <!-- LIVE readiness checklist (compact) -->
           <div id="cl-live-checks" class="mt-2 grid grid-cols-3 gap-1.5">
-            <div id="cl-check-light" class="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-white/40">
+            <div id="cl-check-light" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40">
               <i class="fas fa-sun text-[9px]"></i><span>Light</span>
             </div>
-            <div id="cl-check-steady" class="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-white/40">
+            <div id="cl-check-steady" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40">
               <i class="fas fa-hand text-[9px]"></i><span>Steady</span>
             </div>
-            <div id="cl-check-frame" class="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-white/40">
-              <i class="fas fa-expand text-[9px]"></i><span>Fill frame</span>
+            <div id="cl-check-frame" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40">
+              <i class="fas fa-expand text-[9px]"></i><span>Fill</span>
             </div>
           </div>
 
-          <!-- Example card: like this / not this (collapses on mobile) -->
+          <!-- Example card (collapses on mobile) -->
           <div id="cl-example-card" class="mt-2 bg-black/30 border border-white/10 rounded-lg p-2">
             <div class="flex items-center justify-between mb-1">
               <span class="text-[9px] uppercase tracking-wider text-white/30 font-mono">Example</span>
@@ -527,13 +546,10 @@ function initValuation() {
             </div>
             <div class="cl-example-body">
               <div id="cl-example-svg" class="w-full" style="max-height:110px; overflow:hidden;"></div>
-              <div class="grid grid-cols-2 gap-2 mt-1">
-                <span id="cl-example-good" class="text-[9px] text-emerald-400/80 font-medium truncate"></span>
-                <span id="cl-example-bad" class="text-[9px] text-red-400/70 font-medium truncate text-right"></span>
-              </div>
             </div>
           </div>
 
+          <!-- Per-step captured preview strip (built dynamically) -->
           <div id="cl-step-dots" class="flex items-center gap-1.5 mt-2">
           </div>
         </div>
@@ -610,43 +626,85 @@ function initValuation() {
     let guideStep = 0
     let guideSkipped = false
     let activeCategory = 'Watches'  // changes the guided sequence per asset type
+    let stepCaptured = new Set()     // indices of guided shots already taken (accuracy accounting)
 
     // ── Category-aware guided photo sequences with DISTANCE & TARGET ZONES ──
     // example: key into EXAMPLES map → renders a "like this / not this" diagram card
     const GUIDE_SEQUENCES = {
       Watches: [
-        { icon: 'fa-clock', shot: 'Dial / Face', distance: '25–35 cm (Straight-on)', instruction: 'Photograph the dial straight-on. Position watch face inside center golden reticle. Ensure logo and hands are sharp.', macro: false, example: 'dial' },
-        { icon: 'fa-magnifying-glass-plus', shot: 'Caseback / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Flip watch. Photograph caseback engravings and serial number. Hold steady 10-15 cm away.', macro: true, example: 'macro' },
-        { icon: 'fa-link', shot: 'Clasp / Bracelet', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph clasp mechanism and end-link hallmarks up close.', macro: true, example: 'macro' },
-        { icon: 'fa-box-archive', shot: 'Box & Papers', distance: '20–30 cm (Full Card View)', instruction: 'Photograph warranty card, box label, and receipt. Keep card flat and well-lit for OCR.', macro: false, example: 'card' },
+        { icon: 'fa-clock', shot: 'Dial / Face', distance: '25–35 cm (Straight-on)', tier: 'hero',
+          instruction: 'Photograph the dial straight-on so the face fills the golden reticle.',
+          details: ['Logo + brand text sharp', 'Hands + date window visible', 'No glare on crystal'], macro: false, example: 'dial' },
+        { icon: 'fa-magnifying-glass-plus', shot: 'Caseback / Serial', distance: '10–15 cm (Macro)', tier: 'macro',
+          instruction: 'Flip watch — macro on the caseback engravings and serial number.',
+          details: ['Serial must be perfectly readable', 'Shoot straight down, not tilted'], macro: true, example: 'macro' },
+        { icon: 'fa-link', shot: 'Clasp / Bracelet', distance: '10–15 cm (Macro)', tier: 'detail',
+          instruction: 'Macro on the clasp mechanism and end-link hallmarks.',
+          details: ['Crown/hallmark stamps sharp', 'Clasp logo readable'], macro: true, example: 'macro' },
+        { icon: 'fa-box-archive', shot: 'Box & Papers', distance: '20–30 cm (Card)', tier: 'standard',
+          instruction: 'Warranty card, box label, receipt — flat and well-lit for OCR.',
+          details: ['Card flat, no curl', 'Reference number on card readable'], macro: false, example: 'card' },
       ],
       Handbags: [
-        { icon: 'fa-bag-shopping', shot: 'Full Bag — Front', distance: '40–60 cm (Full View)', instruction: 'Photograph entire bag front straight-on. Show full shape, leather grain, and handle alignment.', macro: false, example: 'bag' },
-        { icon: 'fa-fire', shot: 'Heat Stamp / Logo', distance: '10–15 cm (Macro Close-Up)', instruction: 'Close-up on brand heat stamp or foil logo. Must be sharp — check letter kerning and foil depth.', macro: true, example: 'macro' },
-        { icon: 'fa-hashtag', shot: 'Date Code / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Find date code or blind stamp inside tag or under flap. Photograph clearly for OCR.', macro: true, example: 'macro' },
-        { icon: 'fa-grip-lines', shot: 'Stitching & Hardware', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph stitching thread tension and hardware engravings (zipper pull, turn-lock).', macro: true, example: 'macro' },
-        { icon: 'fa-box-archive', shot: 'Box & Dust Bag', distance: '30–45 cm (Overview)', instruction: 'Photograph original box, dust bag, and authenticity booklet.', macro: false, example: 'card' },
+        { icon: 'fa-bag-shopping', shot: 'Full Bag — Front', distance: '40–60 cm (Full View)', tier: 'hero',
+          instruction: 'Entire bag front, straight-on — shape, grain, handle alignment.',
+          details: ['Full silhouette in frame', 'Brand emblem centered', 'Neutral background'], macro: false, example: 'bag' },
+        { icon: 'fa-fire', shot: 'Heat Stamp / Logo', distance: '10–15 cm (Macro)', tier: 'macro',
+          instruction: 'Macro on the brand heat stamp — kerning + foil depth.',
+          details: ['Stamp sharp and readable', 'Foil depth visible', 'Straight-on, no angle'], macro: true, example: 'macro' },
+        { icon: 'fa-hashtag', shot: 'Date Code / Serial', distance: '10–15 cm (Macro)', tier: 'macro',
+          instruction: 'Date code / blind stamp inside tag or under flap — for OCR.',
+          details: ['Code fully in frame', 'Backing label flat + lit'], macro: true, example: 'macro' },
+        { icon: 'fa-grip-lines', shot: 'Stitching & Hardware', distance: '10–15 cm (Macro)', tier: 'detail',
+          instruction: 'Stitch tension + hardware engravings (zipper pull, turn-lock).',
+          details: ['Stitch pattern clear', 'Hardware logo sharp'], macro: true, example: 'macro' },
+        { icon: 'fa-box-archive', shot: 'Box & Dust Bag', distance: '30–45 cm (Overview)', tier: 'standard',
+          instruction: 'Original box, dust bag, authenticity booklet.',
+          details: ['Box logo/print visible', 'Booklet title readable'], macro: false, example: 'card' },
       ],
       'Fine Jewelry': [
-        { icon: 'fa-gem', shot: 'Full Piece', distance: '20–30 cm (Centered)', instruction: 'Photograph full piece on a neutral background. Show overall design and symmetry.', macro: false, example: 'gem' },
-        { icon: 'fa-stamp', shot: 'Hallmark / Stamp', distance: '8–12 cm (Ultra Macro)', instruction: 'Close-up on metal hallmark stamp (750, Pt950, 18K). Confirms metal purity.', macro: true, example: 'macro' },
-        { icon: 'fa-snowflake', shot: 'Gemstone / Setting', distance: '8–12 cm (Ultra Macro)', instruction: 'Photograph main gemstone close-up — show facet clarity and prong setting.', macro: true, example: 'gem' },
-        { icon: 'fa-weight-hanging', shot: 'Clasp / Serial', distance: '10–15 cm (Macro Close-Up)', instruction: 'Photograph clasp mechanism and micro-serial engraving.', macro: true, example: 'macro' },
+        { icon: 'fa-gem', shot: 'Full Piece', distance: '20–30 cm (Centered)', tier: 'hero',
+          instruction: 'Full piece on neutral background — overall design + symmetry.',
+          details: ['Center the piece', 'Show both sides of symmetry', 'No reflections'], macro: false, example: 'gem' },
+        { icon: 'fa-stamp', shot: 'Hallmark / Stamp', distance: '8–12 cm (Ultra Macro)', tier: 'macro',
+          instruction: 'Metal hallmark stamp — 750 / Pt950 / 18K. Confirms purity.',
+          details: ['Hallmark fully readable', 'Macro engaged', 'Best under direct light'], macro: true, example: 'macro' },
+        { icon: 'fa-snowflake', shot: 'Gemstone / Setting', distance: '8–12 cm (Ultra Macro)', tier: 'detail',
+          instruction: 'Main gemstone — facet clarity + prong setting.',
+          details: ['Facets in focus', 'Prongs visible', 'No light reflection'], macro: true, example: 'gem' },
+        { icon: 'fa-weight-hanging', shot: 'Clasp / Serial', distance: '10–15 cm (Macro)', tier: 'detail',
+          instruction: 'Clasp mechanism + micro-serial engraving.',
+          details: ['Serial readable under loop', 'Clasp maker mark sharp'], macro: true, example: 'macro' },
       ],
       'Luxury Vehicles': [
-        { icon: 'fa-car-side', shot: '3/4 Front Angle', distance: '2–3 meters (Full Vehicle)', instruction: 'Photograph vehicle from 3/4 front angle. Show badge, headlight, and panel gaps.', macro: false, example: 'car' },
-        { icon: 'fa-gauge-high', shot: 'Dashboard / Odometer', distance: '50–70 cm (Interior)', instruction: 'Photograph dashboard — focus clearly on digital/analog odometer reading.', macro: false, example: 'dash' },
-        { icon: 'fa-id-card', shot: 'VIN Plate', distance: '15–25 cm (Close-Up)', instruction: 'Photograph VIN plate at windshield base or door jamb for 17-digit OCR extraction.', macro: true, example: 'macro' },
-        { icon: 'fa-couch', shot: 'Interior Stitching', distance: '30–50 cm (Detail View)', instruction: 'Photograph seat leather stitching, headrest badge, and carbon fiber trim weave.', macro: false, example: 'macro' },
+        { icon: 'fa-car-side', shot: '3/4 Front Angle', distance: '2–3 meters (Full Vehicle)', tier: 'hero',
+          instruction: '3/4 front angle — badge, headlights, panel gaps.',
+          details: ['Full nose in frame', 'Badge readable', 'Even daylight, no harsh shadow'], macro: false, example: 'car' },
+        { icon: 'fa-gauge-high', shot: 'Dashboard / Odometer', distance: '50–70 cm (Interior)', tier: 'detail',
+          instruction: 'Dashboard — odometer reading clearly in focus.',
+          details: ['Odometer digits sharp', 'No reflection on cluster'], macro: false, example: 'dash' },
+        { icon: 'fa-id-card', shot: 'VIN Plate', distance: '15–25 cm (Close-Up)', tier: 'macro',
+          instruction: 'VIN plate at windshield base or door jamb — 17-digit OCR.',
+          details: ['All 17 chars readable', 'Plate flat + lit'], macro: true, example: 'macro' },
+        { icon: 'fa-couch', shot: 'Interior Stitching', distance: '30–50 cm (Detail)', tier: 'detail',
+          instruction: 'Seat leather stitching, headrest badge, carbon weave.',
+          details: ['Stitch pattern clear', 'Material weave in focus'], macro: false, example: 'macro' },
       ],
       'Art & Collectibles': [
-        { icon: 'fa-image', shot: 'Full Work', distance: '1–2 meters (Straight-on)', instruction: 'Photograph entire artwork centered, straight-on. Avoid reflections and harsh glare.', macro: false, example: 'art' },
-        { icon: 'fa-signature', shot: 'Signature', distance: '15–25 cm (Close-Up)', instruction: 'Close-up on artist signature or maker stamp. Must be sharp to verify stroke style.', macro: true, example: 'macro' },
-        { icon: 'fa-list-ol', shot: 'Edition / Markings', distance: '15–25 cm (Close-Up)', instruction: 'Photograph edition numbering (e.g. 12/50) and corner/rear markings.', macro: true, example: 'macro' },
-        { icon: 'fa-certificate', shot: 'Certificate / COA', distance: '25–35 cm (Document View)', instruction: 'Photograph Certificate of Authenticity or provenance documentation.', macro: false, example: 'card' },
+        { icon: 'fa-image', shot: 'Full Work', distance: '1–2 meters (Straight-on)', tier: 'hero',
+          instruction: 'Entire artwork centered, straight-on, no glare.',
+          details: ['Full canvas in frame', 'Edge-to-edge visible', 'No crop'], macro: false, example: 'art' },
+        { icon: 'fa-signature', shot: 'Signature', distance: '15–25 cm (Close-Up)', tier: 'macro',
+          instruction: 'Artist signature / maker stamp sharp — verify stroke style.',
+          details: ['Signature fully readable', 'Stroke line in focus'], macro: true, example: 'macro' },
+        { icon: 'fa-list-ol', shot: 'Edition / Markings', distance: '15–25 cm (Close-Up)', tier: 'detail',
+          instruction: 'Edition numbering (12/50) + corner/rear markings.',
+          details: ['Numbering readable', 'Markings not cropped'], macro: true, example: 'macro' },
+        { icon: 'fa-certificate', shot: 'Certificate / COA', distance: '25–35 cm (Doc)', tier: 'standard',
+          instruction: 'Certificate of Authenticity or provenance docs.',
+          details: ['COA title readable', 'Doc flat + well-lit'], macro: false, example: 'card' },
       ],
     }
-
     function currentGuide() { return GUIDE_SEQUENCES[activeCategory] || GUIDE_SEQUENCES['Watches'] }
 
     // ── "Like this / Not this" example diagrams (inline SVG — no external assets) ──
@@ -797,13 +855,44 @@ function initValuation() {
       const label = modal.querySelector('#cl-step-label')
       const instruction = modal.querySelector('#cl-step-instruction')
       const dotsContainer = modal.querySelector('#cl-step-dots')
+      const detailsContainer = modal.querySelector('#cl-step-details')
+      const shotCount = modal.querySelector('#cl-shot-count')
+      const nextBtn = modal.querySelector('#cl-guide-next')
+      const stepThumb = modal.querySelector('#cl-step-thumb')
 
       const cur = seq[step] || seq[seq.length - 1]
       const total = seq.length
 
       if (icon) { icon.className = `fas ${cur.icon}` }
       if (label) label.textContent = `Step ${step + 1} of ${total} — ${cur.shot}`
-      if (instruction) instruction.textContent = cur.instruction
+      if (shotCount) shotCount.textContent = `${stepCaptured.size}/${total}`
+      if (instruction) instruction.textContent = cur.instruction + `  (${cur.distance || ''})`
+
+      // Specific details for THIS shot + tier badge (accuracy weight)
+      const TIER_LABEL = { hero: '⭐ hero shot', macro: '🔬 detail — high accuracy', detail: 'detail', standard: 'standard' }
+      if (detailsContainer) {
+        const tierText = TIER_LABEL[cur.tier] || ''
+        detailsContainer.innerHTML = (cur.details || []).map(d =>
+          `<div class="flex items-start gap-1.5 text-[11px] text-white/50"><i class="fas fa-circle-check text-[9px] mt-0.5 ${cur.tier === 'macro' || cur.tier === 'hero' ? 'text-gold/70' : 'text-white/25'}"></i><span>${esc(d)}</span></div>`
+        ).join('') + (tierText ? `<div class="mt-1 text-[9px] font-mono text-gold/60 uppercase tracking-wider">${tierText}</div>` : '')
+      }
+
+      // This step's captured thumbnail, if any
+      const cap = stepCaptured.has(step)
+      if (stepThumb) {
+        if (cap && images[step]?.data) { stepThumb.src = images[step].data; stepThumb.classList.remove('hidden') }
+        else { stepThumb.classList.add('hidden') }
+      }
+
+      // Next unlocks only after this step is captured OR explicitly skipped
+      if (nextBtn) {
+        const unlocked = cap
+        nextBtn.disabled = !unlocked
+        nextBtn.className = `flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+          unlocked ? 'bg-gold text-black' : 'bg-white/10 text-white/25 disabled:cursor-not-allowed'
+        }`
+        nextBtn.textContent = step >= total - 1 ? (cap ? 'Done ✓' : 'Next →') : 'Next →'
+      }
 
       // Collapse the example chip on mobile when moving between steps
       const exCardEl = panel.closest?.('#cl-example-card') || modal.querySelector('#cl-example-card')
@@ -812,15 +901,11 @@ function initValuation() {
       // Render the "like this / not this" example card for this step
       const ex = EXAMPLES[cur.example]
       const exSvg = modal.querySelector('#cl-example-svg')
-      const exGood = modal.querySelector('#cl-example-good')
-      const exBad = modal.querySelector('#cl-example-bad')
       const exCard = modal.querySelector('#cl-example-card')
       if (exCard) {
         if (ex) {
           exCard.style.display = ''
           if (exSvg) exSvg.innerHTML = ex.svg
-          if (exGood) exGood.textContent = '✓ ' + ex.good
-          if (exBad) exBad.textContent = '✗ ' + ex.bad
         } else {
           exCard.style.display = 'none'
         }
@@ -830,25 +915,32 @@ function initValuation() {
       const hudBadge = modal.querySelector('#cl-hud-step-badge')
       const hudTitle = modal.querySelector('#cl-hud-shot-title span')
       const hudTitleIcon = modal.querySelector('#cl-hud-shot-title i')
-      const hudDist = modal.querySelector('#cl-hud-distance-text')
       const hudInst = modal.querySelector('#cl-hud-instruction-short')
       const hudMacro = modal.querySelector('#cl-hud-macro-badge')
 
-      if (hudBadge) hudBadge.textContent = `Step ${step + 1}/${total}`
+      if (hudBadge) hudBadge.textContent = `Step ${step + 1}/${total}${cap ? ' ✓' : ''}`
       if (hudTitle) hudTitle.textContent = cur.shot
       if (hudTitleIcon) hudTitleIcon.className = `fas ${cur.icon} text-gold text-[10px]`
-      if (hudDist) hudDist.textContent = `📏 Distance: ${cur.distance || '25–35 cm'}`
       if (hudInst) hudInst.textContent = cur.instruction.slice(0, 45) + '...'
       if (hudMacro) {
         if (cur.macro) hudMacro.classList.remove('hidden')
         else hudMacro.classList.add('hidden')
       }
 
-      // Rebuild dots dynamically based on this category's step count
+      // Per-step captured preview strip: one chip per shot, ✓ or empty
       if (dotsContainer) {
-        dotsContainer.innerHTML = seq.map((_, i) =>
-          `<span class="cl-step-dot w-2.5 h-2.5 rounded-full ${i <= step ? 'bg-gold' : 'bg-gold/20'}"></span>`
-        ).join('')
+        dotsContainer.innerHTML = seq.map((_, i) => {
+          const done = stepCaptured.has(i)
+          const cur2 = seq[i]
+          const style = done
+            ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
+            : (i === step ? 'border-gold/60 bg-gold/10 text-gold' : 'border-white/10 text-white/25')
+          return `<span class="cl-step-chip flex-1 text-center py-1 rounded border text-[9px] font-mono ${style}">${done ? '✓' : (cur2.icon ? `<i class="fas ${cur2.icon}"></i>` : '·')}</span>`
+        }).join('')
+        // make each chip clickable to jump to that step
+        Array.from(dotsContainer.children).forEach((chip, i) => {
+          chip.addEventListener('click', () => updateGuideStep(i))
+        })
       }
 
       // Auto-set macro per step's recommendation
@@ -859,11 +951,39 @@ function initValuation() {
       }
     }
 
+    function markStepCaptured(stepIndex) {
+      if (!guideSkipped) {
+        stepCaptured.add(stepIndex)
+        // tie the captured image to this step index for accuracy weighting
+        if (images[stepIndex] && images[stepIndex].data) {
+          images[stepIndex].tier = (currentGuide()[stepIndex] || {}).tier || 'standard'
+        }
+      }
+      updateGuideStep(guideStep)
+    }
+
+    function nextStep() {
+      const seq = currentGuide()
+      if (guideStep < seq.length - 1) {
+        updateGuideStep(guideStep + 1)
+      } else {
+        hideGuide()
+        toast(`All ${seq.length} guided shots accounted for. You can analyze now or add more.`, 'success')
+      }
+    }
+
+    function skipStep() {
+      // Skipping accounts for the step as an explicit skip — Next unlocks.
+      if (!guideSkipped) stepCaptured.add(guideStep)
+      nextStep()
+    }
+
     // Re-render the guide when category changes (called from the selector)
     function switchCategory(cat) {
       activeCategory = cat
       guideStep = 0
       guideSkipped = false
+      stepCaptured = new Set()
       const panel = modal.querySelector('#cl-guide-panel')
       if (panel) panel.style.display = ''
       updateGuideStep(0)
@@ -1056,20 +1176,20 @@ function initValuation() {
         return  // don't save this frame, don't advance the guide
       }
 
-      images.push({ data: dataUrl, name: `cam-${resolution}-${Date.now()}.jpg` })
-
-      // Advance guided capture step — now works with any sequence length
+      // Associate this capture with the current guided step (so thumbnails and
+      // tier weighting line up), then mark it captured → unlocks Next.
+      const stepIdx = guideSkipped ? images.length : guideStep
+      images[stepIdx] = { data: dataUrl, name: `cam-${resolution}-${Date.now()}.jpg` }
       if (!guideSkipped) {
-        const seq = currentGuide()
-        if (guideStep < seq.length - 1) {
-          updateGuideStep(guideStep + 1)
-        } else {
-          // All guided steps completed — hide guide, show done message
-          hideGuide()
-          toast(`All ${seq.length} guided shots captured! You can analyze now or take more.`, 'success')
-        }
+        images[stepIdx].tier = (currentGuide()[stepIdx] || {}).tier || 'standard'
+        markStepCaptured(stepIdx)
+        toast(`✓ ${currentGuide()[stepIdx]?.shot || 'Step'} captured`, 'success')
       }
 
+      // Advance guided capture step — now works with any sequence length
+      // NOTE: we do NOT auto-advance here. The step shows ✓ + thumbnail and
+      // the "Next →" button unlocks; the user taps it to move on (friendlier
+      // flow). "Skip shot" advances without a capture.
       if (burstOn) {
         // Capture 2 more frames at 250ms intervals and pick the most-detailed one
         const candidates = [dataUrl]
@@ -1087,15 +1207,15 @@ function initValuation() {
           const score = await measureSharpness(c)
           if (score > bestScore) { bestScore = score; best = c }
         }
-        // Replace last with best
-        images[images.length - 1] = { data: best, name: `cam-burst-${Date.now()}.jpg` }
+        // Replace the just-captured slot with the burst best (keep step slot intact)
+        images[stepIdx] = { ...images[stepIdx], data: best, name: `cam-burst-${Date.now()}.jpg` }
       }
 
       renderPreviews()
 
-      // Update the shot counter in the guide panel
+      // Update the shot counter in the guide panel (filled captures only)
       const shotCountEl = modal.querySelector('#cl-shot-count')
-      if (shotCountEl) shotCountEl.textContent = `${images.length} captured`
+      if (shotCountEl) shotCountEl.textContent = `${images.filter(Boolean).length} captured`
 
       toast('Captured', 'success')
     }
@@ -1335,6 +1455,17 @@ function initValuation() {
     modal.querySelector('#cl-cam-close').addEventListener('click', cleanup)
     modal.querySelector('#cl-guide-skip').addEventListener('click', hideGuide)
 
+    // ── Friendly step flow wiring ──────────────────────────────────────
+    // Big "Take Picture" CTA, Next (unlocks on capture/skip), Skip shot.
+    const megaSnap = modal.querySelector('#cl-mega-snap')
+    if (megaSnap) megaSnap.addEventListener('click', snap)
+    const nextBtn = modal.querySelector('#cl-guide-next')
+    if (nextBtn) nextBtn.addEventListener('click', nextStep)
+    const skipShot = modal.querySelector('#cl-guide-skip-step')
+    if (skipShot) skipShot.addEventListener('click', skipStep)
+    // tapping the framed step chip jumps to that step
+    // (handled inside updateGuideStep via dotsContainer delegation)
+
     // Tap the collapsed example chip on mobile to expand/collapse it
     const exCard = modal.querySelector('#cl-example-card')
     if (exCard) {
@@ -1373,8 +1504,11 @@ function initValuation() {
 
       // ── Pre-analyze confirmation dialog ────────────────────────────
       // Show the user exactly what they're about to submit before hitting the API.
-      if (images.length > 0) {
-        const confirmed = await showAnalyzeConfirmation(images.length, descriptionInput?.value?.trim());
+      // images is now step-indexed (skipped steps leave holes) — gather only
+      // filled slots, preserving capture order, and attach per-shot tier.
+      const filledImages = images.filter(Boolean)          // drop undefined holes
+      if (filledImages.length > 0) {
+        const confirmed = await showAnalyzeConfirmation(filledImages.length, descriptionInput?.value?.trim());
         if (!confirmed) return;
       }
 
@@ -1385,7 +1519,8 @@ function initValuation() {
 
       try {
         const payload = {
-          images: images.map(i => i.data),
+          images: filledImages.map(i => i.data),
+          shotTiers: filledImages.map(i => i.tier || 'standard'), // accuracy weight
           description: descriptionInput?.value.trim() || undefined,
           transcript: window._voiceTranscript || undefined,
         };
