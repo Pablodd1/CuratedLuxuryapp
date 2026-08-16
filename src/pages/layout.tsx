@@ -165,11 +165,13 @@ export function Layout({ title, active, children, embed = false }: { title: stri
             if (window.parent !== window) {
               try { window.parent.postMessage({ type: 'clx:exit' }, '*'); } catch (e) {}
             }
-            // Then fall back to history, else the original site
+            // Then fall back to history, else the parent platform
             if (document.referrer && document.referrer !== location.href) {
               try { if (history.length > 1) { history.back(); return; } } catch (e) {}
             }
-            location.href = 'https://watchfact.com';
+            // NOTE: watchfact.com is an unregistered domain (NXDOMAIN) — pointing
+            // there showed users a dead-page error. Use the live WF property.
+            location.href = 'https://watchfacts-poc.vercel.app';
           };
         `}</script>
         <main class={`flex-1 max-w-7xl mx-auto px-4 py-5 w-full${embed ? ' embed-main' : ''}`}>

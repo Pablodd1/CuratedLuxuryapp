@@ -45,8 +45,8 @@ app.use('/api/*', cors({
   origin: (origin) => {
     const allowed = [
       'https://curatedlux.pages.dev',
-      'https://watchfact.com',
-      'https://www.watchfact.com',
+      'https://watchfacts-poc.vercel.app',
+      'https://*.vercel.app',
     ]
     if (!origin) return null            // same-origin / curl — nothing to allow
     return allowed.includes(origin) ? origin : null
