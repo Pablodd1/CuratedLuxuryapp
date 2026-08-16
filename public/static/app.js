@@ -188,8 +188,29 @@ function initValuation() {
   // ── PRIMARY: Camera Trigger Button ────────────────────────────────────────
   const cameraTriggerBtn = $id('camera-trigger-btn');
   if (cameraTriggerBtn) {
-    cameraTriggerBtn.addEventListener('click', openCamera);
+    cameraTriggerBtn.addEventListener('click', showPrepScreen);
   }
+
+  // ── AUTHENTICATE YOUR ITEM hero wiring (landing card on the scan page) ──
+  // Category chips + "Start Authentication" open the same prep→capture flow,
+  // carrying the chosen category into capture (RAG/accuracy pipeline intact).
+  const authCatBtns = document.querySelectorAll('.cl-auth-cat');
+  authCatBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeCategory = btn.dataset.authCat;
+      authCatBtns.forEach(b => {
+        b.className = b === btn
+          ? 'cl-auth-cat flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl border transition-all border-gold/40 bg-gold/10 text-gold'
+          : 'cl-auth-cat flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl border transition-all border-white/10 bg-zinc-900/70 text-white/50 hover:border-gold/30 hover:text-gold';
+      });
+    });
+  });
+  const startAuthBtn = $id('cl-start-auth');
+  if (startAuthBtn) startAuthBtn.addEventListener('click', showPrepScreen);
+  const howItWorksBtn = $id('cl-how-it-works');
+  if (howItWorksBtn) howItWorksBtn.addEventListener('click', () => {
+    if (typeof openExampleGallery === 'function') openExampleGallery(activeCategory);
+  });
 
   // ── PRIMARY: Voice Trigger Button ─────────────────────────────────────────
   const voiceTriggerBtn = $id('voice-trigger-btn');
@@ -454,192 +475,10 @@ function initValuation() {
   //   • Macro mode via ZoomMediaStreamTrack + tiny subject framing
   //   • Burst capture (3 frames, picks sharpest via edge-detection)
   // ════════════════════════════════════════════════════════════════════════
-  async function openCamera() {
-    const modal = document.createElement('div');
-    // Mobile-first: scrollable so the guide (top) and video never overlap on
-    // phones. The inner card is a flex column [guide · video · controls] that
-    // fits height and scrolls when content exceeds the viewport.
-    modal.className = 'fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm overflow-y-auto overscroll-contain';
-    modal.innerHTML = `
-      <div class="relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-4">
-        <button id="cl-cam-close" class="absolute top-2 right-2 z-40 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
+  // ── SHARED category guide data + examples (hoisted so the prep screen,
+  //    example gallery and camera capture all use the SAME sequences) ──
+    let activeCategory = 'Watches'  // shared prep + capture
 
-        <!-- Mode & Quality Toolbar (compact top row) -->
-        <div class="flex items-center justify-between gap-2 mb-2 px-1 flex-wrap">
-          <div class="flex items-center gap-1">
-            <button data-res="4k" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">4K</button>
-            <button data-res="1080" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">1080p</button>
-            <button data-res="720" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">720p</button>
-          </div>
-          <div class="flex items-center gap-1">
-            <button id="cl-macro-btn" class="cl-toggle px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40" title="Macro — for tiny luxury details (watch dial, handbag stamp, jewelry hallmark)">
-              <i class="fas fa-search-plus mr-1"></i>MACRO
-            </button>
-            <button id="cl-burst-btn" class="cl-toggle px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40" title="3-frame burst — picks sharpest">
-              <i class="fas fa-layer-group mr-1"></i>BURST
-            </button>
-          </div>
-          <div class="flex items-center gap-1">
-            <button id="cl-mic-btn" class="cl-toggle px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-rose-300 hover:border-rose-400/40" title="High-fidelity voice notes">
-              <i class="fas fa-microphone mr-1"></i>RAW MIC
-            </button>
-          </div>
-        </div>
-
-        <!-- Category selector (compact, horizontal) -->
-        <div class="flex items-center gap-1.5 mb-2 flex-wrap">
-          <span class="text-[10px] text-white/30 uppercase tracking-wider mr-1">Asset type:</span>
-          <button data-cat="Watches" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-gold/40 bg-gold/10 text-gold transition-all">Watches</button>
-          <button data-cat="Handbags" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Handbags</button>
-          <button data-cat="Fine Jewelry" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Jewelry</button>
-          <button data-cat="Luxury Vehicles" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Vehicles</button>
-          <button data-cat="Art & Collectibles" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Art</button>
-        </div>
-
-        <!-- CAMERA-FIRST: video fills available height; guide overlays bottom -->
-        <div class="clx-camera-feed relative overflow-hidden rounded-xl bg-black">
-          <video id="cl-cam-video" class="w-full bg-black" autoplay playsinline muted></video>
-
-          <!-- LIVE TOP FLOATING HUD BANNER -->
-          <div id="cl-live-hud-banner" class="absolute top-2 left-2 right-14 z-30 bg-black/75 border border-gold/40 rounded-lg px-3 py-2 backdrop-blur-md shadow-2xl flex items-center justify-between pointer-events-none">
-            <div class="flex items-center gap-2">
-              <span id="cl-hud-step-badge" class="px-2 py-0.5 bg-gold/20 border border-gold/40 text-gold text-[10px] font-mono font-bold rounded uppercase">Step 1/4</span>
-              <div>
-                <div id="cl-hud-shot-title" class="text-xs font-bold text-white flex items-center gap-1.5">
-                  <i class="fas fa-crosshairs text-gold text-[10px]"></i>
-                  <span>Dial / Face</span>
-                </div>
-                <div id="cl-hud-distance-text" class="text-[10px] font-mono text-gold/90 font-medium">📏 Distance</div>
-              </div>
-            </div>
-            <div class="text-right">
-              <span id="cl-hud-instruction-short" class="text-[10px] text-white/70 block max-w-[130px] truncate"></span>
-              <span id="cl-hud-macro-badge" class="text-[9px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded hidden">MACRO ON</span>
-            </div>
-          </div>
-
-          <!-- PHOTO THUMBNAIL RAIL — every captured shot shown as a small icon on the side -->
-          <div id="cl-thumb-rail" class="absolute top-2 right-2 z-30 flex flex-col gap-1.5 max-h-[70%] overflow-y-auto"></div>
-
-          <!-- Framing guides + gold reticle -->
-          <div class="absolute inset-0 pointer-events-none">
-            <div class="absolute top-1/3 left-0 right-0 h-px bg-white/10"></div>
-            <div class="absolute top-2/3 left-0 right-0 h-px bg-white/10"></div>
-            <div class="absolute left-1/3 top-0 bottom-0 w-px bg-white/10"></div>
-            <div class="absolute left-2/3 top-0 bottom-0 w-px bg-white/10"></div>
-            <div class="absolute top-1/2 left-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 border-2 border-gold/60 rounded-full animate-pulse shadow-[0_0_20px_rgba(212,175,55,0.3)]"></div>
-          </div>
-          <div id="cl-cam-info" class="absolute bottom-2 left-2 text-[10px] font-mono text-gold/80 bg-black/40 px-2 py-0.5 rounded z-30"></div>
-        </div>
-
-        <!-- Compact guide dock BELOW the camera (not pushing it off screen) -->
-        <div id="cl-guide-panel" class="mt-2 bg-zinc-900/95 border border-gold/15 rounded-xl px-3 py-2.5">
-          <!-- Prominent progress banner: how many photos taken / needed -->
-          <div class="flex items-center justify-between mb-2 px-2.5 py-2 rounded-lg bg-gold/10 border border-gold/25">
-            <span class="text-sm font-bold text-gold"><i class="fas fa-images mr-1.5"></i><span id="cl-progress-count">0</span> of <span id="cl-progress-total">4</span> photos taken</span>
-            <span id="cl-progress-remaining" class="text-[11px] text-white/50 font-medium">4 more needed</span>
-          </div>
-
-          <div class="flex items-center justify-between mb-1">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <span id="cl-step-icon" class="w-6 h-6 shrink-0 rounded-full bg-gold/20 flex items-center justify-center text-[10px] text-gold"><i class="fas fa-crosshairs"></i></span>
-              <span id="cl-step-label" class="text-xs font-semibold text-gold whitespace-nowrap overflow-hidden text-ellipsis">Step 1 of 4 — Dial / Face</span>
-              <span id="cl-shot-count" class="text-[10px] text-white/40 font-mono shrink-0">0/4</span>
-            </div>
-            <img id="cl-step-thumb" class="hidden w-8 h-8 rounded-lg object-cover border border-emerald-500/40 ring-1 ring-emerald-500/30 shrink-0 ml-1" alt="captured" />
-          </div>
-
-          <p id="cl-step-instruction" class="text-sm leading-snug text-white font-semibold">Frame the dial — fill the golden circle</p>
-
-          <!-- Details checklist + example (collapsible on mobile) -->
-          <button id="cl-details-toggle" type="button" class="mt-1.5 inline-flex items-center gap-1 text-[10px] text-gold/80 hover:text-gold font-mono uppercase tracking-wider">
-            <i class="fas fa-list-check text-[9px]"></i> <span>Capture details</span> <i class="fas fa-chevron-down text-[8px]"></i>
-          </button>
-          <div id="cl-step-details" class="hidden mt-1.5 space-y-1"></div>
-
-          <!-- Big TAKE PICTURE CTA -->
-          <button id="cl-mega-snap" class="mt-2 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)]">
-            <i class="fas fa-camera-retro text-base"></i> Take Picture
-          </button>
-
-          <!-- Step nav row -->
-          <div class="mt-2 flex items-center gap-2">
-            <button id="cl-guide-skip-step" class="flex-1 py-2.5 rounded-lg border border-white/15 text-white/50 hover:text-white/80 text-xs font-medium transition-colors">Skip shot</button>
-            <button id="cl-guide-skip" class="flex-1 py-2.5 rounded-lg border border-white/10 text-white/30 hover:text-white/50 text-xs transition-colors">Skip all</button>
-            <button id="cl-guide-next" class="flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all disabled:cursor-not-allowed bg-white/10 text-white/25" disabled>Next →</button>
-          </div>
-
-          <!-- ANALYZE NOW — always visible once ≥1 photo taken, works on iPhone + Android -->
-          <button id="cl-analyze-now-btn" class="hidden mt-2 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-            <i class="fas fa-wand-magic-sparkles text-base"></i> Analyze Now
-          </button>
-
-          <!-- LIVE readiness checklist -->
-          <div id="cl-live-checks" class="mt-2 grid grid-cols-3 gap-1.5">
-            <div id="cl-check-light" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-sun text-[9px]"></i><span>Light</span></div>
-            <div id="cl-check-steady" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-hand text-[9px]"></i><span>Steady</span></div>
-            <div id="cl-check-frame" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-expand text-[9px]"></i><span>Fill</span></div>
-          </div>
-
-
-          <!-- Per-step captured preview strip -->
-          <div id="cl-step-dots" class="flex items-center gap-1.5 mt-2"></div>
-
-          <!-- Example card (kept, collapsible) -->
-          <div id="cl-example-card" class="mt-2 bg-black/30 border border-white/10 rounded-lg p-2 hidden">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-[9px] uppercase tracking-wider text-white/30 font-mono">Example</span>
-              <span class="text-[9px] text-white/30">tap to expand</span>
-            </div>
-            <div class="cl-example-body">
-              <div id="cl-example-svg" class="w-full" style="max-height:110px; overflow:hidden;"></div>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- Mic waveform + status -->
-        <div id="cl-mic-panel" class="hidden mt-3 bg-black/40 rounded-lg p-3 border border-rose-400/20">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[10px] font-mono text-rose-300"><i class="fas fa-circle text-[6px] mr-1 animate-pulse"></i>RAW MIC 256 kbps</span>
-            <span id="cl-mic-meter" class="text-[10px] font-mono text-rose-200/50">0 dB</span>
-          </div>
-          <canvas id="cl-mic-wave" class="w-full h-8 bg-black/30 rounded"></canvas>
-        </div>
-
-        <!-- Snap controls -->
-        <div class="mt-4 flex items-center justify-center gap-6">
-          <button id="cl-cam-flip" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-gold flex items-center justify-center" title="Flip">
-            <i class="fas fa-camera-rotate"></i>
-          </button>
-          <button id="cl-cam-snap" class="relative w-20 h-20 rounded-full bg-white border-4 border-gold flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.4)]" title="Take photo">
-            <i class="fas fa-camera text-black text-2xl"></i>
-            <span id="cl-ready-ring" class="hidden absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-black text-[8px] font-mono font-bold animate-pulse">READY</span>
-          </button>
-          <button id="cl-cam-torch" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-gold flex items-center justify-center" title="Torch">
-            <i class="fas fa-bolt"></i>
-          </button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    // ── State ──────────────────────────────────────────────────────────
-    let stream = null
-    let facingMode = 'environment'
-    let resolution = '1080'
-    let macroOn = false
-    let burstOn = false
-    let micOn = false
-    let guideStep = 0
-    let guideSkipped = false
-    let activeCategory = 'Watches'  // changes the guided sequence per asset type
-    let stepCaptured = new Set()     // indices of guided shots already taken (accuracy accounting)
-
-    const TIER_LABEL = { hero: '⭐ hero shot', macro: '🔬 detail — high accuracy', detail: 'detail', standard: 'standard' }
-
-    // ── Category-aware guided photo sequences with DISTANCE & TARGET ZONES ──
-    // example: key into EXAMPLES map → renders a "like this / not this" diagram card
     const GUIDE_SEQUENCES = {
       Watches: [
         { icon: 'fa-clock', shot: 'Dial / Face', distance: '25–35 cm (Straight-on)', tier: 'hero',
@@ -716,6 +555,7 @@ function initValuation() {
       ],
     }
     function currentGuide() { return GUIDE_SEQUENCES[activeCategory] || GUIDE_SEQUENCES['Watches'] }
+
 
     // ── "Like this / Not this" example diagrams (inline SVG — no external assets) ──
     // Each key shows a correct framing (left) vs a bad one (right) with a one-line caption.
@@ -855,6 +695,437 @@ function initValuation() {
         </svg>`
       },
     }
+  // ── PREP SCREEN: "Prepare for Capture" (Step 1 of 10) ──────────────────
+  // Faithful mimic of the reference frame: CL logo, serif title, gold-on-black,
+  // 5 prep checklist items, gold "Begin Capture" CTA, "See example photos" link.
+  // BEGIN CAPTURE hands off to openCamera() (existing camera-first flow) so the
+  // RAG + shot-tier accuracy pipeline stays fully intact.
+  const PREP_TIPS = [
+    { icon: 'fa-camera',   label: 'Clean your camera lens' },
+    { icon: 'fa-sun',      label: 'Use bright, indirect light' },
+    { icon: 'fa-table',    label: 'Place item on a plain surface' },
+    { icon: 'fa-street-view', label: 'Avoid reflections and shadows' },
+    { icon: 'fa-magnifying-glass-minus', label: 'Do not use digital zoom' },
+  ];
+
+  // Gold-rimmed black-dial dress watch — recreated from the reference frame using
+  // the app palette (#d4af37 gold on #111827 black, black leather strap). Inline
+  // SVG = zero asset weight, offline-safe, themeable.
+  const PREP_HEROES = {
+    Watches: `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="clh-case" cx="50%" cy="40%" r="75%">
+          <stop offset="0%" stop-color="#f3d98a"/><stop offset="55%" stop-color="#d4af37"/><stop offset="100%" stop-color="#8a6d1c"/>
+        </radialGradient>
+        <radialGradient id="clh-dial" cx="50%" cy="45%" r="65%">
+          <stop offset="0%" stop-color="#16181d"/><stop offset="100%" stop-color="#0b0c0e"/>
+        </radialGradient>
+      </defs>
+      <!-- leather strap -->
+      <path d="M 88 62 C 88 92 78 110 64 132 L 92 138 C 100 116 104 96 104 62 Z" fill="#1a1208" stroke="#d4af37" stroke-width="0.8"/>
+      <path d="M 132 62 C 132 92 142 110 156 132 L 128 138 C 120 116 116 96 116 62 Z" fill="#1a1208" stroke="#d4af37" stroke-width="0.8"/>
+      <circle cx="110" cy="88" r="2" fill="#d4af37"/>
+      <!-- case -->
+      <circle cx="110" cy="70" r="46" fill="url(#clh-case)"/>
+      <circle cx="110" cy="70" r="40" fill="url(#clh-dial)"/>
+      <circle cx="110" cy="70" r="46" fill="none" stroke="#f3d98a" stroke-width="1"/>
+      <!-- crown -->
+      <rect x="154" y="62" width="8" height="16" rx="3" fill="url(#clh-case)" stroke="#f3d98a" stroke-width="0.6"/>
+      <!-- applied gold indices -->
+      ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>{
+        const r=33, col='#e7c96a';
+        if(a%90===0){ return '' }
+        const x=110+r*Math.cos((a-90)*Math.PI/180), y=70+r*Math.sin((a-90)*Math.PI/180);
+        return `<rect x="${x-1.4}" y="${y-4.5}" width="2.8" height="9" rx="1" fill="${col}" transform="rotate(${a-90} ${x} ${y})"/>`;
+      }).join('')}
+      <!-- 12 / 6 / 9 markers -->
+      <rect x="108.6" y="33"    width="2.8" height="11" rx="1.2" fill="#e7c96a"/>
+      <rect x="108.6" y="96"    width="2.8" height="11" rx="1.2" fill="#e7c96a"/>
+      <rect x="95"    y="68.6"  width="11"  height="2.8" rx="1.2" fill="#e7c96a"/>
+      <rect x="114"   y="68.6"  width="11"  height="2.8" rx="1.2" fill="#e7c96a"/>
+      <!-- hands -->
+      <rect x="108.4" y="46" width="3.2" height="26" rx="1" fill="#e7c96a" transform="rotate(150 110 70)"/>
+      <rect x="108.4" y="56" width="3.2" height="18" rx="1" fill="#f3d98a" transform="rotate(-60 110 70)"/>
+      <rect x="106"   y="84" width="8" height="3" rx="1.5" fill="#f3d98a"/>
+      <circle cx="110" cy="70" r="3.2" fill="#e7c96a"/>
+      <!-- date window -->
+      <rect x="124" y="82" width="12" height="8" rx="1.5" fill="#0b0c0e" stroke="#e7c96a" stroke-width="0.6"/>
+      <circle cx="110" cy="70" r="40" fill="none" stroke="#d4af37" stroke-width="0.5" opacity="0.5"/>
+    </svg>`,
+    Handbags: `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 62 78 h 96 l 6 68 H 56 Z" fill="#1a1208" stroke="#d4af37" stroke-width="1.2"/>
+      <path d="M 82 78 c 0 -22 12 -34 28 -34 s 28 12 28 34" fill="none" stroke="#d4af37" stroke-width="2.5"/>
+      <rect x="86" y="74" width="12" height="8" rx="2" fill="#d4af37"/>
+      <rect x="122" y="74" width="12" height="8" rx="2" fill="#d4af37"/>
+      <path d="M 110 70 v 10" stroke="#d4af37" stroke-width="2"/>
+      <path d="M 74 96 h 72 v 40 H 74 Z" fill="#0b0c0e" stroke="#d4af37" stroke-width="0.8" opacity="0.9"/>
+      <rect x="96" y="60" width="28" height="6" rx="3" fill="#d4af37"/>
+    </svg>`,
+    'Fine Jewelry': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="110" cy="64" r="26" fill="#d4af37"/>
+      <circle cx="110" cy="64" r="18" fill="#f3d98a"/>
+      <circle cx="110" cy="64" r="11" fill="#e7c96a"/>
+      <circle cx="110" cy="64" r="5" fill="#fffbe6"/>
+      <path d="M 78 116 l 22 -34 h 20 l 22 34 h 28 l -56 26 -56 -26 Z" fill="#d4af37"/>
+      <path d="M 98 92 l 14 -14 14 14 Z" fill="none" stroke="#0b0c0e" stroke-width="1.5"/>
+    </svg>`,
+    'Luxury Vehicles': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 56 104 h 8 c 10 -12 34 -18 46 -18 h 0 c 12 0 36 6 46 18 h 10 c 8 0 12 6 10 12 l -4 10 -132 0 -4 -10 c -2 -6 2 -12 10 -12 Z" fill="#d4af37"/>
+      <path d="M 104 92 h 16 l 2 -10 c 0 -6 6 -12 12 -12 h 8 c 8 0 14 6 14 14 l -2 8 Z" fill="#0b0c0e"/>
+      <circle cx="92" cy="128" r="12" fill="#0b0c0e"/>
+      <circle cx="92" cy="128" r="5" fill="#d4af37"/>
+      <circle cx="140" cy="128" r="12" fill="#0b0c0e"/>
+      <circle cx="140" cy="128" r="5" fill="#d4af37"/>
+    </svg>`,
+    'Art & Collectibles': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+      <rect x="60" y="40" width="100" height="110" fill="#0b0c0e" stroke="#d4af37" stroke-width="2"/>
+      <circle cx="100" cy="80" r="14" fill="#d4af37" opacity="0.85"/>
+      <path d="M 82 118 l 18 -22 14 14 12 -10 24 26 H 82 Z" fill="#e7c96a" opacity="0.9"/>
+      <path d="M 118 66 c 6 -4 12 -2 14 3" stroke="#d4af37" stroke-width="2" fill="none"/>
+    </svg>`,
+  };
+  const PREP_HERO_TITLES = {
+    Watches: 'GOLD & BLACK DRESS WATCH', Handbags: 'LUXURY HANDBAG',
+    'Fine Jewelry': 'FINE JEWELRY', 'Luxury Vehicles': 'LUXURY VEHICLE',
+    'Art & Collectibles': 'ART & COLLECTIBLE',
+  };
+
+  function showPrepScreen() {
+    // Never prep if the user already dropped images (they're past this step)
+    if (images.length) { openCamera(); return; }
+    let prepCat = activeCategory;
+    const close = () => prepModal.remove();
+    const render = () => {
+      heroBox.innerHTML = PREP_HEROES[prepCat] || PREP_HEROES['Watches'];
+      heroLabel.textContent = PREP_HERO_TITLES[prepCat] || 'WATCH OR LUXURY ITEM';
+    };
+    const prepModal = document.createElement('div');
+    prepModal.className = 'fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm overflow-y-auto overscroll-contain';
+    prepModal.innerHTML = `
+      <div class="relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-5">
+        <!-- close -->
+        <button id="cl-prep-close" class="absolute top-3 right-3 z-40 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
+
+        <!-- CL logo + wordmark -->
+        <div class="flex items-center justify-center gap-2 mb-1">
+          <svg viewBox="0 0 40 40" width="26" height="26" aria-hidden="true">
+            <circle cx="20" cy="20" r="18" fill="none" stroke="#d4af37" stroke-width="2"/>
+            <text x="20" y="26" text-anchor="middle" fill="#d4af37" font-family="Georgia, 'Times New Roman', serif" font-size="19" font-weight="bold">CL</text>
+          </svg>
+          <span class="text-sm tracking-[0.35em] uppercase text-gold font-semibold" style="font-family: Georgia, 'Times New Roman', serif;">CuratedLux</span>
+        </div>
+
+        <!-- Step indicator -->
+        <p class="text-center text-[11px] text-white/35 font-mono tracking-widest uppercase mt-1.5">Step 1 of 10</p>
+
+        <!-- Title + subtitle (serif, matching reference) -->
+        <h1 class="text-center text-3xl font-bold text-gold mt-2" style="font-family: Georgia, 'Times New Roman', serif;">Prepare for Capture</h1>
+        <p class="text-center text-[13px] text-white/55 mt-2 max-w-sm mx-auto leading-relaxed" style="font-family: Georgia, 'Times New Roman', serif;">
+          Better photos create more accurate authentication results.
+        </p>
+
+        <!-- Hero reference (category-aware, gold+black dress watch by default) -->
+        <div class="mt-5 rounded-2xl bg-zinc-900/80 border border-gold/15 p-4 flex flex-col items-center">
+          <div id="cl-prep-hero" class="w-full" style="max-height:190px; overflow:hidden;"></div>
+          <span id="cl-prep-hero-label" class="mt-2 text-[10px] font-mono tracking-[0.3em] text-gold/70 uppercase"></span>
+        </div>
+
+        <!-- Category chips (mirror existing capture selector) -->
+        <div class="flex items-center justify-center gap-1.5 mt-4 flex-wrap">
+          ${['Watches','Handbags','Fine Jewelry','Luxury Vehicles','Art & Collectibles'].map(c =>
+            `<button data-prep-cat="${c}" class="cl-prep-cat px-2.5 py-1 rounded text-[11px] font-medium border transition-all ${c===prepCat?'border-gold/40 bg-gold/10 text-gold':'border-white/15 text-white/45 hover:text-gold hover:border-gold/40'}">${c==='Fine Jewelry'?'Jewelry':c==='Luxury Vehicles'?'Vehicles':c==='Art & Collectibles'?'Art':c}</button>`
+          ).join('')}
+        </div>
+
+        <!-- 5 prep checklist items (icon + label + check) -->
+        <div class="mt-4 space-y-1.5">
+          ${PREP_TIPS.map((t,i)=>`
+            <div class="flex items-center gap-3 bg-zinc-900/60 border border-white/[0.06] rounded-xl px-3 py-2.5">
+              <span class="w-8 h-8 shrink-0 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center text-gold text-[13px]"><i class="fas ${t.icon}"></i></span>
+              <span class="flex-1 text-[13px] text-white/85" style="font-family: Georgia, 'Times New Roman', serif;">${t.label}</span>
+              <span class="w-5 h-5 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center"><i class="fas fa-check text-[9px] text-emerald-400"></i></span>
+            </div>`).join('')}
+        </div>
+
+        <!-- Info note -->
+        <p class="text-center text-[12px] text-white/40 mt-4" style="font-family: Georgia, 'Times New Roman', serif;">We will guide you through each required angle.</p>
+
+        <!-- Begin Capture CTA -->
+        <button id="cl-prep-begin" class="mt-4 w-full py-4 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.3)]" style="font-family: Georgia, 'Times New Roman', serif;">
+          <i class="fas fa-camera text-base"></i> Begin Capture <i class="fas fa-chevron-right text-xs"></i>
+        </button>
+
+        <!-- See example photos -->
+        <button id="cl-prep-examples" class="mt-2 text-center text-[12px] text-gold/70 hover:text-gold font-mono underline underline-offset-4 tracking-wide">See example photos</button>
+      </div>
+    `;
+    document.body.appendChild(prepModal);
+
+    const heroBox = prepModal.querySelector('#cl-prep-hero');
+    const heroLabel = prepModal.querySelector('#cl-prep-hero-label');
+    render();
+
+    prepModal.querySelectorAll('.cl-prep-cat').forEach(btn => {
+      btn.addEventListener('click', () => {
+        prepCat = btn.dataset.prepCat;
+        prepModal.querySelectorAll('.cl-prep-cat').forEach(b => {
+          b.className = b === btn
+            ? b.className.replace(/\b(?:border-gold\/40|bg-gold\/10|text-gold|border-white\/15|text-white\/45)\b/g, '') + ' border-gold/40 bg-gold/10 text-gold'
+            : b.className.replace(/\b(?:border-gold\/40|bg-gold\/10|text-gold|border-white\/15|text-white\/45)\b/g, '') + ' border-white/15 text-white/45';
+        });
+        render();
+      });
+    });
+
+    prepModal.querySelector('#cl-prep-close').addEventListener('click', close);
+    prepModal.querySelector('#cl-prep-begin').addEventListener('click', () => {
+      prepModal.remove();
+      activeCategory = prepCat;      // carry the chosen category into capture
+      openCamera();
+    });
+    prepModal.querySelector('#cl-prep-examples').addEventListener('click', () => {
+      if (typeof openExampleGallery === 'function') openExampleGallery(prepCat);
+    });
+  }
+
+  // "See example photos" → gallery of the selected category's step samples.
+  // Reuses the existing EXAMPLES "like this / not this" cards + GUIDE_SEQUENCES
+  // step labels (same assets the camera flow shows) — no fabricated reference.
+  function openExampleGallery(category) {
+    const seq = GUIDE_SEQUENCES[category] || GUIDE_SEQUENCES['Watches'];
+    const exModal = document.createElement('div');
+    exModal.className = 'fixed inset-0 z-[70] bg-black/95 backdrop-blur-sm overflow-y-auto overscroll-contain';
+    exModal.innerHTML = `
+      <div class="relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-5">
+        <button id="cl-exclose" class="absolute top-3 right-3 z-40 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
+        <h2 class="text-center text-xl font-bold text-gold" style="font-family: Georgia, 'Times New Roman', serif;">Example Photos</h2>
+        <p class="text-center text-[12px] text-white/50 mt-1 mb-5">${category} — what each required shot should look like</p>
+        <div class="space-y-4">
+          ${seq.map(s => {
+            const ex = EXAMPLES[s.example];
+            if (!ex) return '';
+            return `
+              <div class="bg-zinc-900/70 border border-gold/15 rounded-xl p-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-semibold text-gold" style="font-family: Georgia, 'Times New Roman', serif;"><i class="fas ${s.icon} mr-1.5"></i>${s.shot}</span>
+                  <span class="text-[10px] font-mono text-white/35 uppercase">${s.tier}</span>
+                </div>
+                <div class="cl-example-svg w-full" style="max-height:130px; overflow:hidden;">${ex.svg}</div>
+                <p class="text-[11px] text-white/45 mt-2 leading-snug">${ex.good}</p>
+              </div>`;
+          }).join('')}
+        </div>
+        <button id="cl-ex-done" class="mt-5 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)]" style="font-family: Georgia, 'Times New Roman', serif;">
+          <i class="fas fa-camera text-base"></i> Start Capture
+        </button>
+      </div>
+    `;
+    document.body.appendChild(exModal);
+    exModal.querySelector('#cl-exclose').addEventListener('click', () => exModal.remove());
+    exModal.querySelector('#cl-ex-done').addEventListener('click', () => {
+      exModal.remove();
+      activeCategory = category;
+      openCamera();
+    });
+  }
+
+  async function openCamera() {
+    const modal = document.createElement('div');
+    // Mobile-first: scrollable so the guide (top) and video never overlap on
+    // phones. The inner card is a flex column [guide · video · controls] that
+    // fits height and scrolls when content exceeds the viewport.
+    modal.className = 'fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm overflow-y-auto overscroll-contain';
+    modal.innerHTML = `
+      <div class="relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-4">
+        <button id="cl-cam-close" class="absolute top-2 right-2 z-40 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
+
+        <!-- Mode & Quality Toolbar (compact top row) -->
+        <div class="flex items-center justify-between gap-2 mb-2 px-1 flex-wrap">
+          <div class="flex items-center gap-1">
+            <button data-res="4k" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">4K</button>
+            <button data-res="1080" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">1080p</button>
+            <button data-res="720" class="cl-res-btn px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40">720p</button>
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="cl-macro-btn" class="cl-toggle px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40" title="Macro — for tiny luxury details (watch dial, handbag stamp, jewelry hallmark)">
+              <i class="fas fa-search-plus mr-1"></i>MACRO
+            </button>
+            <button id="cl-burst-btn" class="cl-toggle px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-gold hover:border-gold/40" title="3-frame burst — picks sharpest">
+              <i class="fas fa-layer-group mr-1"></i>BURST
+            </button>
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="cl-mic-btn" class="cl-toggle px-2 py-1 rounded text-[11px] font-mono border border-white/15 text-white/70 hover:text-rose-300 hover:border-rose-400/40" title="High-fidelity voice notes">
+              <i class="fas fa-microphone mr-1"></i>RAW MIC
+            </button>
+          </div>
+        </div>
+
+        <!-- Category selector (compact, horizontal) -->
+        <div class="flex items-center gap-1.5 mb-2 flex-wrap">
+          <span class="text-[10px] text-white/30 uppercase tracking-wider mr-1">Asset type:</span>
+          <button data-cat="Watches" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-gold/40 bg-gold/10 text-gold transition-all">Watches</button>
+          <button data-cat="Handbags" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Handbags</button>
+          <button data-cat="Fine Jewelry" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Jewelry</button>
+          <button data-cat="Luxury Vehicles" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Vehicles</button>
+          <button data-cat="Art & Collectibles" class="cl-cat-btn px-2.5 py-1 rounded text-[11px] font-medium border border-white/15 text-white/50 hover:text-gold hover:border-gold/40 transition-all">Art</button>
+        </div>
+
+        <!-- CAMERA-FIRST: video fills available height; guide overlays bottom -->
+        <div class="clx-camera-feed relative overflow-hidden rounded-xl bg-black">
+          <video id="cl-cam-video" class="w-full bg-black" autoplay playsinline muted></video>
+
+          <!-- LIVE TOP FLOATING HUD BANNER -->
+          <div id="cl-live-hud-banner" class="absolute top-2 left-2 right-14 z-30 bg-black/75 border border-gold/40 rounded-lg px-3 py-2 backdrop-blur-md shadow-2xl flex items-center justify-between pointer-events-none">
+            <div class="flex items-center gap-2">
+              <span id="cl-hud-step-badge" class="px-2 py-0.5 bg-gold/20 border border-gold/40 text-gold text-[10px] font-mono font-bold rounded uppercase">Step 1/4</span>
+              <div>
+                <div id="cl-hud-shot-title" class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i class="fas fa-crosshairs text-gold text-[10px]"></i>
+                  <span>Dial / Face</span>
+                </div>
+                <div id="cl-hud-distance-text" class="text-[10px] font-mono text-gold/90 font-medium">📏 Distance</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span id="cl-hud-instruction-short" class="text-[10px] text-white/70 block max-w-[130px] truncate"></span>
+              <span id="cl-hud-macro-badge" class="text-[9px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded hidden">MACRO ON</span>
+            </div>
+          </div>
+
+          <!-- PHOTO THUMBNAIL RAIL — every captured shot shown as a small icon on the side -->
+          <div id="cl-thumb-rail" class="absolute top-2 right-2 z-30 flex flex-col gap-1.5 max-h-[70%] overflow-y-auto"></div>
+
+          <!-- Framing guides + gold reticle (corner brackets + center circle → reference) -->
+          <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-1/3 left-0 right-0 h-px bg-white/10"></div>
+            <div class="absolute top-2/3 left-0 right-0 h-px bg-white/10"></div>
+            <div class="absolute left-1/3 top-0 bottom-0 w-px bg-white/10"></div>
+            <div class="absolute left-2/3 top-0 bottom-0 w-px bg-white/10"></div>
+            <!-- Center circle guide -->
+            <div class="absolute top-1/2 left-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 border-2 border-gold/60 rounded-full animate-pulse shadow-[0_0_20px_rgba(212,175,55,0.3)]"></div>
+            <!-- Corner brackets (reference "Capture Dial" overlay) -->
+            <div class="absolute top-[29%] left-[39%] w-5 h-5 border-t-2 border-l-2 border-gold/70 rounded-tl-md"></div>
+            <div class="absolute top-[29%] right-[39%] w-5 h-5 border-t-2 border-r-2 border-gold/70 rounded-tr-md"></div>
+            <div class="absolute bottom-[29%] left-[39%] w-5 h-5 border-b-2 border-l-2 border-gold/70 rounded-bl-md"></div>
+            <div class="absolute bottom-[29%] right-[39%] w-5 h-5 border-b-2 border-r-2 border-gold/70 rounded-br-md"></div>
+          </div>
+          <div id="cl-cam-info" class="absolute bottom-2 left-2 text-[10px] font-mono text-gold/80 bg-black/40 px-2 py-0.5 rounded z-30"></div>
+        </div>
+
+        <!-- Compact guide dock BELOW the camera (not pushing it off screen) -->
+        <div id="cl-guide-panel" class="mt-2 bg-zinc-900/95 border border-gold/15 rounded-xl px-3 py-2.5">
+          <!-- Prominent progress banner: how many photos taken / needed -->
+          <div class="flex items-center justify-between mb-2 px-2.5 py-2 rounded-lg bg-gold/10 border border-gold/25">
+            <span class="text-sm font-bold text-gold"><i class="fas fa-images mr-1.5"></i><span id="cl-progress-count">0</span> of <span id="cl-progress-total">4</span> photos taken</span>
+            <span id="cl-progress-remaining" class="text-[11px] text-white/50 font-medium">4 more needed</span>
+          </div>
+
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span id="cl-step-icon" class="w-6 h-6 shrink-0 rounded-full bg-gold/20 flex items-center justify-center text-[10px] text-gold"><i class="fas fa-crosshairs"></i></span>
+              <span id="cl-step-label" class="text-xs font-semibold text-gold whitespace-nowrap overflow-hidden text-ellipsis">Step 1 of 4 — Dial / Face</span>
+              <span id="cl-shot-count" class="text-[10px] text-white/40 font-mono shrink-0">0/4</span>
+            </div>
+            <img id="cl-step-thumb" class="hidden w-8 h-8 rounded-lg object-cover border border-emerald-500/40 ring-1 ring-emerald-500/30 shrink-0 ml-1" alt="captured" />
+          </div>
+
+          <p id="cl-step-instruction" class="text-sm leading-snug text-white font-semibold">Frame the dial — fill the golden circle</p>
+
+          <!-- Details checklist + example (collapsible on mobile) -->
+          <button id="cl-details-toggle" type="button" class="mt-1.5 inline-flex items-center gap-1 text-[10px] text-gold/80 hover:text-gold font-mono uppercase tracking-wider">
+            <i class="fas fa-list-check text-[9px]"></i> <span>Capture details</span> <i class="fas fa-chevron-down text-[8px]"></i>
+          </button>
+          <div id="cl-step-details" class="hidden mt-1.5 space-y-1"></div>
+
+          <!-- Big TAKE PICTURE CTA -->
+          <button id="cl-mega-snap" class="mt-2 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)]">
+            <i class="fas fa-camera-retro text-base"></i> Take Picture
+          </button>
+
+          <!-- Step nav row -->
+          <div class="mt-2 flex items-center gap-2">
+            <button id="cl-guide-skip-step" class="flex-1 py-2.5 rounded-lg border border-white/15 text-white/50 hover:text-white/80 text-xs font-medium transition-colors">Skip shot</button>
+            <button id="cl-guide-skip" class="flex-1 py-2.5 rounded-lg border border-white/10 text-white/30 hover:text-white/50 text-xs transition-colors">Skip all</button>
+            <button id="cl-guide-next" class="flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all disabled:cursor-not-allowed bg-white/10 text-white/25" disabled>Next →</button>
+          </div>
+
+          <!-- ANALYZE NOW — always visible once ≥1 photo taken, works on iPhone + Android -->
+          <button id="cl-analyze-now-btn" class="hidden mt-2 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+            <i class="fas fa-wand-magic-sparkles text-base"></i> Analyze Now
+          </button>
+
+          <!-- LIVE readiness checklist (matches "Capture Dial" reference chips:
+               Lighting · Focus · Centered + Reduce glare warning) -->
+          <div id="cl-live-checks" class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <div id="cl-check-light" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-sun text-[9px]"></i><span>Lighting</span></div>
+            <div id="cl-check-steady" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-crosshairs text-[9px]"></i><span>Focus</span></div>
+            <div id="cl-check-frame" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-white/5 border border-white/10 text-white/40"><i class="fas fa-expand text-[9px]"></i><span>Centered</span></div>
+            <div id="cl-check-glare" class="flex items-center justify-center gap-1 text-[10px] font-mono px-1 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300"><i class="fas fa-triangle-exclamation text-[9px]"></i><span>Reduce glare</span></div>
+          </div>
+
+
+          <!-- Per-step captured preview strip -->
+          <div id="cl-step-dots" class="flex items-center gap-1.5 mt-2"></div>
+
+          <!-- Example card (kept, collapsible) -->
+          <div id="cl-example-card" class="mt-2 bg-black/30 border border-white/10 rounded-lg p-2 hidden">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] uppercase tracking-wider text-white/30 font-mono">Example</span>
+              <span class="text-[9px] text-white/30">tap to expand</span>
+            </div>
+            <div class="cl-example-body">
+              <div id="cl-example-svg" class="w-full" style="max-height:110px; overflow:hidden;"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Mic waveform + status -->
+        <div id="cl-mic-panel" class="hidden mt-3 bg-black/40 rounded-lg p-3 border border-rose-400/20">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-mono text-rose-300"><i class="fas fa-circle text-[6px] mr-1 animate-pulse"></i>RAW MIC 256 kbps</span>
+            <span id="cl-mic-meter" class="text-[10px] font-mono text-rose-200/50">0 dB</span>
+          </div>
+          <canvas id="cl-mic-wave" class="w-full h-8 bg-black/30 rounded"></canvas>
+        </div>
+
+        <!-- Snap controls (reference layout: Retake · shutter · AUTO auto-capture) -->
+        <div class="mt-4 flex items-center justify-center gap-6">
+          <div class="flex flex-col items-center gap-1">
+            <button id="cl-cam-retake" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-gold flex items-center justify-center" title="Retake this shot">
+              <i class="fas fa-rotate-left"></i>
+            </button>
+            <span class="text-[9px] font-mono text-white/35 uppercase">Retake</span>
+          </div>
+          <button id="cl-cam-snap" class="relative w-20 h-20 rounded-full bg-white border-4 border-gold flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.4)]" title="Take photo">
+            <i class="fas fa-camera text-black text-2xl"></i>
+            <span id="cl-ready-ring" class="hidden absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-black text-[8px] font-mono font-bold animate-pulse">READY</span>
+          </button>
+          <div class="flex flex-col items-center gap-1">
+            <button id="cl-cam-auto" class="w-10 h-10 rounded-full border flex items-center justify-center text-[9px] font-bold transition-all bg-white/5 border-white/10 text-white/40" title="Auto-capture when the shot is READY">
+              AUTO
+            </button>
+            <span class="text-[9px] font-mono text-white/35 uppercase">Auto-capture</span>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // ── State ──────────────────────────────────────────────────────────
+    let stream = null
+    let facingMode = 'environment'
+    let resolution = '1080'
+    let macroOn = false
+    let burstOn = false
+    let micOn = false
+    let guideStep = 0
+    let guideSkipped = false
+    let stepCaptured = new Set()     // indices of guided shots already taken (accuracy accounting)
+
+    const TIER_LABEL = { hero: '⭐ hero shot', macro: '🔬 detail — high accuracy', detail: 'detail', standard: 'standard' }
+
 
     // Renders every captured photo as a small green-checked icon on the side
     // rail inside the camera view, so the user always sees "this shot was
@@ -991,7 +1262,7 @@ function initValuation() {
           const style = done
             ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
             : (i === step ? 'border-gold/60 bg-gold/10 text-gold' : 'border-white/10 text-white/25')
-          return `<span class="cl-step-chip flex-1 text-center py-1 rounded border text-[9px] font-mono ${style}">${done ? '✓' : (cur2.icon ? `<i class="fas ${cur2.icon}"></i>` : '·')}</span>`
+          return `<span class="cl-step-chip flex-1 text-center py-1 rounded border text-[9px] font-mono ${style}">${done ? '✓' : (i === step ? (i + 1) : (cur2.icon ? `<i class="fas ${cur2.icon}"></i>` : '·'))}</span>`
         }).join('')
         // make each chip clickable to jump to that step
         Array.from(dotsContainer.children).forEach((chip, i) => {
@@ -1394,10 +1665,19 @@ function initValuation() {
         btn.classList.add('shadow-[0_0_40px_rgba(16,185,129,0.7)]')
         btn.style.borderColor = '#10b981'
         if (ring) ring.classList.remove('hidden')
+        // AUTO auto-capture: snap once when the live-QA gate passes AND the current
+        // guided step is not already captured (the flow doesn't auto-advance, so this
+        // prevents re-snapping a finished step). Reset each time READY drops.
+        const curStepOk = guideSkipped || !stepCaptured.has(guideStep)
+        if (autoCaptureOn && !autoFired && curStepOk) {
+          autoFired = true
+          setTimeout(() => { autoFired = false; if (autoCaptureOn) snap() }, 350)
+        }
       } else {
         btn.classList.remove('shadow-[0_0_40px_rgba(16,185,129,0.7)]')
         btn.style.borderColor = ''
         if (ring) ring.classList.add('hidden')
+        autoFired = false
       }
     }
 
@@ -1423,6 +1703,11 @@ function initValuation() {
         const lightWarn = !lightOk
         setCheck('#cl-check-light', lightOk ? 'good' : 'warn',
           lightOk ? 'Good lighting' : (avgLuma <= 45 ? 'Too dark — add light or use torch' : 'Too bright — avoid direct glare'))
+        // Reference "Reduce glare" advisory: amber when too bright (glare risk),
+        // green when lighting is in the sweet spot for the watch face.
+        const glareRisk = avgLuma >= 215
+        setCheck('#cl-check-glare', glareRisk ? 'warn' : 'good',
+          glareRisk ? 'Reduce glare' : 'No glare detected')
 
         // 2. Steadiness (mean abs diff vs previous frame)
         let steadyOk = false
@@ -1502,11 +1787,33 @@ function initValuation() {
       e.currentTarget.classList.toggle('bg-rose-500/10', micOn)
       startStream() // need to re-acquire with audio
     })
-    modal.querySelector('#cl-cam-flip').addEventListener('click', () => {
-      facingMode = facingMode === 'environment' ? 'user' : 'environment'
-      startStream()
+    // Retake: jump back to the current step and clear its captured state so the
+    // user can reframe (mirrors the thumb-rail retake, exposed as a labeled button).
+    modal.querySelector('#cl-cam-retake').addEventListener('click', () => {
+      const curIdx = guideSkipped ? Math.max(0, images.length - 1) : guideStep
+      const realIdx = curIdx
+      if (stepCaptured.has(realIdx)) {
+        stepCaptured.delete(realIdx)                 // re-opens that step as not-yet-acquired
+        if (images[realIdx]) delete images[realIdx]  // drop the old photo too
+        if (realIdx !== guideStep) updateGuideStep(realIdx)
+        renderThumbRail()
+        toast('Retaking this shot — line it back up.', 'info')
+      } else {
+        toast('Capture this shot first to retake it.', 'info')
+      }
     })
-    modal.querySelector('#cl-cam-torch').addEventListener('click', toggleTorch)
+    // AUTO auto-capture: when ON, snap the moment the shot is READY.
+    let autoCaptureOn = false
+    let autoFired = false
+    const autoBtn = modal.querySelector('#cl-cam-auto')
+    autoBtn.addEventListener('click', () => {
+      autoCaptureOn = !autoCaptureOn
+      autoFired = false
+      autoBtn.className = `w-10 h-10 rounded-full border flex items-center justify-center text-[9px] font-bold transition-all ${
+        autoCaptureOn ? 'bg-gold border-gold text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]' : 'bg-white/5 border-white/10 text-white/40'
+      }`
+      toast(autoCaptureOn ? 'Auto-capture ON — snaps when ready' : 'Auto-capture OFF', autoCaptureOn ? 'success' : 'info')
+    })
     modal.querySelector('#cl-cam-snap').addEventListener('click', snap)
     modal.querySelector('#cl-cam-close').addEventListener('click', cleanup)
     modal.querySelector('#cl-guide-skip').addEventListener('click', hideGuide)
@@ -1611,6 +1918,9 @@ function initValuation() {
         description: descriptionInput?.value.trim() || undefined,
         transcript: window._voiceTranscript || undefined,
       };
+      // Stash the shot tiers so the Assessment card can honestly report whether a
+      // macro/serial/hero shot was captured (the server weights but doesn't echo).
+      window._lastShotTiers = payload.shotTiers || [];
 
       const res = await api('/api/valuation/analyze', {
         method: 'POST',
@@ -1661,6 +1971,127 @@ function initValuation() {
           }">${data.authenticityStatus || 'PENDING'}</span>
         </div>
       `;
+    }
+
+    // ── ASSESSMENT RESULT card (mimics the reference "Assessment Result" screen:
+    //    Verdict + confidence + summary + evidence checklist + disclaimer) ──
+    // Built from REAL analysis data — never fabricated.
+    const assessHost = $id('result-header').parentElement;
+    if (assessHost && !$id('cl-assessment-card')) {
+      const verdict = data.authenticityStatus === 'AUTHENTIC MATCH' ? 'Likely Authentic'
+        : (data.authenticityStatus === 'REVIEW_REQUIRED' || data.authenticityStatus === 'REQUIRES IN-PERSON VERIFICATION') ? 'Review Required'
+        : data.authenticityStatus || 'Pending Review';
+      const verdictTone = data.authenticityStatus === 'AUTHENTIC MATCH' ? 'text-gold' : 'text-amber-400';
+      const verdictIcon = data.authenticityStatus === 'AUTHENTIC MATCH' ? 'fa-shield-halved' : 'fa-circle-question';
+
+      // Evidence checklist from the per-component confidence breakdown.
+      const cb = data.confidence_breakdown || {};
+      const FLOOR = 70; // matches the confidence store gate — honest threshold
+      const evidence = [
+        { label: 'Dial characteristics consistent', score: cb.dial_texture },
+        { label: 'Case / proportions consistent',    score: cb.overall_proportion ?? cb.bezel_geometry },
+        { label: 'Logo & engraving format consistent', score: cb.logo },
+        { label: 'Materials consistent',              score: cb.materials },
+      ].filter(e => e.score !== undefined);
+      // Move not inspected: honesty rule — AUTHENTIC with no macro/serial shot is softened
+      const hasOCR = data.ocr_serials && data.ocr_serials.length;
+      const st = data.shotTiers || window._lastShotTiers || [];
+      const hasMacro = Array.isArray(st) && (st.includes('macro') || st.includes('hero'));
+
+      const assessment = document.createElement('div');
+      assessment.id = 'cl-assessment-card';
+      assessment.className = 'mb-4 space-y-3';
+      assessment.innerHTML = `
+        <!-- Verdict card -->
+        <div class="rounded-2xl border border-gold/25 bg-zinc-900/70 p-4 text-center">
+          <div class="flex items-center justify-center gap-2 text-gold">
+            <i class="fas ${verdictIcon} text-lg"></i>
+            <span class="text-2xl font-bold ${verdictTone}" style="font-family: Georgia, 'Times New Roman', serif;">${esc(verdict)}</span>
+          </div>
+          <div class="text-[10px] font-mono tracking-[0.3em] text-white/40 mt-1 uppercase">Our Assessment</div>
+        </div>
+
+        <!-- Confidence block -->
+        <div class="rounded-2xl bg-surface border border-gold/15 p-4 flex items-center gap-4">
+          <div class="text-center shrink-0">
+            <div class="text-4xl font-bold text-gold font-mono">${data.confidence ?? '—'}%</div>
+            <div class="text-[9px] font-mono tracking-[0.2em] text-white/40 uppercase mt-0.5">Confidence</div>
+          </div>
+          <div class="flex-1 text-[12px] leading-relaxed text-white/60">${esc(data.reasoning || 'Based on our visual analysis.')}</div>
+        </div>
+
+        <!-- Summary -->
+        <div class="rounded-2xl bg-surface border border-gold/15 p-4">
+          <div class="text-[10px] font-mono tracking-[0.25em] text-gold/60 uppercase mb-2">Summary</div>
+          <div class="space-y-1.5 text-sm">
+            <div class="flex items-center gap-2"><i class="fas fa-tag text-gold/70 w-4"></i><span class="text-white/80">${esc(data.brand || 'Unknown')} ${esc(data.model || '')}</span></div>
+            <div class="flex items-center gap-2"><i class="fas fa-boxes-stacked text-gold/70 w-4"></i><span class="text-white/80">${esc(data.category || '—')}${data.referenceNumber ? ' · Ref ' + esc(data.referenceNumber) : ''}</span></div>
+            ${data.movement ? `<div class="flex items-center gap-2"><i class="fas fa-gear text-gold/70 w-4"></i><span class="text-white/80">${esc(data.movement)}</span></div>` : ''}
+            ${data.case_material ? `<div class="flex items-center gap-2"><i class="fas fa-circle text-gold/70 w-4"></i><span class="text-white/80">${esc(data.case_material)}</span></div>` : ''}
+          </div>
+        </div>
+
+        <!-- Evidence checklist -->
+        <div class="rounded-2xl bg-surface border border-gold/15 p-4">
+          <div class="text-[10px] font-mono tracking-[0.25em] text-gold/60 uppercase mb-2">Evidence Checklist</div>
+          <div class="space-y-2">
+            ${evidence.map(e => {
+              const pass = typeof e.score === 'number' && e.score >= FLOOR;
+              return `
+                <div class="flex items-center gap-3">
+                  ${pass
+                    ? '<span class="w-5 h-5 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/50 flex items-center justify-center"><i class="fas fa-check text-[9px] text-emerald-400"></i></span>'
+                    : '<span class="w-5 h-5 shrink-0 rounded-full bg-amber-500/15 border border-amber-500/50 flex items-center justify-center"><i class="fas fa-exclamation text-[9px] text-amber-400"></i></span>'}
+                  <span class="text-[12px] ${pass ? 'text-white/85' : 'text-amber-300/90'}">${esc(e.label)}</span>
+                  ${typeof e.score === 'number' ? `<span class="ml-auto text-[10px] font-mono ${pass ? 'text-white/30' : 'text-amber-400/80'}">${Math.round(e.score)}%</span>` : ''}
+                </div>`;
+            }).join('')}
+            ${(!hasOCR && !hasMacro)
+              ? `<div class="flex items-center gap-3">
+                  <span class="w-5 h-5 shrink-0 rounded-full bg-amber-500/15 border border-amber-500/50 flex items-center justify-center"><i class="fas fa-exclamation text-[9px] text-amber-400"></i></span>
+                  <span class="text-[12px] text-amber-300/90">Movement / serial not inspected</span>
+                </div>`
+              : `<div class="flex items-center gap-3">
+                  <span class="w-5 h-5 shrink-0 rounded-full bg-emerald-500/15 border border-emerald-500/50 flex items-center justify-center"><i class="fas fa-check text-[9px] text-emerald-400"></i></span>
+                  <span class="text-[12px] text-white/85">Macro / serial evidence captured</span>
+                </div>`}
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="flex items-start gap-2 text-[11px] text-white/40 leading-relaxed px-1">
+          <i class="fas fa-circle-info text-gold/60 mt-0.5"></i>
+          <span>This assessment is based on guided image capture and visual analysis.</span>
+        </div>
+
+        <!-- Actions: View Full Report + Start New Authentication -->
+        <div class="space-y-2 pt-1">
+          <button id="cl-assess-report" type="button" class="w-full bg-gold hover:bg-gold-light text-black font-semibold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(180,150,30,0.2)]">
+            <i class="fas fa-file-lines"></i> View Full Report <i class="fas fa-chevron-right text-xs"></i>
+          </button>
+          <button id="cl-assess-new" type="button" class="w-full border border-gold/40 hover:border-gold/70 text-gold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-rotate-right"></i> Start New Authentication
+          </button>
+        </div>
+      `;
+      // Insert at the top of the results panel (before the old header/metre layout)
+      resultsContent.insertBefore(assessment, resultsContent.firstChild);
+
+      // Wire actions
+      const reportBtn = assessment.querySelector('#cl-assess-report');
+      if (reportBtn) reportBtn.addEventListener('click', () => {
+        if (data.item && data.item.id) { toast('Opening full report…'); location.href = `/dossier/${data.item.id}`; }
+        else toast('Full report available after you save the item.', 'info');
+      });
+      const newAuthBtn = assessment.querySelector('#cl-assess-new');
+      if (newAuthBtn) newAuthBtn.addEventListener('click', () => {
+        resultsEmpty && show(resultsEmpty);
+        resultsContent && hide(resultsContent);
+        if (descriptionInput) descriptionInput.value = '';
+        images.length = 0; window._voiceTranscript = '';
+        if (typeof previewsArea !== 'undefined' && previewsArea) previewsArea.innerHTML = '';
+        toast('Ready for a new authentication.', 'success'); location.reload();
+      });
     }
 
     const meters = $id('confidence-meters');

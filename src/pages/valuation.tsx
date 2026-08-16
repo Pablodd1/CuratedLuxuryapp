@@ -4,6 +4,69 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
   return (
     <Layout title="Scan" active="scan" embed={embed}>
       <div class="max-w-6xl mx-auto">
+        {/* ── AUTHENTICATE YOUR ITEM hero (mimics the "Authenticate Your Item" reference,
+              CL logo, headline, category selector, 3-step process, Start Authentication) ── */}
+        <div id="cl-auth-hero" class="mb-6 rounded-2xl border border-gold/15 bg-zinc-900/50 p-5 sm:p-6">
+          {/* CL logo + brand */}
+          <div class="flex items-center justify-center gap-2 mb-1">
+            <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+              <circle cx="20" cy="20" r="18" fill="none" stroke="#d4af37" stroke-width="2"/>
+              <text x="20" y="26" text-anchor="middle" fill="#d4af37" font-family="Georgia, 'Times New Roman', serif" font-size="19" font-weight="bold">CL</text>
+            </svg>
+            <div class="leading-tight">
+              <span class="block text-base tracking-[0.3em] uppercase text-gold font-semibold" style="font-family: Georgia, 'Times New Roman', serif;">CuratedLux</span>
+              <span class="block text-[10px] tracking-[0.25em] text-white/40 uppercase">Luxury Authentication</span>
+            </div>
+          </div>
+
+          {/* Headline */}
+          <h2 class="text-center text-3xl font-bold text-white mt-3" style="font-family: Georgia, 'Times New Roman', serif;">Authenticate Your Item</h2>
+          <p class="text-center text-[13px] text-white/50 mt-2 max-w-md mx-auto leading-relaxed">
+            Guided capture improves accuracy for watches, handbags, jewelry, and accessories.
+          </p>
+
+          {/* Choose category */}
+          <div class="text-center text-[10px] font-mono tracking-[0.25em] text-gold/70 uppercase mt-5 mb-2">Choose Category</div>
+          <div class="flex justify-center gap-2 flex-wrap">
+            {[
+              { c: 'Watches', icon: 'fa-clock', label: 'Watch' },
+              { c: 'Handbags', icon: 'fa-bag-shopping', label: 'Handbag' },
+              { c: 'Fine Jewelry', icon: 'fa-gem', label: 'Jewelry' },
+              { c: 'Luxury Vehicles', icon: 'fa-car', label: 'Vehicle' },
+              { c: 'Art & Collectibles', icon: 'fa-crop-simple', label: 'Art' },
+            ].map((o, i) => (
+              <button key={o.c} data-auth-cat={o.c}
+                class={`cl-auth-cat flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl border transition-all ${i === 0 ? 'border-gold/40 bg-gold/10 text-gold' : 'border-white/10 bg-zinc-900/70 text-white/50 hover:border-gold/30 hover:text-gold'}`}>
+                <i class={`fas ${o.icon} text-lg`}></i>
+                <span class="text-[11px] font-medium">{o.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* 3-step process */}
+          <div class="mt-6 grid grid-cols-3 gap-2 text-center">
+            {[
+              { n: '1', icon: 'fa-camera', t: 'Capture', s: 'Take clear photos with guidance.' },
+              { n: '2', icon: 'fa-magnifying-glass', t: 'Analyze', s: 'Our experts and AI analyze the details.' },
+              { n: '3', icon: 'fa-shield-halved', t: 'Assessment', s: 'Receive a detailed authentication report.' },
+            ].map(st => (
+              <div key={st.n} class="px-1">
+                <div class="mx-auto w-9 h-9 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center text-gold font-bold text-sm" style="font-family: Georgia, 'Times New Roman', serif;">
+                  <span class="sr-only">Step</span>{st.n}
+                </div>
+                <div class="mt-2 text-[12px] font-semibold text-gold" style="font-family: Georgia, 'Times New Roman', serif;"><i class={`fas ${st.icon} mr-1 text-[10px]`}></i>{st.t}</div>
+                <div class="text-[10px] text-white/40 leading-snug mt-1">{st.s}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Start Authentication */}
+          <button id="cl-start-auth" class="mt-6 w-full bg-gold hover:bg-gold-light text-black font-semibold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(180,150,30,0.25)]">
+            <i class="fas fa-shield-halved"></i> Start Authentication <i class="fas fa-chevron-right text-xs"></i>
+          </button>
+          <button id="cl-how-it-works" class="mt-2 text-center text-[11px] text-gold/60 hover:text-gold font-mono underline underline-offset-4 block mx-auto">How it works</button>
+        </div>
+
         {/* Credit balance banner — updates live from /api/credits/balance */}
         <div id="credits-banner" class="hidden mb-3 flex items-center justify-between px-3 py-2 rounded-lg border border-gold/20 bg-gold/[0.04]">
           <span class="text-[11px] text-white/50"><i class="fas fa-coins text-gold/60 mr-1.5"></i>Authentication credits</span>
