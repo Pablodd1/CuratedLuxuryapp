@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { optionalAuth, type User } from '../../lib/auth'
+import { queryVectorRAG } from '../../lib/vectorizeRAG'
 
 // ── Luxury Editorial Dataset (2025 Market Edition) ──────────────────────────
 const LUXURY_DATASET = [
@@ -464,6 +465,72 @@ app.post('/analyze', async (c) => {
     if (guardrailWarnings.length > 0) {
       result.guardrail_warnings = guardrailWarnings
       console.log(`Guardrails triggered: ${guardrailWarnings.join('; ')}`)
+    }
+
+    // ── Stage 4.75: REFERENCE VERIFY-LOOP (AI proposes, curated data disposes) ─
+    // Ground the model's brand/model/reference proposal against the live 22-entry
+    // catalog via vector similarity. This confirms a genuine reference, surfaces
+    // the closest curated entry + forensic checklist for the UI, and catches
+    // brand-level contradictions (Model says Rolex, catalog thinks Hermès) →
+    // route to human review instead of stamping a wrong AUTHENTIC.
+    if (result.brand && result.brand !== 'Unknown') {
+      try {
+        const verifyQuery = [
+          result.brand,
+          result.model || '',
+          result.referenceNumber || ''
+        ].filter(Boolean).join(' ')
+        const candidates = queryVectorRAG(verifyQuery, result.category || 'all', 5)
+        const top = candidates[0]
+        if (top) {
+          const topBrand = (top.item.brand || '').toLowerCase().trim()
+          const propBrand = (result.brand || '').toLowerCase().trim()
+          // Normalize for brand comparison (strip accents/labels)
+          const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+          const brandMatch = norm(topBrand) === norm(propBrand) ||
+            norm(topBrand.split(' ')[0]) === norm(propBrand.split(' ')[0])
+          const refMatch = result.referenceNumber &&
+            top.item.referenceNumber.toLowerCase() === String(result.referenceNumber).toLowerCase()
+
+          result.reference_match = {
+            catalogId: top.item.id,
+            brand: top.item.brand,
+            model: top.item.model,
+            referenceNumber: top.item.referenceNumber,
+            category: top.item.category,
+            baselineMarketValueUSD: top.item.baselineMarketValueUSD,
+            similarity: top.similarityScore,
+            matchConfidence: top.matchConfidence,
+            forensicChecklist: top.forensicChecklist,
+            brandMatches: brandMatch,
+            referenceMatches: refMatch
+          }
+
+          // Confidence grounding rules (honesty guard — matches your "accuracy always best")
+          if (brandMatch) {
+            // AI proposal confirmed by a curated reference → reinforce confidence
+            const catalogConfidence = top.matchConfidence
+            // Blend: keep AI's reading but floor by catalog agreement
+            result.confidence = Math.min(99, Math.max(result.confidence || 0, 50 + Math.round(catalogConfidence * 0.4)))
+            if (refMatch && result.authenticityStatus === 'AUTHENTIC MATCH') {
+              // Exact reference in catalog + AI authentic → strong confirmation
+              result.confidence = Math.min(99, result.confidence + 4)
+            }
+            if (!result.reasoning) result.reasoning = `Matched against curated ${top.item.brand} ${top.item.model} reference (${top.item.referenceNumber}).`
+          } else {
+            // Brand-level CONTRADICTION: model + catalog disagree → do NOT stamp
+            // authentic or auto-value; route to human review (per rules).
+            result.reference_match.brandMatches = false
+            result.confidence = Math.min(result.confidence || 100, 60)
+            result.authenticityStatus = 'REVIEW_REQUIRED'
+            result.estimatedValue = 0
+            result.reasoning = (result.reasoning || '') + ` Caution: AI proposed "${result.brand} ${result.model || ''}" but the closest curated reference is ${top.item.brand} ${top.item.model}. Brand mismatch — manual verification required.`
+          }
+        }
+      } catch (e) {
+        // Verify-loop is an enhancement — never fail the pipeline on it.
+        console.error('Reference verify-loop error:', e)
+      }
     }
 
     // ── Stage 5: Keyword fallback if nothing came back ───────────────────────
