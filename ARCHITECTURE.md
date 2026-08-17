@@ -9,7 +9,7 @@ confirmation form. The user reviews and confirms. Items enter authenticated
 inventory. Client buy-requests are matched algorithmically. Tamper-evident
 appraisal dossiers are generated on demand.
 
-**Stack:** Hono 4.x → Cloudflare Workers (Pages) → D1 (SQLite) → Gemini 2.0 Flash
+**Stack:** Hono 4.x → Cloudflare Workers (Pages) → D1 (SQLite) → Gemini 3.6 Flash
 
 ---
 
@@ -19,7 +19,7 @@ These are non-negotiable production thresholds. Every pipeline stage has a
 defined accuracy contract — either met by the AI model, our fallback logic,
 or the matching algorithm.
 
-### 1.1 Vision Authentication (Gemini 2.0 Flash)
+### 1.1 Vision Authentication (Gemini 3.6 Flash)
 
 | Metric | Target | Measurement |
 |---|---|---|
@@ -79,7 +79,7 @@ Below 70, the result is returned for human review but not persisted.
 - [x] Zero external auth dependencies (no Firebase)
 - [x] HTTPS by default (Cloudflare)
 - [x] Health check endpoint (`/api/health`)
-- [ ] Gemini API key set as encrypted secret (`gsk hosted secret_put`)
+- [x] Gemini API key set as encrypted secret (`GEMINI_API_KEY` on Pages)
 - [ ] PaddleOCR API key (Fireworks.ai) set as encrypted secret
 - [ ] Custom domain binding (e.g., `app.curatedlux.com`)
 
@@ -132,7 +132,7 @@ Below 70, the result is returned for human review but not persisted.
 | D1 storage | 5 GB | 50 GB+ (scales with plan) |
 | D1 reads | 5M/month | 25M/month+ |
 | D1 writes | 100K/month | 1M/month+ |
-| Gemini API | 1,500 req/day (free) | Pay-as-you-go ($0.10/1K images) |
+| Gemini API | $0.75/1M input, $3.75/1M output (gemini-3.6-flash) | Batch $0.375/$1.875; lite $0.30/$2.50 |
 | Worker bundle size | 10 MB (compressed) | 10 MB |
 
 ### 3.2 Scale-up Triggers
@@ -297,7 +297,7 @@ Full DDL in `migrations/0001_initial_schema.sql`.
 
 | Variable | Where Set | Purpose |
 |---|---|---|
-| `GEMINI_API_KEY` | `gsk hosted secret_put` | Google Gemini 2.0 Flash API |
+| `GEMINI_API_KEY` | Pages secret | Google Gemini 3.6 Flash (vision, OCR, voice) |
 | `FIREWORKS_API_KEY` | `gsk hosted secret_put` | PaddleOCR VL via Fireworks.ai (planned) |
 | `APP_NAME` | `wrangler.jsonc` vars | Display name |
 | `APP_VERSION` | `wrangler.jsonc` vars | Version tracking |
