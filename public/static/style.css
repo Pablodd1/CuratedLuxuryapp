@@ -1,4 +1,4 @@
-/* CuratedLux v2.0 — Gold Luxury Minimal */
+/* CuratedLux v2.1 — Monochrome Editorial (ink + paper + oxblood seal) */
 
 /* Hide horizontal scrollbar on the mobile nav tab strip */
 .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -24,29 +24,27 @@
 #cl-thumb-rail { top: 4.5rem; }
 @media (min-width: 768px) { #cl-thumb-rail { top: 3.5rem; } }
 
-/* Hero gradient */
+/* Hero gradient — now flat ink (no gold radial glow) */
 .hero-gradient {
-  background: radial-gradient(ellipse at 50% 0%, rgba(180,150,30,0.06) 0%, transparent 60%),
-              radial-gradient(ellipse at 70% 80%, rgba(180,150,30,0.03) 0%, transparent 50%),
-              #050505;
+  background: #0a0a0a;
 }
 
-/* Gold shimmer */
+/* Shimmer → subtle paper-white ink drift (kept class, no gold) */
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
 .text-shimmer {
-  background: linear-gradient(90deg, #d4af37 0%, #f0da70 30%, #d4af37 55%, #b8960c 80%, #d4af37 100%);
+  background: linear-gradient(90deg, #e8e6e1 0%, #ffffff 35%, #e8e6e1 60%, #b8b5ad 85%, #e8e6e1 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 3s ease-in-out infinite;
+  animation: shimmer 4s ease-in-out infinite;
 }
 
-/* Gold pulse dot */
+/* Pulse dot */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.75); }
@@ -56,7 +54,7 @@
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
-/* Confidence bar fill */
+/* Confidence bar fill — oxblood now (the sole accent, like an ink seal) */
 @keyframes bar-fill {
   from { width: 0%; }
   to { width: var(--bar-width); }
@@ -64,21 +62,21 @@
 
 .conf-bar {
   animation: bar-fill 0.8s ease-out forwards;
-  background: linear-gradient(90deg, #b8960c, #d4af37, #e8c84a) !important;
+  background: linear-gradient(90deg, #4a0d18, #8a1c2c, #a3223a) !important;
 }
 
 /* Status badges */
 .badge-active { background: rgba(52, 211, 153, 0.12); color: #34d399; border: 1px solid rgba(52,211,153,0.15); }
-.badge-locked { background: rgba(212, 175, 55, 0.1); color: #d4af37; border: 1px solid rgba(212,175,55,0.15); }
+.badge-locked { background: rgba(232, 230, 225, 0.08); color: #b8b5ad; border: 1px solid rgba(232,230,225,0.16); }
 .badge-sold { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.1); }
 .badge-archived { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.1); }
 .badge-matched { background: rgba(129, 140, 248, 0.12); color: #818cf8; border: 1px solid rgba(129,140,248,0.15); }
 .badge-accepted { background: rgba(52, 211, 153, 0.12); color: #34d399; border: 1px solid rgba(52,211,153,0.15); }
 .badge-pending { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.1); }
 
-/* Gold focus ring */
+/* Focus ring — paper-white (was gold) */
 *:focus-visible {
-  outline: 2px solid rgba(212, 175, 55, 0.5);
+  outline: 2px solid rgba(232, 230, 225, 0.6);
   outline-offset: 2px;
 }
 
@@ -89,9 +87,9 @@ a, button, input, select, textarea {
   transition-timing-function: ease-in-out;
 }
 
-/* Selection */
+/* Selection — oxblood */
 ::selection {
-  background: rgba(212, 175, 55, 0.25);
+  background: rgba(138, 28, 44, 0.35);
   color: #fff;
 }
 
@@ -106,15 +104,15 @@ a, button, input, select, textarea {
   transition: all 0.2s ease-out;
 }
 
-/* Drop zone drag-over */
+/* Drop zone drag-over — oxblood accent */
 #drop-zone.drag-over {
-  border-color: #d4af37 !important;
-  background: rgba(212, 175, 55, 0.04) !important;
+  border-color: #8a1c2c !important;
+  background: rgba(138, 28, 44, 0.06) !important;
 }
 
 /* Match score colors */
 .score-high { color: #34d399; }
-.score-mid { color: #fbbf24; }
+.score-mid { color: #d7b86a; }
 .score-low { color: #ef4444; }
 
 /* Toast notification */
@@ -124,7 +122,7 @@ a, button, input, select, textarea {
   right: 1.5rem;
   z-index: 100;
   padding: 0.75rem 1.25rem;
-  border-radius: 0.75rem;
+  border-radius: 0;
   font-size: 0.875rem;
   animation: toast-in 0.3s ease-out, toast-out 0.3s ease-in 3s forwards;
 }
@@ -141,11 +139,11 @@ a, button, input, select, textarea {
 
 .toast-success { background: #064e12; color: #d1fae5; border: 1px solid #15803d; }
 .toast-error { background: #450a0a; color: #fee2e2; border: 1px solid #dc2626; }
-.toast-info { background: #1a1a0a; color: #fef9c3; border: 1px solid #d4af37; }
+.toast-info { background: #141414; color: #e8e6e1; border: 1px solid #2a2a28; }
 
 /* Print styles for dossiers */
 @media print {
   body { background: white !important; color: black !important; }
   nav, footer, button, #dossier-detail { display: none; }
-  #dossier-certificate { border-color: #d4af37 !important; background: white !important; }
+  #dossier-certificate { border-color: #0a0a0a !important; background: white !important; }
 }

@@ -28,25 +28,34 @@ export function Layout({ title, active, children, embed = false }: { title: stri
             theme: {
               extend: {
                 colors: {
-                  gold: '#d4af37',
-                  'gold-light': '#e8c84a',
-                  'gold-dark': '#b8960c',
-                  'gold-dim': '#8b7300',
-                  surface: '#080808',
-                  card: '#0e0e0e',
-                  border: '#1a1a1a',
+                  // ── Monochrome Editorial — dark ink, white text, oxblood accent ──
+                  gold: '#e8e6e1',        // "gold" → warm paper-white (primary text/accents)
+                  'gold-light': '#ffffff',
+                  'gold-dark': '#b8b5ad',
+                  'gold-dim': '#8a887f',   // muted
+                  surface: '#0a0a0a',      // near-black ink
+                  card: '#121212',         // card
+                  border: '#2a2a28',       // ink hairline
+                  seal: '#8a1c2c',         // oxblood accent (wax-seal)
                 },
-                fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] }
+                fontFamily: {
+                  mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                  serif: ['Playfair Display', 'serif'],
+                  body: ['Source Serif 4', 'serif'],
+                }
               }
             }
           }
         `}</script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,600&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
         <style>{`
-          body { background: #050505; color: #d1d1d1; background-image: radial-gradient(ellipse at 50% 0%, rgba(180,150,30,0.04) 0%, transparent 60%); background-attachment: fixed; }
+          body { background: #0a0a0a; color: #e8e6e1; background-image: none; background-attachment: scroll; }
           ::-webkit-scrollbar { width: 5px; }
-          ::-webkit-scrollbar-track { background: #050505; }
-          ::-webkit-scrollbar-thumb { background: #222; border-radius: 3px; }
-          ::-webkit-scrollbar-thumb:hover { background: #333; }
+          ::-webkit-scrollbar-track { background: #0a0a0a; }
+          ::-webkit-scrollbar-thumb { background: #2a2a28; border-radius: 0; }
+          ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
           body.embed-mode { background: transparent; background-image: none; }
           body.embed-mode main { padding-top: 0.5rem; }
         `}</style>

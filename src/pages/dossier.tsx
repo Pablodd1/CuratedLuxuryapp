@@ -62,7 +62,7 @@ export function DossierPage({ itemId }: { itemId?: string }) {
           </div>
           <div class="flex gap-2 mt-4 justify-center">
             <button id="export-dossier-btn" onclick="window.print()"
-              class="bg-gold hover:bg-gold-light text-black font-bold px-4 py-2 rounded text-xs transition-all inline-flex items-center gap-1.5 shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+              class="bg-gold hover:bg-gold-light text-black font-bold px-4 py-2 rounded text-xs transition-all inline-flex items-center gap-1.5 shadow-[0_0_15px_rgba(138,28,44,0.3)]">
               <i class="fas fa-print text-[10px]"></i> Print / Export PDF Certificate
             </button>
             <button id="share-dossier-btn"

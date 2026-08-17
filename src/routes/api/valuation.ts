@@ -341,17 +341,28 @@ app.post('/analyze', async (c) => {
     const ocrResults: string[] = []
     let voiceResult: any = null
 
-    // ── Stage 1: Gemini 3.5 Flash Vision (image 0) ───────────────────────────
+    // ── Stage 1: Gemini 3.5 Flash Vision (hero + macro shots together) ───────
+    // Accuracy lever: send ALL useful images to vision, not just the hero.
+    // The macro/serial close-up carries the strongest authenticating signal and
+    // feeding it to the same model sharpens brand/model/serial extraction.
     if (apiKey && images.length > 0) {
       try {
-        const { data, mimeType } = cleanBase64(images[0])
+        // Hero first, then up to 3 macro/detail shots (cap for cost/latency)
+        const visionImages = images.slice(0, Math.min(4, images.length))
+        const parts: any[] = [
+          { text: VISION_PROMPT + '\n\nYou are given multiple photos of the SAME item (hero + macro close-ups of serials/hallmarks/dial). Fuse them: the macro shots carry the serial, reference and hallmark — use them to FIRM UP the serial, referenceNumber and authenticity verdict. If a macro shows a serial, report it exactly.' }
+        ]
+        for (const img of visionImages) {
+          const { data, mimeType } = cleanBase64(img)
+          parts.push({ inlineData: { mimeType, data } })
+        }
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${VISION_MODEL}:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: VISION_PROMPT }, { inlineData: { mimeType, data } }] }],
+              contents: [{ parts }],
               generationConfig: { responseMimeType: 'application/json', temperature: 0.1 }
             })
           }
