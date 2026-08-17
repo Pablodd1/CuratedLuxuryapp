@@ -10,8 +10,8 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
           {/* CL logo + brand */}
           <div class="flex items-center justify-center gap-2 mb-1">
             <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
-              <circle cx="20" cy="20" r="18" fill="none" stroke="#d4af37" stroke-width="2"/>
-              <text x="20" y="26" text-anchor="middle" fill="#d4af37" font-family="Georgia, 'Times New Roman', serif" font-size="19" font-weight="bold">CL</text>
+              <circle cx="20" cy="20" r="18" fill="none" stroke="#8a1c2c" stroke-width="2"/>
+              <text x="20" y="26" text-anchor="middle" fill="#8a1c2c" font-family="Georgia, 'Times New Roman', serif" font-size="19" font-weight="bold">CL</text>
             </svg>
             <div class="leading-tight">
               <span class="block text-base tracking-[0.3em] uppercase text-gold font-semibold" style="font-family: Georgia, 'Times New Roman', serif;">CuratedLux</span>
@@ -61,7 +61,7 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
           </div>
 
           {/* Start Authentication */}
-          <button id="cl-start-auth" class="mt-6 w-full bg-gold hover:bg-gold-light text-black font-semibold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(180,150,30,0.25)]">
+          <button id="cl-start-auth" class="mt-6 w-full bg-gold hover:bg-gold-light text-black font-semibold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(138,28,44,0.25)]">
             <i class="fas fa-shield-halved"></i> Start Authentication <i class="fas fa-chevron-right text-xs"></i>
           </button>
           <button id="cl-how-it-works" class="mt-2 text-center text-[11px] text-gold/60 hover:text-gold font-mono underline underline-offset-4 block mx-auto">How it works</button>
@@ -77,7 +77,7 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
           {/* Camera */}
           <button id="camera-trigger-btn"
-            class="bg-gold hover:bg-gold-light text-black font-semibold py-3 rounded text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(180,150,30,0.15)] hover:shadow-[0_0_30px_rgba(180,150,30,0.25)]">
+            class="bg-gold hover:bg-gold-light text-black font-semibold py-3 rounded text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(138,28,44,0.15)] hover:shadow-[0_0_30px_rgba(138,28,44,0.25)]">
             <i class="fas fa-camera text-lg"></i> Take Photo
           </button>
           {/* Microphone */}
@@ -117,7 +117,7 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
 
             {/* Analyze Button */}
             <button id="analyze-btn"
-              class="w-full bg-gold hover:bg-gold-light text-black font-semibold py-2.5 rounded text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(180,150,30,0.1)] hover:shadow-[0_0_25px_rgba(180,150,30,0.2)]">
+              class="w-full bg-gold hover:bg-gold-light text-black font-semibold py-2.5 rounded text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(138,28,44,0.1)] hover:shadow-[0_0_25px_rgba(138,28,44,0.2)]">
               Analyze
               <span id="analyze-spinner" class="hidden"><i class="fas fa-spinner fa-spin"></i></span>
             </button>
@@ -305,7 +305,7 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
                   <textarea name="notes" rows={2} placeholder="Service history, provenance, special details..." class="w-full bg-surface border border-white/[0.04] rounded px-2.5 py-1.5 text-xs text-white/80 placeholder-white/8 focus:outline-none focus:border-gold/30 resize-none transition-all"></textarea>
                 </div>
 
-                <button type="submit" class="w-full bg-gold hover:bg-gold-light text-black font-semibold py-2 rounded text-xs transition-all shadow-[0_0_15px_rgba(180,150,30,0.1)] hover:shadow-[0_0_25px_rgba(180,150,30,0.2)]">
+                <button type="submit" class="w-full bg-gold hover:bg-gold-light text-black font-semibold py-2 rounded text-xs transition-all shadow-[0_0_15px_rgba(138,28,44,0.1)] hover:shadow-[0_0_25px_rgba(138,28,44,0.2)]">
                   Submit &amp; Valuate
                 </button>
               </form>

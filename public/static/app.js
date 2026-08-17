@@ -63,7 +63,7 @@ function showAnalyzeConfirmation(photoCount, description) {
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6';
     overlay.innerHTML = `
-      <div class="bg-card border border-gold/20 rounded-2xl p-6 max-w-sm w-full shadow-[0_0_40px_rgba(212,175,55,0.15)]">
+      <div class="bg-card border border-gold/20 rounded-2xl p-6 max-w-sm w-full shadow-[0_0_40px_rgba(138,28,44,0.15)]">
         <div class="text-center mb-5">
           <div class="w-12 h-12 mx-auto rounded-full bg-gold/10 flex items-center justify-center mb-3">
             <i class="fas fa-circle-check text-gold text-xl"></i>
@@ -566,11 +566,11 @@ function initValuation() {
         svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
           <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
           <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <circle cx="39" cy="42" r="22" fill="none" stroke="#d4af37" stroke-width="2"/>
+          <circle cx="39" cy="42" r="22" fill="none" stroke="#8a1c2c" stroke-width="2"/>
           <circle cx="39" cy="42" r="16" fill="#111827"/>
           <line x1="39" y1="42" x2="39" y2="30" stroke="#e5e7eb" stroke-width="1.5"/>
           <line x1="39" y1="42" x2="48" y2="46" stroke="#e5e7eb" stroke-width="1.5"/>
-          <ellipse cx="121" cy="42" rx="26" ry="16" fill="none" stroke="#d4af37" stroke-width="1.5" transform="rotate(-18 121 42)"/>
+          <ellipse cx="121" cy="42" rx="26" ry="16" fill="none" stroke="#8a1c2c" stroke-width="1.5" transform="rotate(-18 121 42)"/>
           <ellipse cx="121" cy="38" rx="24" ry="10" fill="rgba(255,255,255,0.45)" transform="rotate(-18 121 38)"/>
           <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
           <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
@@ -617,8 +617,8 @@ function initValuation() {
         svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
           <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
           <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <path d="M 22 34 h 34 v 30 h -34 z" fill="#92400e" stroke="#d4af37"/>
-          <path d="M 30 34 q 9 -14 18 0" fill="none" stroke="#d4af37" stroke-width="2"/>
+          <path d="M 22 34 h 34 v 30 h -34 z" fill="#92400e" stroke="#8a1c2c"/>
+          <path d="M 30 34 q 9 -14 18 0" fill="none" stroke="#8a1c2c" stroke-width="2"/>
           <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
           <path d="M 108 38 l 26 -6 v 26 l -26 6 z" fill="#92400e" stroke="#ef4444"/>
           <path d="M 96 30 l 8 2" stroke="#ef4444" stroke-width="1" stroke-dasharray="2 2"/>
@@ -633,8 +633,8 @@ function initValuation() {
         svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
           <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
           <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <path d="M 33 30 l 12 -8 l 12 8 l -6 24 h -12 z" fill="#60a5fa" stroke="#d4af37"/>
-          <circle cx="39" cy="42" r="26" fill="none" stroke="#d4af37" stroke-width="1" stroke-dasharray="4 3"/>
+          <path d="M 33 30 l 12 -8 l 12 8 l -6 24 h -12 z" fill="#60a5fa" stroke="#8a1c2c"/>
+          <circle cx="39" cy="42" r="26" fill="none" stroke="#8a1c2c" stroke-width="1" stroke-dasharray="4 3"/>
           <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
           <path d="M 128 38 l 10 -6 l 10 6 l -5 18 h -10 z" fill="#60a5fa" stroke="#ef4444" transform="rotate(14 133 40)"/>
           <rect x="95" y="52" width="14" height="10" fill="#374151"/>
@@ -650,7 +650,7 @@ function initValuation() {
         svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
           <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
           <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <path d="M 10 52 l 8 -10 l 14 -4 l 12 -8 l 14 8 l 8 14 z" fill="#1f2937" stroke="#d4af37"/>
+          <path d="M 10 52 l 8 -10 l 14 -4 l 12 -8 l 14 8 l 8 14 z" fill="#1f2937" stroke="#8a1c2c"/>
           <circle cx="24" cy="54" r="4" fill="#111"/><circle cx="56" cy="54" r="4" fill="#111"/>
           <circle cx="17" cy="46" r="2.5" fill="#fbbf24"/>
           <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
@@ -684,7 +684,7 @@ function initValuation() {
         svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
           <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
           <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <rect x="16" y="22" width="46" height="36" fill="#1e3a5f" stroke="#d4af37"/>
+          <rect x="16" y="22" width="46" height="36" fill="#1e3a5f" stroke="#8a1c2c"/>
           <circle cx="39" cy="40" r="9" fill="#f59e0b"/>
           <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
           <path d="M 96 24 L 146 20 L 150 58 L 100 62 Z" fill="#1e3a5f" stroke="#ef4444"/>
@@ -709,22 +709,22 @@ function initValuation() {
   ];
 
   // Gold-rimmed black-dial dress watch — recreated from the reference frame using
-  // the app palette (#d4af37 gold on #111827 black, black leather strap). Inline
+  // the app palette (#8a1c2c gold on #111827 black, black leather strap). Inline
   // SVG = zero asset weight, offline-safe, themeable.
   const PREP_HEROES = {
     Watches: `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id="clh-case" cx="50%" cy="40%" r="75%">
-          <stop offset="0%" stop-color="#f3d98a"/><stop offset="55%" stop-color="#d4af37"/><stop offset="100%" stop-color="#8a6d1c"/>
+          <stop offset="0%" stop-color="#f3d98a"/><stop offset="55%" stop-color="#8a1c2c"/><stop offset="100%" stop-color="#8a6d1c"/>
         </radialGradient>
         <radialGradient id="clh-dial" cx="50%" cy="45%" r="65%">
           <stop offset="0%" stop-color="#16181d"/><stop offset="100%" stop-color="#0b0c0e"/>
         </radialGradient>
       </defs>
       <!-- leather strap -->
-      <path d="M 88 62 C 88 92 78 110 64 132 L 92 138 C 100 116 104 96 104 62 Z" fill="#1a1208" stroke="#d4af37" stroke-width="0.8"/>
-      <path d="M 132 62 C 132 92 142 110 156 132 L 128 138 C 120 116 116 96 116 62 Z" fill="#1a1208" stroke="#d4af37" stroke-width="0.8"/>
-      <circle cx="110" cy="88" r="2" fill="#d4af37"/>
+      <path d="M 88 62 C 88 92 78 110 64 132 L 92 138 C 100 116 104 96 104 62 Z" fill="#1a1208" stroke="#8a1c2c" stroke-width="0.8"/>
+      <path d="M 132 62 C 132 92 142 110 156 132 L 128 138 C 120 116 116 96 116 62 Z" fill="#1a1208" stroke="#8a1c2c" stroke-width="0.8"/>
+      <circle cx="110" cy="88" r="2" fill="#8a1c2c"/>
       <!-- case -->
       <circle cx="110" cy="70" r="46" fill="url(#clh-case)"/>
       <circle cx="110" cy="70" r="40" fill="url(#clh-dial)"/>
@@ -750,38 +750,38 @@ function initValuation() {
       <circle cx="110" cy="70" r="3.2" fill="#e7c96a"/>
       <!-- date window -->
       <rect x="124" y="82" width="12" height="8" rx="1.5" fill="#0b0c0e" stroke="#e7c96a" stroke-width="0.6"/>
-      <circle cx="110" cy="70" r="40" fill="none" stroke="#d4af37" stroke-width="0.5" opacity="0.5"/>
+      <circle cx="110" cy="70" r="40" fill="none" stroke="#8a1c2c" stroke-width="0.5" opacity="0.5"/>
     </svg>`,
     Handbags: `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 62 78 h 96 l 6 68 H 56 Z" fill="#1a1208" stroke="#d4af37" stroke-width="1.2"/>
-      <path d="M 82 78 c 0 -22 12 -34 28 -34 s 28 12 28 34" fill="none" stroke="#d4af37" stroke-width="2.5"/>
-      <rect x="86" y="74" width="12" height="8" rx="2" fill="#d4af37"/>
-      <rect x="122" y="74" width="12" height="8" rx="2" fill="#d4af37"/>
-      <path d="M 110 70 v 10" stroke="#d4af37" stroke-width="2"/>
-      <path d="M 74 96 h 72 v 40 H 74 Z" fill="#0b0c0e" stroke="#d4af37" stroke-width="0.8" opacity="0.9"/>
-      <rect x="96" y="60" width="28" height="6" rx="3" fill="#d4af37"/>
+      <path d="M 62 78 h 96 l 6 68 H 56 Z" fill="#1a1208" stroke="#8a1c2c" stroke-width="1.2"/>
+      <path d="M 82 78 c 0 -22 12 -34 28 -34 s 28 12 28 34" fill="none" stroke="#8a1c2c" stroke-width="2.5"/>
+      <rect x="86" y="74" width="12" height="8" rx="2" fill="#8a1c2c"/>
+      <rect x="122" y="74" width="12" height="8" rx="2" fill="#8a1c2c"/>
+      <path d="M 110 70 v 10" stroke="#8a1c2c" stroke-width="2"/>
+      <path d="M 74 96 h 72 v 40 H 74 Z" fill="#0b0c0e" stroke="#8a1c2c" stroke-width="0.8" opacity="0.9"/>
+      <rect x="96" y="60" width="28" height="6" rx="3" fill="#8a1c2c"/>
     </svg>`,
     'Fine Jewelry': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="110" cy="64" r="26" fill="#d4af37"/>
+      <circle cx="110" cy="64" r="26" fill="#8a1c2c"/>
       <circle cx="110" cy="64" r="18" fill="#f3d98a"/>
       <circle cx="110" cy="64" r="11" fill="#e7c96a"/>
       <circle cx="110" cy="64" r="5" fill="#fffbe6"/>
-      <path d="M 78 116 l 22 -34 h 20 l 22 34 h 28 l -56 26 -56 -26 Z" fill="#d4af37"/>
+      <path d="M 78 116 l 22 -34 h 20 l 22 34 h 28 l -56 26 -56 -26 Z" fill="#8a1c2c"/>
       <path d="M 98 92 l 14 -14 14 14 Z" fill="none" stroke="#0b0c0e" stroke-width="1.5"/>
     </svg>`,
     'Luxury Vehicles': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 56 104 h 8 c 10 -12 34 -18 46 -18 h 0 c 12 0 36 6 46 18 h 10 c 8 0 12 6 10 12 l -4 10 -132 0 -4 -10 c -2 -6 2 -12 10 -12 Z" fill="#d4af37"/>
+      <path d="M 56 104 h 8 c 10 -12 34 -18 46 -18 h 0 c 12 0 36 6 46 18 h 10 c 8 0 12 6 10 12 l -4 10 -132 0 -4 -10 c -2 -6 2 -12 10 -12 Z" fill="#8a1c2c"/>
       <path d="M 104 92 h 16 l 2 -10 c 0 -6 6 -12 12 -12 h 8 c 8 0 14 6 14 14 l -2 8 Z" fill="#0b0c0e"/>
       <circle cx="92" cy="128" r="12" fill="#0b0c0e"/>
-      <circle cx="92" cy="128" r="5" fill="#d4af37"/>
+      <circle cx="92" cy="128" r="5" fill="#8a1c2c"/>
       <circle cx="140" cy="128" r="12" fill="#0b0c0e"/>
-      <circle cx="140" cy="128" r="5" fill="#d4af37"/>
+      <circle cx="140" cy="128" r="5" fill="#8a1c2c"/>
     </svg>`,
     'Art & Collectibles': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <rect x="60" y="40" width="100" height="110" fill="#0b0c0e" stroke="#d4af37" stroke-width="2"/>
-      <circle cx="100" cy="80" r="14" fill="#d4af37" opacity="0.85"/>
+      <rect x="60" y="40" width="100" height="110" fill="#0b0c0e" stroke="#8a1c2c" stroke-width="2"/>
+      <circle cx="100" cy="80" r="14" fill="#8a1c2c" opacity="0.85"/>
       <path d="M 82 118 l 18 -22 14 14 12 -10 24 26 H 82 Z" fill="#e7c96a" opacity="0.9"/>
-      <path d="M 118 66 c 6 -4 12 -2 14 3" stroke="#d4af37" stroke-width="2" fill="none"/>
+      <path d="M 118 66 c 6 -4 12 -2 14 3" stroke="#8a1c2c" stroke-width="2" fill="none"/>
     </svg>`,
   };
   const PREP_HERO_TITLES = {
@@ -809,8 +809,8 @@ function initValuation() {
         <!-- CL logo + wordmark -->
         <div class="flex items-center justify-center gap-2 mb-1">
           <svg viewBox="0 0 40 40" width="26" height="26" aria-hidden="true">
-            <circle cx="20" cy="20" r="18" fill="none" stroke="#d4af37" stroke-width="2"/>
-            <text x="20" y="26" text-anchor="middle" fill="#d4af37" font-family="Georgia, 'Times New Roman', serif" font-size="19" font-weight="bold">CL</text>
+            <circle cx="20" cy="20" r="18" fill="none" stroke="#8a1c2c" stroke-width="2"/>
+            <text x="20" y="26" text-anchor="middle" fill="#8a1c2c" font-family="Georgia, 'Times New Roman', serif" font-size="19" font-weight="bold">CL</text>
           </svg>
           <span class="text-sm tracking-[0.35em] uppercase text-gold font-semibold" style="font-family: Georgia, 'Times New Roman', serif;">CuratedLux</span>
         </div>
@@ -851,7 +851,7 @@ function initValuation() {
         <p class="text-center text-[12px] text-white/40 mt-4" style="font-family: Georgia, 'Times New Roman', serif;">We will guide you through each required angle.</p>
 
         <!-- Begin Capture CTA -->
-        <button id="cl-prep-begin" class="mt-4 w-full py-4 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.3)]" style="font-family: Georgia, 'Times New Roman', serif;">
+        <button id="cl-prep-begin" class="mt-4 w-full py-4 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(138,28,44,0.3)]" style="font-family: Georgia, 'Times New Roman', serif;">
           <i class="fas fa-camera text-base"></i> Begin Capture <i class="fas fa-chevron-right text-xs"></i>
         </button>
 
@@ -915,7 +915,7 @@ function initValuation() {
               </div>`;
           }).join('')}
         </div>
-        <button id="cl-ex-done" class="mt-5 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)]" style="font-family: Georgia, 'Times New Roman', serif;">
+        <button id="cl-ex-done" class="mt-5 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(138,28,44,0.25)]" style="font-family: Georgia, 'Times New Roman', serif;">
           <i class="fas fa-camera text-base"></i> Start Capture
         </button>
       </div>
@@ -1003,7 +1003,7 @@ function initValuation() {
             <div class="absolute left-1/3 top-0 bottom-0 w-px bg-white/10"></div>
             <div class="absolute left-2/3 top-0 bottom-0 w-px bg-white/10"></div>
             <!-- Center circle guide -->
-            <div class="absolute top-1/2 left-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 border-2 border-gold/60 rounded-full animate-pulse shadow-[0_0_20px_rgba(212,175,55,0.3)]"></div>
+            <div class="absolute top-1/2 left-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 border-2 border-gold/60 rounded-full animate-pulse shadow-[0_0_20px_rgba(138,28,44,0.3)]"></div>
             <!-- Corner brackets (reference "Capture Dial" overlay) -->
             <div class="absolute top-[29%] left-[39%] w-5 h-5 border-t-2 border-l-2 border-gold/70 rounded-tl-md"></div>
             <div class="absolute top-[29%] right-[39%] w-5 h-5 border-t-2 border-r-2 border-gold/70 rounded-tr-md"></div>
@@ -1030,7 +1030,18 @@ function initValuation() {
             <img id="cl-step-thumb" class="hidden w-8 h-8 rounded-lg object-cover border border-emerald-500/40 ring-1 ring-emerald-500/30 shrink-0 ml-1" alt="captured" />
           </div>
 
-          <p id="cl-step-instruction" class="text-sm leading-snug text-white font-semibold">Frame the dial — fill the golden circle</p>
+          <p id="cl-step-instruction" class="text-sm leading-snug text-white font-semibold">Frame the dial — fill the center reticle</p>
+
+          <!-- Lens / prep accuracy strip — always visible (critical for extraction) -->
+          <div class="mt-2 px-2.5 py-2 rounded-lg border border-white/10 bg-black/30">
+            <div class="flex items-start gap-1.5 text-[10px] text-gold-dim font-mono leading-relaxed">
+              <i class="fas fa-sparkles text-gold/70 mt-0.5 text-[9px]"></i>
+              <span>Wipe the lens clean · steady hands · <span id="cl-prep-distance" class="text-gold">hold steady</span> · even light, no glare on the surface</span>
+            </div>
+            <div id="cl-prep-desktop" class="hidden mt-1 text-[9px] text-amber-300/90 font-mono leading-relaxed">
+              <i class="fas fa-triangle-exclamation mr-1"></i>Laptop camera cannot focus close-up. Shoot macro steps (serial, hallmark) on your phone and upload, or open the app on your phone for detail shots.
+            </div>
+          </div>
 
           <!-- Details checklist + example (collapsible on mobile) -->
           <button id="cl-details-toggle" type="button" class="mt-1.5 inline-flex items-center gap-1 text-[10px] text-gold/80 hover:text-gold font-mono uppercase tracking-wider">
@@ -1039,7 +1050,7 @@ function initValuation() {
           <div id="cl-step-details" class="hidden mt-1.5 space-y-1"></div>
 
           <!-- Big TAKE PICTURE CTA -->
-          <button id="cl-mega-snap" class="mt-2 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(212,175,55,0.25)]">
+          <button id="cl-mega-snap" class="mt-2 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(138,28,44,0.25)]">
             <i class="fas fa-camera-retro text-base"></i> Take Picture
           </button>
 
@@ -1098,7 +1109,7 @@ function initValuation() {
             </button>
             <span class="text-[9px] font-mono text-white/35 uppercase">Retake</span>
           </div>
-          <button id="cl-cam-snap" class="relative w-20 h-20 rounded-full bg-white border-4 border-gold flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.4)]" title="Take photo">
+          <button id="cl-cam-snap" class="relative w-20 h-20 rounded-full bg-white border-4 border-gold flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_30px_rgba(138,28,44,0.4)]" title="Take photo">
             <i class="fas fa-camera text-black text-2xl"></i>
             <span id="cl-ready-ring" class="hidden absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-black text-[8px] font-mono font-bold animate-pulse">READY</span>
           </button>
@@ -1116,6 +1127,7 @@ function initValuation() {
     // ── State ──────────────────────────────────────────────────────────
     let stream = null
     let facingMode = 'environment'
+    let isDesktopCam = false   // true when no rear camera → likely laptop/desktop webcam
     let resolution = '1080'
     let macroOn = false
     let burstOn = false
@@ -1170,6 +1182,18 @@ function initValuation() {
       if (label) label.textContent = `Step ${step + 1} of ${total} — ${cur.shot}`
       if (shotCount) shotCount.textContent = `${stepCaptured.size}/${total}`
       if (instruction) instruction.textContent = cur.instruction + `  (${cur.distance || ''})`
+
+      // Update the lens/prep accuracy strip distance for this shot
+      const prepDist = modal.querySelector('#cl-prep-distance')
+      if (prepDist) prepDist.textContent = cur.distance || 'hold steady'
+
+      // Surface the laptop/desktop macro warning when relevant (desktop webcam
+      // can't do macro — steer user to phone for serial/hallmark close-ups)
+      const prepDesktop = modal.querySelector('#cl-prep-desktop')
+      if (prepDesktop) {
+        const needsMacro = cur.macro === true
+        prepDesktop.classList.toggle('hidden', !(isDesktopCam && needsMacro))
+      }
 
       // Prominent progress banner: "N of TOTAL photos taken" + remaining count
       const progCount = modal.querySelector('#cl-progress-count')
@@ -1362,6 +1386,15 @@ function initValuation() {
         torchTrack = track
         const s = track.getSettings()
         infoEl.textContent = `${s.width || r.w}x${s.height || r.h} · ${s.frameRate || r.fps}fps · ${facingMode === 'environment' ? 'REAR' : 'FRONT'}`
+        // Detect desktop/laptop webcam: a track label that isn't "back/rear" on a
+        // non-mobile UA means we got a forward webcam, not a rear macro camera.
+        const lbl = (track.label || '').toLowerCase()
+        if (!/mobile|phone|iphone|android/i.test(navigator.userAgent)) {
+          isDesktopCam = !/back|rear/i.test(lbl)
+        }
+        // Re-render the guide now that we know if this is a laptop webcam
+        // (so the desktop macro warning shows on macro steps)
+        if (!guideSkipped) updateGuideStep(guideStep)
         if (macroOn) await toggleMacro(true)
 
         if (micOn) startMicCapture(stream)
@@ -1810,7 +1843,7 @@ function initValuation() {
       autoCaptureOn = !autoCaptureOn
       autoFired = false
       autoBtn.className = `w-10 h-10 rounded-full border flex items-center justify-center text-[9px] font-bold transition-all ${
-        autoCaptureOn ? 'bg-gold border-gold text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]' : 'bg-white/5 border-white/10 text-white/40'
+        autoCaptureOn ? 'bg-gold border-gold text-black shadow-[0_0_15px_rgba(138,28,44,0.4)]' : 'bg-white/5 border-white/10 text-white/40'
       }`
       toast(autoCaptureOn ? 'Auto-capture ON — snaps when ready' : 'Auto-capture OFF', autoCaptureOn ? 'success' : 'info')
     })
@@ -2066,7 +2099,7 @@ function initValuation() {
 
         <!-- Actions: View Full Report + Start New Authentication -->
         <div class="space-y-2 pt-1">
-          <button id="cl-assess-report" type="button" class="w-full bg-gold hover:bg-gold-light text-black font-semibold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(180,150,30,0.2)]">
+          <button id="cl-assess-report" type="button" class="w-full bg-gold hover:bg-gold-light text-black font-semibold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(138,28,44,0.2)]">
             <i class="fas fa-file-lines"></i> View Full Report <i class="fas fa-chevron-right text-xs"></i>
           </button>
           <button id="cl-assess-new" type="button" class="w-full border border-gold/40 hover:border-gold/70 text-gold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
@@ -2218,7 +2251,7 @@ function initValuation() {
           <button id="rev-back-btn" type="button" class="border border-white/20 hover:border-gold/50 text-white/70 hover:text-gold py-2 rounded text-xs transition-all flex items-center justify-center gap-1.5">
             <i class="fas fa-arrow-left"></i> Back / Retake
           </button>
-          <button id="rev-save-btn" type="button" class="bg-gold hover:bg-gold-light text-black font-bold py-2 rounded text-xs transition-all shadow-[0_0_15px_rgba(180,150,30,0.2)] flex items-center justify-center gap-1.5">
+          <button id="rev-save-btn" type="button" class="bg-gold hover:bg-gold-light text-black font-bold py-2 rounded text-xs transition-all shadow-[0_0_15px_rgba(138,28,44,0.2)] flex items-center justify-center gap-1.5">
             <i class="fas fa-check-double"></i> Confirm &amp; Save
           </button>
         </div>

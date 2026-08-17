@@ -5,8 +5,8 @@ export function ResetPasswordPage() {
     <Layout title="Reset Password — CuratedLux">
       <main class="min-h-[80vh] flex items-center justify-center px-4">
         <div class="w-full max-w-md">
-          <div class="bg-black border border-[#d4af37] rounded-lg p-8 shadow-2xl shadow-[#d4af37]/10">
-            <h2 class="text-2xl font-bold text-[#d4af37] mb-2">Reset Password</h2>
+          <div class="bg-black border border-[#8a1c2c] rounded-lg p-8 shadow-2xl shadow-[#8a1c2c]/10">
+            <h2 class="text-2xl font-bold text-[#8a1c2c] mb-2">Reset Password</h2>
             <p class="text-gray-400 text-sm mb-6">Enter your new password below.</p>
 
             <div id="reset-error" class="hidden bg-red-900/30 border border-red-500/50 text-red-300 text-sm rounded p-3 mb-4"></div>
@@ -21,20 +21,20 @@ export function ResetPasswordPage() {
                   required
                   minlength="8"
                   placeholder="Min 8 characters"
-                  class="w-full bg-gray-900 border border-[#d4af37]/30 rounded px-3 py-2.5 text-white placeholder-gray-600 focus:border-[#d4af37] focus:outline-none focus:ring-1 focus:ring-[#d4af37]/30 transition text-sm"
+                  class="w-full bg-gray-900 border border-[#8a1c2c]/30 rounded px-3 py-2.5 text-white placeholder-gray-600 focus:border-[#8a1c2c] focus:outline-none focus:ring-1 focus:ring-[#8a1c2c]/30 transition text-sm"
                 />
               </div>
               <button
                 type="submit"
                 id="reset-btn"
-                class="w-full bg-[#d4af37] text-black font-semibold rounded px-4 py-2.5 hover:bg-[#e8c84a] transition text-sm disabled:opacity-50"
+                class="w-full bg-[#8a1c2c] text-black font-semibold rounded px-4 py-2.5 hover:bg-[#a3223a] transition text-sm disabled:opacity-50"
               >
                 Reset Password
               </button>
             </form>
 
             <p class="text-gray-600 text-xs text-center mt-6">
-              <a href="/login" class="text-[#d4af37] hover:text-[#e8c84a] transition">Back to sign in</a>
+              <a href="/login" class="text-[#8a1c2c] hover:text-[#a3223a] transition">Back to sign in</a>
             </p>
           </div>
         </div>
@@ -81,7 +81,7 @@ export function ResetPasswordPage() {
               const data = await res.json();
               if (res.ok) {
                 successEl.classList.remove('hidden');
-                successEl.innerHTML = data.message + ' <a href="/login" class="underline text-[#e8c84a]">Sign in now</a>';
+                successEl.innerHTML = data.message + ' <a href="/login" class="underline text-[#a3223a]">Sign in now</a>';
                 document.getElementById('reset-form').classList.add('hidden');
               } else {
                 errEl.textContent = data.message || 'Reset failed. The link may have expired.';
