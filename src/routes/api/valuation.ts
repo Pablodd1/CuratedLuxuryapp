@@ -481,7 +481,22 @@ app.post('/analyze', async (c) => {
           result.referenceNumber || ''
         ].filter(Boolean).join(' ')
         const candidates = queryVectorRAG(verifyQuery, result.category || 'all', 5)
-        const top = candidates[0]
+        // Pick the BEST candidate, not just rank-1: TF-IDF can rank a same-brand
+        // sibling above the true model. Prefer exact ref match > model-text
+        // overlap > raw similarity.
+        const norm2 = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+        const modelWords = norm2(result.model || '').split(/\s+/).filter(w => w.length > 2)
+        const scoreCandidate = (m: any) => {
+          let s = m.similarityScore
+          if (String(result.referenceNumber || '').toLowerCase() === m.item.referenceNumber.toLowerCase()) s += 1
+          const catText = norm2(`${m.item.model} ${m.item.brand} ${m.item.keywords.join(' ')}`)
+          const overlap = modelWords.filter(w => catText.includes(w)).length
+          s += 0.05 * overlap
+          return s
+        }
+        const top = candidates.length
+          ? candidates.map(m => ({ m, sc: scoreCandidate(m) })).sort((a, b) => b.sc - a.sc)[0].m
+          : null
         if (top) {
           const topBrand = (top.item.brand || '').toLowerCase().trim()
           const propBrand = (result.brand || '').toLowerCase().trim()

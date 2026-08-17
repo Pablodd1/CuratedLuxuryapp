@@ -434,6 +434,411 @@ export const LUXURY_CATALOG: WatchCatalogItem[] = [
       cyclopsMagnification: 'N/A',
       hallmarks: '8.0L Quad-Turbo W16 engine (1479 hp), top speed limited to 420 km/h'
     }
+  },
+
+  // ── EXPANSION BATCH 1 — Watches: Rolex depth ─────────────────────────────
+  {
+    id: 'rol-124060',
+    category: 'Watches',
+    brand: 'Rolex',
+    model: 'Submariner No Date 41mm',
+    referenceNumber: '124060',
+    caseMaterial: 'Oystersteel',
+    caseSizeMm: 41,
+    movement: 'Automatic',
+    braceletType: 'Oyster',
+    baselineMarketValueUSD: 10500,
+    keywords: ['rolex', 'submariner', 'no date', 'nodate', '124060', 'black'],
+    forensicIndicators: {
+      logoFontKerning: 'Rolex coronet 5-point symmetry, sharp laser etch',
+      rehautAlignment: 'Double ROLEX engraving; X aligns with right minute markers, coronet at 12',
+      cyclopsMagnification: 'N/A (No date window)',
+      hallmarks: 'Oystersteel 904L brushed lugs, polished flanks, laser coronet at 6 on crystal'
+    }
+  },
+  {
+    id: 'rol-126234',
+    category: 'Watches',
+    brand: 'Rolex',
+    model: 'Datejust 36 Steel/White Gold Blue Dial',
+    referenceNumber: '126234',
+    caseMaterial: 'Steel and White Gold',
+    caseSizeMm: 36,
+    movement: 'Automatic',
+    braceletType: 'Jubilee',
+    baselineMarketValueUSD: 12500,
+    keywords: ['rolex', 'datejust', '126234', 'jubilee', 'blue', 'fluted'],
+    forensicIndicators: {
+      logoFontKerning: 'Fluted white gold bezel with precise 60-flute geometry',
+      rehautAlignment: 'Engraved ROLEXROLEX rehaut with crown at 12',
+      cyclopsMagnification: '2.5x cyclops with underside AR coating',
+      hallmarks: 'Jubilee 5-link bracelet with concealed Crownclasp'
+    }
+  },
+  {
+    id: 'rol-126720vtnr',
+    category: 'Watches',
+    brand: 'Rolex',
+    model: 'GMT-Master II "Bruce Wayne" Grey/Black',
+    referenceNumber: '126720VTNR',
+    caseMaterial: 'Oystersteel',
+    caseSizeMm: 40,
+    movement: 'Automatic',
+    braceletType: 'Oyster',
+    baselineMarketValueUSD: 12500,
+    keywords: ['rolex', 'gmt', 'bruce wayne', '126720vtnr', 'grey', 'black', 'lefty'],
+    forensicIndicators: {
+      logoFontKerning: 'Grey/black Cerachrom bezel with platinum PVD numerals',
+      rehautAlignment: 'Crown on LEFT side (destro configuration)',
+      cyclopsMagnification: '2.5x date cyclops',
+      hallmarks: 'Calibre 3285 with Chronergy escapement, 70h reserve'
+    }
+  },
+  {
+    id: 'rol-m126506',
+    category: 'Watches',
+    brand: 'Rolex',
+    model: 'Cosmograph Daytona Platinum Ice Blue',
+    referenceNumber: '126506',
+    caseMaterial: 'Platinum',
+    caseSizeMm: 40,
+    movement: 'Automatic',
+    braceletType: 'Oyster',
+    baselineMarketValueUSD: 75000,
+    keywords: ['rolex', 'daytona', 'platinum', '126506', 'ice blue', 'cerachrom'],
+    forensicIndicators: {
+      logoFontKerning: 'Ice blue dial exclusive to platinum models',
+      rehautAlignment: 'Solid 950 platinum case, heaviest Daytona variant',
+      cyclopsMagnification: 'N/A (No date)',
+      hallmarks: 'Chestnut brown Cerachrom monobloc bezel'
+    }
+  },
+  {
+    id: 'rol-m228206',
+    category: 'Watches',
+    brand: 'Rolex',
+    model: 'Day-Date 40 Platinum Ice Blue',
+    referenceNumber: '228206',
+    caseMaterial: 'Platinum',
+    caseSizeMm: 40,
+    movement: 'Automatic',
+    braceletType: 'President',
+    baselineMarketValueUSD: 62000,
+    keywords: ['rolex', 'day-date', 'president', 'platinum', '228206', 'ice blue'],
+    forensicIndicators: {
+      logoFontKerning: 'Ice blue dial with applied roman or baton markers',
+      rehautAlignment: 'Solid 950 platinum President bracelet',
+      cyclopsMagnification: '2.5x cyclops, double instant day/date change at midnight',
+      hallmarks: 'Concealed Crownclasp with polished links'
+    }
+  },
+  {
+    id: 'rol-m326934',
+    category: 'Watches',
+    brand: 'Rolex',
+    model: 'Sky-Dweller Steel White Gold Black Dial',
+    referenceNumber: '326934',
+    caseMaterial: 'Steel and White Gold',
+    caseSizeMm: 42,
+    movement: 'Automatic',
+    braceletType: 'Oyster',
+    baselineMarketValueUSD: 18500,
+    keywords: ['rolex', 'sky-dweller', '326934', 'annual calendar', 'ring command'],
+    forensicIndicators: {
+      logoFontKerning: 'Off-centre annual calendar month apertures around dial edge',
+      rehautAlignment: 'Ring Command fluted rotatable bezel controls functions',
+      cyclopsMagnification: '2.5x cyclops on date at 3',
+      hallmarks: 'Calibre 9001, dual time zone with 24h disc'
+    }
+  },
+
+  // ── EXPANSION BATCH 1 — Watches: Omega / Cartier / Hublot / Panerai / IWC ─
+  {
+    id: 'ome-smp-300',
+    category: 'Watches',
+    brand: 'Omega',
+    model: 'Seamaster Diver 300M Steel Black',
+    referenceNumber: '210.30.42.20.01.001',
+    caseMaterial: 'Steel',
+    caseSizeMm: 42,
+    movement: 'Automatic',
+    braceletType: 'Steel integrated',
+    baselineMarketValueUSD: 4200,
+    keywords: ['omega', 'seamaster', 'diver 300m', 'smp', 'wave dial', 'hevalite'],
+    forensicIndicators: {
+      logoFontKerning: 'Ω Omega logo and wave-pattern dial texture',
+      rehautAlignment: 'Ceramic bezel with white enamel diving scale',
+      cyclopsMagnification: 'N/A (No cyclops)',
+      hallmarks: 'Master Chronometer METAS certified Calibre 8800, 15,000 gauss antimagnetic'
+    }
+  },
+  {
+    id: 'ome-speedy-pro',
+    category: 'Watches',
+    brand: 'Omega',
+    model: 'Speedmaster Professional Moonwatch',
+    referenceNumber: '310.30.42.50.01.001',
+    caseMaterial: 'Steel',
+    caseSizeMm: 42,
+    movement: 'Manual Wind',
+    braceletType: 'Steel integrated',
+    baselineMarketValueUSD: 6500,
+    keywords: ['omega', 'speedmaster', 'moonwatch', 'speedy', 'professional', 'hesalite'],
+    forensicIndicators: {
+      logoFontKerning: 'Dot over 90 on bezel (DO90), step dial',
+      rehautAlignment: 'Hesalite crystal with small Ω center emblem',
+      cyclopsMagnification: 'N/A (No cyclops)',
+      hallmarks: 'Calibre 3861, Co-Axial Master Chronometer, NASA flight-qualified'
+    }
+  },
+  {
+    id: 'car-tank-must',
+    category: 'Watches',
+    brand: 'Cartier',
+    model: 'Tank Must Large Steel',
+    referenceNumber: 'WSTA0041',
+    caseMaterial: 'Steel',
+    caseSizeMm: 33.7,
+    movement: 'Quartz',
+    braceletType: 'Leather strap',
+    baselineMarketValueUSD: 2800,
+    keywords: ['cartier', 'tank', 'must', 'wsta0041', 'blue hands'],
+    forensicIndicators: {
+      logoFontKerning: 'CARTIER in serif print, hidden CARTIER in VII numeral',
+      rehautAlignment: 'Rectangular case with brancards (side bars) aligned to lugs',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Blued sword-shaped hands, cabochon sapphire crown'
+    }
+  },
+  {
+    id: 'hub-bigbang-unico',
+    category: 'Watches',
+    brand: 'Hublot',
+    model: 'Big Bang Unico Titanium 42mm',
+    referenceNumber: '441.NX.1177.RX',
+    caseMaterial: 'Titanium',
+    caseSizeMm: 42,
+    movement: 'Automatic',
+    braceletType: 'Rubber/lined alligator',
+    baselineMarketValueUSD: 15500,
+    keywords: ['hublot', 'big bang', 'unico', '441.nx', 'titanium', 'skeleton'],
+    forensicIndicators: {
+      logoFontKerning: 'HUBLOT block lettering, porthole design (hublot = French for porthole)',
+      rehautAlignment: 'Sandwich case construction with 6 H-shaped titanium screws',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Unico MHUB1280 flyback chronograph column wheel visible at 6'
+    }
+  },
+  {
+    id: 'pan-luminor-1950',
+    category: 'Watches',
+    brand: 'Panerai',
+    model: 'Luminor Marina 44mm Steel',
+    referenceNumber: 'PAM01312',
+    caseMaterial: 'AISI 316L Steel',
+    caseSizeMm: 44,
+    movement: 'Automatic',
+    braceletType: 'Leather strap',
+    baselineMarketValueUSD: 6500,
+    keywords: ['panerai', 'luminor', 'marina', 'pam01312', 'pam1312', 'sandwich dial'],
+    forensicIndicators: {
+      logoFontKerning: 'OP (Officine Panerai) logo above 6 with arrow',
+      rehautAlignment: 'Signature crown guard lever mechanism',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Sandwich dial construction with luminous layer beneath'
+    }
+  },
+  {
+    id: 'iwc-portugieser-chrono',
+    category: 'Watches',
+    brand: 'IWC',
+    model: 'Portugieser Chronograph Steel White Dial',
+    referenceNumber: 'IW371617',
+    caseMaterial: 'Steel',
+    caseSizeMm: 41,
+    movement: 'Automatic',
+    braceletType: 'Leather strap',
+    baselineMarketValueUSD: 7200,
+    keywords: ['iwc', 'portugieser', 'chronograph', 'iw371617', 'white dial'],
+    forensicIndicators: {
+      logoFontKerning: 'IWC Schaffhausen in serif font at 12',
+      rehautAlignment: 'Feuille (leaf-shaped) hands, railroad minute track',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'In-house Calibre 69355,30-min and 12-hr subdials symmetric at 12/6'
+    }
+  },
+
+  // ── EXPANSION BATCH 1 — Handbags: LV / Dior / Gucci / Goyard / YSL ──────
+  {
+    id: 'lv-neverfull-mm',
+    category: 'Handbags',
+    brand: 'Louis Vuitton',
+    model: 'Neverfull MM Monogram',
+    referenceNumber: 'M40995',
+    leatherType: 'Coated Canvas',
+    hardware: 'Gold',
+    bagSize: 'MM',
+    baselineMarketValueUSD: 2200,
+    keywords: ['louis vuitton', 'lv', 'neverfull', 'm40995', 'monogram', 'damier'],
+    forensicIndicators: {
+      logoFontKerning: 'LOUIS VUITTON heat stamp: rounded O, short-tailed N, tight T overlap',
+      rehautAlignment: 'Symmetrical monogram placement across seams (mirrored left-right)',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Date code/sp Microchip (post-2021) inside seam; LV engraved on D-ring'
+    }
+  },
+  {
+    id: 'lv-alma-bb',
+    category: 'Handbags',
+    brand: 'Louis Vuitton',
+    model: 'Alma BB Monogram',
+    referenceNumber: 'M45920',
+    leatherType: 'Coated Canvas',
+    hardware: 'Gold',
+    bagSize: 'BB',
+    baselineMarketValueUSD: 1800,
+    keywords: ['louis vuitton', 'alma', 'bb', 'm45920', 'monogram'],
+    forensicIndicators: {
+      logoFontKerning: 'Symmetric monogram on structured Alma body',
+      rehautAlignment: 'Double zip pull with leather pull tabs',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Vachetta leather trim patina, Toron handles'
+    }
+  },
+  {
+    id: 'dio-lady-dior-mini',
+    category: 'Handbags',
+    brand: 'Dior',
+    model: 'Lady Dior Mini Cannage Lambskin',
+    referenceNumber: 'M0545',
+    leatherType: 'Lambskin',
+    hardware: 'Gold (GHW)',
+    bagSize: 'Mini',
+    baselineMarketValueUSD: 5900,
+    keywords: ['dior', 'lady dior', 'cannage', 'lambskin', 'mini'],
+    forensicIndicators: {
+      logoFontKerning: 'DIOR charms hanging from handles, letter spacing uniform',
+      rehautAlignment: 'Cannage stitching quilting pattern symmetric on all panels',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Lambskin texture, gold hardware engraved DIOR, made in italy stamp'
+    }
+  },
+  {
+    id: 'guc-horsebit-1955',
+    category: 'Handbags',
+    brand: 'Gucci',
+    model: 'Horsebit 1955 Shoulder Bag',
+    referenceNumber: '628274',
+    leatherType: 'Coated Canvas/Leather',
+    hardware: 'Gold',
+    bagSize: 'Shoulder',
+    baselineMarketValueUSD: 3200,
+    keywords: ['gucci', 'horsebit 1955', '628274', 'gg canvas', 'shoulder'],
+    forensicIndicators: {
+      logoFontKerning: 'GG Supreme monogram canvas symmetric interlocking pattern',
+      rehautAlignment: 'Horsebit hardware with engraved GUCCI',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Serial tag with ®, heat stamp GUCCI made in italy'
+    }
+  },
+  {
+    id: 'ysl-loulou-small',
+    category: 'Handbags',
+    brand: 'Saint Laurent',
+    model: 'LouLou Small Quilted Leather',
+    referenceNumber: '628274-YS',
+    leatherType: 'Calfskin',
+    hardware: 'Silver',
+    bagSize: 'Small',
+    baselineMarketValueUSD: 2950,
+    keywords: ['saint laurent', 'ysl', 'loulou', 'quilted', 'small', 'calfskin'],
+    forensicIndicators: {
+      logoFontKerning: 'YSL interlocking Cassandre logo hardware on front',
+      rehautAlignment: 'Chevron/quilted leather pattern symmetric alignment',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'SAINT LAURENT PARIS heat stamp inside, made in italy'
+    }
+  },
+
+  // ── EXPANSION BATCH 1 — Jewelry: Tiffany / Bvlgari ──────────────────────
+  {
+    id: 'tiff-t-wire-bracelet',
+    category: 'Fine Jewelry',
+    brand: 'Tiffany & Co.',
+    model: 'T Wire Bracelet Sterling Silver',
+    referenceNumber: 'TTF026',
+    metalPurity: 'Sterling Silver 925',
+    baselineMarketValueUSD: 750,
+    keywords: ['tiffany', 't wire', 'bracelet', 'sterling', 'silver', 'ttf026'],
+    forensicIndicators: {
+      logoFontKerning: 'Tiffany & Co. engraved logo in fine serif',
+      rehautAlignment: 'T motif sculpture with clean seamless weld',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'T&CO. 925 sterling stamp, maker marks'
+    }
+  },
+  {
+    id: 'bul-bzero1-ring',
+    category: 'Fine Jewelry',
+    brand: 'Bvlgari',
+    model: 'B.zero1 Rock 18K White Gold Band',
+    referenceNumber: '354723',
+    metalPurity: '18K White Gold',
+    baselineMarketValueUSD: 3400,
+    keywords: ['bvlgari', 'bulgari', 'bzero1', 'b.zero1', 'ring', 'white gold', '354723'],
+    forensicIndicators: {
+      logoFontKerning: 'BVLGARI engraved in Roman V style lettering on band profile',
+      rehautAlignment: 'Central band spiral inscription BVLGARI BVLGARI',
+      cyclopsMagnification: 'N/A',
+      hallmarks: '750 hallmark, ring band with spring effect design'
+    }
+  },
+
+  // ── EXPANSION BATCH 1 — Vehicles: Lamborghini / Rolls-Royce / Bentley ────
+  {
+    id: 'lam-huracan-evo',
+    category: 'Luxury Vehicles',
+    brand: 'Lamborghini',
+    model: 'Huracán EVO 5.2L V10',
+    referenceNumber: 'LAM-HUR-EVO',
+    baselineMarketValueUSD: 265000,
+    keywords: ['lamborghini', 'huracan', 'huracán', 'evo', 'v10', 'spyder'],
+    forensicIndicators: {
+      logoFontKerning: 'Gold bull shield emblem on front/rear',
+      rehautAlignment: 'Hexagonal design language, Y-shaped LED signatures',
+      cyclopsMagnification: 'N/A',
+      hallmarks: '5.2L NA V10 (631 hp), 7-speed LDF dual-clutch'
+    }
+  },
+  {
+    id: 'rr-ghost-ii',
+    category: 'Luxury Vehicles',
+    brand: 'Rolls-Royce',
+    model: 'Ghost Series II 6.75L V12',
+    referenceNumber: 'RR-GHOST-II',
+    baselineMarketValueUSD: 380000,
+    keywords: ['rolls-royce', 'ghost', 'series ii', 'v12', 'starlight'],
+    forensicIndicators: {
+      logoFontKerning: 'Spirit of Ecstasy hood ornament, retractable',
+      rehautAlignment: 'Pantheon grille hand-finished, no visible welds',
+      cyclopsMagnification: 'N/A',
+      hallmarks: '6.75L Twin-Turbo V12, Planar suspension, Starlight headliner optional'
+    }
+  },
+  {
+    id: 'ben-continental-gt',
+    category: 'Luxury Vehicles',
+    brand: 'Bentley',
+    model: 'Continental GT Speed 6.0L W12',
+    referenceNumber: 'BEN-CONT-GT-SPEED',
+    baselineMarketValueUSD: 300000,
+    keywords: ['bentley', 'continental gt', 'speed', 'w12', 'mulliner'],
+    forensicIndicators: {
+      logoFontKerning: 'Winged B emblem with retractable variant',
+      rehautAlignment: 'Diamond-knurled surfaces, rotating center display',
+      cyclopsMagnification: 'N/A',
+      hallmarks: '6.0L Twin-Turbo W12 (650 hp), all-wheel drive'
+    }
   }
 ]
 
