@@ -314,6 +314,80 @@ export const LUXURY_CATALOG: WatchCatalogItem[] = [
       hallmarks: 'Solid brass gold-plated padlock with matching key numbers'
     }
   },
+  {
+    id: 'her-birkin-25-togo',
+    category: 'Handbags',
+    brand: 'Hermès',
+    model: 'Birkin 25 Togo Gold Hardware',
+    referenceNumber: 'B25-TOGO-GHW',
+    leatherType: 'Togo Leather',
+    hardware: 'Gold (GHW)',
+    bagSize: '25',
+    baselineMarketValueUSD: 28500,
+    keywords: ['hermes', 'hermès', 'birkin', 'birkin 25', 'togo', 'quota bag', 'ghw'],
+    forensicIndicators: {
+      logoFontKerning: 'HERMÈS PARIS MADE IN FRANCE heat stamp centered below front flap seam',
+      rehautAlignment: 'Hand-sewn saddle stitch (sellier) with signature 18-degree diagonal slant',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Blind stamp code on interior left strap arm (e.g. W for 2024, B for 2023); no serial card'
+    }
+  },
+  {
+    id: 'her-kelly-25-epsom',
+    category: 'Handbags',
+    brand: 'Hermès',
+    model: 'Kelly 25 Sellier Epsom Palladium Hardware',
+    referenceNumber: 'K25-EPSOM-PHW',
+    leatherType: 'Epsom Calfskin',
+    hardware: 'Palladium (PHW)',
+    bagSize: '25',
+    baselineMarketValueUSD: 26000,
+    keywords: ['hermes', 'hermès', 'kelly', 'kelly 25', 'sellier', 'epsom', 'phw', 'palladium'],
+    forensicIndicators: {
+      logoFontKerning: 'Foil heat stamp cleanly embossed into Epsom grain without bleeding',
+      rehautAlignment: 'Clasp touret turn-lock operates with smooth continuous resistance',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Matching key and padlock serial numbers engraved on bottom face'
+    }
+  },
+
+  // ── CHANEL ───────────────────────────────────────────────────────────────
+  {
+    id: 'cha-classic-medium',
+    category: 'Handbags',
+    brand: 'Chanel',
+    model: 'Classic Medium Double Flap Caviar',
+    referenceNumber: 'A01112-CAVIAR',
+    leatherType: 'Pebbled Caviar Leather',
+    hardware: 'Light Gold Hardware (LGHW)',
+    bagSize: '25.5',
+    baselineMarketValueUSD: 9500,
+    keywords: ['chanel', 'classic flap', 'double flap', 'caviar', 'medium flap', 'lghw'],
+    forensicIndicators: {
+      logoFontKerning: 'CC turn-lock right C overlaps left C at top, left C overlaps right at bottom',
+      rehautAlignment: 'Diamond quilting stitches align seamlessly across back patch pocket and flap',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Post-2021 interior metal NFC microchip plaque with random 8-char code'
+    }
+  },
+
+  // ── VAN CLEEF & ARPELS ──────────────────────────────────────────────────
+  {
+    id: 'vca-alhambra-5',
+    category: 'Fine Jewelry',
+    brand: 'Van Cleef & Arpels',
+    model: 'Vintage Alhambra 5 Motifs Yellow Gold Onyx',
+    referenceNumber: 'VCARA41300',
+    metalPurity: '18K Yellow Gold & Onyx',
+    baselineMarketValueUSD: 4900,
+    keywords: ['van cleef', 'vca', 'alhambra', 'onyx', 'vintage alhambra', 'vcara41300'],
+    forensicIndicators: {
+      logoFontKerning: 'Stamped VCA or Van Cleef & Arpels (never just Van Cleef)',
+      rehautAlignment: 'Beaded perlee border beads are symmetrical around every clover motif',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Au750 stamp and individual serial number engraved on lobster clasp tag'
+    }
+  },
 
   // ── LUXURY VEHICLES ──────────────────────────────────────────────────────
   {
@@ -329,6 +403,36 @@ export const LUXURY_CATALOG: WatchCatalogItem[] = [
       rehautAlignment: 'Fixed carbon fiber rear wing downforce geometry',
       cyclopsMagnification: 'N/A',
       hallmarks: '17-digit VIN etched on windshield base & chassis plate'
+    }
+  },
+  {
+    id: 'por-911-gt3-rs',
+    category: 'Luxury Vehicles',
+    brand: 'Porsche',
+    model: '911 GT3 RS (992 Gen) 4.0L',
+    referenceNumber: '992-GT3RS',
+    baselineMarketValueUSD: 485000,
+    keywords: ['porsche', '911', 'gt3 rs', 'gt3rs', '992', 'weissach', 'flat-6', 'naturally aspirated'],
+    forensicIndicators: {
+      logoFontKerning: 'PORSCHE rear light bar lettering and GT3 RS side graphics',
+      rehautAlignment: 'Active DRS swan-neck rear wing and front diffuser air vanes',
+      cyclopsMagnification: 'N/A',
+      hallmarks: '4.0L NA Flat-6 engine (518 hp, 9000 RPM redline), carbon fiber hood and doors'
+    }
+  },
+  {
+    id: 'bug-chiron-w16',
+    category: 'Luxury Vehicles',
+    brand: 'Bugatti',
+    model: 'Chiron 8.0L W16 Quad-Turbo',
+    referenceNumber: 'CHIRON-W16',
+    baselineMarketValueUSD: 3600000,
+    keywords: ['bugatti', 'chiron', 'w16', 'quad-turbo', 'molsheim', 'hypercar'],
+    forensicIndicators: {
+      logoFontKerning: 'Solid enamel Macaron badge on horseshoe grille',
+      rehautAlignment: 'Signature C-line side curve separating duo-tone carbon body panels',
+      cyclopsMagnification: 'N/A',
+      hallmarks: '8.0L Quad-Turbo W16 engine (1479 hp), top speed limited to 420 km/h'
     }
   }
 ]
