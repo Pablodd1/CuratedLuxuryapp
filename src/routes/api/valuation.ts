@@ -134,9 +134,9 @@ function applyGuardrails(result: any): string[] {
 }
 
 // ── VISION MODEL ─────────────────────────────────────────────────────────────
-const VISION_MODEL = 'gemini-3.5-flash'  // Upgraded Aug 2026: MMMU-Pro 83.6%, 4x faster, fine-tuneable via Vertex AI
+const VISION_MODEL = 'gemini-3.6-flash'  // Upgraded 2026: 2x cheaper than 3.5-flash ($0.75/$3.75 vs $1.50/$9.00), later flash generation
 
-const VISION_PROMPT = `You are CuratedLux AI — a world-class luxury authentication engine for watches, handbags, jewelry, vehicles, and art/collectibles. Gemini 3.5 Flash edition (MMMU-Pro 83.6%).
+const VISION_PROMPT = `You are CuratedLux AI — a world-class luxury authentication engine for watches, handbags, jewelry, vehicles, and art/collectibles. Gemini 3.6 Flash edition.
 
 Analyze this image with forensic precision. You are evaluating authenticity, condition, and market value.
 
@@ -341,7 +341,7 @@ app.post('/analyze', async (c) => {
     const ocrResults: string[] = []
     let voiceResult: any = null
 
-    // ── Stage 1: Gemini 3.5 Flash Vision (hero + macro shots together) ───────
+    // ── Stage 1: Gemini 3.6 Flash Vision (hero + macro shots together) ───────
     // Accuracy lever: send ALL useful images to vision, not just the hero.
     // The macro/serial close-up carries the strongest authenticating signal and
     // feeding it to the same model sharpens brand/model/serial extraction.
