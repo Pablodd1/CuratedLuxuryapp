@@ -729,7 +729,12 @@ app.post('/voice', async (c) => {
 app.post('/manual', async (c) => {
   const startTs = Date.now()
   try {
-    const body = await c.req.json<Record<string, any>>()
+    const body = await c.req.json<Record<string, any>>().catch(() => ({} as Record<string, any>))
+    const brandIn = String(body.brand || '').trim()
+    if (!brandIn) {
+      return c.json({ error: 'Brand is required', stored: false, pipeline_ms: Date.now() - startTs }, 400)
+    }
+    body.brand = brandIn
     const apiKey = c.env.GEMINI_API_KEY as string | undefined
 
     // Build a structured description from manual form fields
@@ -847,8 +852,10 @@ Return ONLY this JSON:
     const mfWarnings = applyGuardrails(result)
     if (mfWarnings.length > 0) result.guardrail_warnings = mfWarnings
 
-    // ── Store to D1 if confidence >= 60 (lower threshold for manual — no image) ─
-    const shouldStore = result.confidence >= 60
+    // Store only identified items. Default confidence is 60, so an empty
+    // Unknown payload used to persist junk inventory rows.
+    const identified = result.brand && result.brand !== 'Unknown'
+    const shouldStore = identified && result.confidence >= 60
     let storedId: string | null = null
     if (shouldStore) {
       storedId = await storeValuation(c, result, 'manual')

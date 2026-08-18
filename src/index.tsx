@@ -43,13 +43,21 @@ const app = new Hono<{ Bindings: Bindings }>()
 // (watchfact.com etc.) send an Origin header; same-origin pages send none.
 app.use('/api/*', cors({
   origin: (origin) => {
-    const allowed = [
-      'https://curatedlux.pages.dev',
-      'https://watchfacts-poc.vercel.app',
-      'https://*.vercel.app',
-    ]
-    if (!origin) return null            // same-origin / curl — nothing to allow
-    return allowed.includes(origin) ? origin : null
+    if (!origin) return origin          // same-origin / curl — no CORS header needed
+    try {
+      const { hostname } = new URL(origin)
+      const exact = new Set([
+        'curatedlux.pages.dev',
+        'watchfacts-poc.vercel.app',
+        'localhost',
+        '127.0.0.1',
+      ])
+      if (exact.has(hostname)) return origin
+      if (hostname.endsWith('.vercel.app')) return origin
+      return null
+    } catch {
+      return null
+    }
   },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
@@ -141,5 +149,24 @@ app.get('/signup', (c) => c.html(<LoginPage mode="signup" />))
 app.get('/account', (c) => c.html(<AccountPage />))
 app.get('/history', (c) => c.html(<HistoryPage />))
 app.get('/reset-password', (c) => c.html(<ResetPasswordPage />))
+
+// Explicit catch-alls (real routes, not notFound): the Pages adapter
+// otherwise falls through to ASSETS and unknown paths crash as 500.
+app.all('/api/*', (c) => c.json({ error: 'Not found', path: c.req.path }, 404))
+app.all('*', (c) => {
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"/><title>Not found — CuratedLux</title></head><body style="background:#0a0a0a;color:#e8e6e1;font-family:Georgia,serif;padding:4rem 1.5rem;text-align:center"><h1>Page not found</h1><p><a href="/" style="color:#e8e6e1">Back to CuratedLux</a></p></body></html>`
+  return new Response(html, {
+    status: 404,
+    headers: { 'content-type': 'text/html; charset=UTF-8' },
+  })
+})
+
+app.onError((err, c) => {
+  console.error(err)
+  if (c.req.path.startsWith('/api/')) {
+    return c.json({ error: 'Internal error' }, 500)
+  }
+  return c.text('Internal Server Error', 500)
+})
 
 export default app
