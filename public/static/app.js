@@ -6,6 +6,11 @@
 
 // ========== Utility Helpers ==========
 
+// Shot-quality floor: Laplacian-variance sharpness below this on a 256px
+// downscale reads as soft/blurry. Used to HINT a retake (not to drop frames) —
+// see snap() — so the user always gets photo-was-taken feedback.
+const SHARPNESS_FLOOR = 8
+
 async function api(path, options = {}) {
   try {
     const res = await axios({ url: path, ...options, timeout: 30000 });
@@ -1527,13 +1532,20 @@ function initValuation() {
       }
       dataUrl = await compressImage(dataUrl);
 
-      // ── Shot-quality gate: reject blurry photos ──────────────────────
+      // ── Shot-quality check (NO silent rejection) ─────────────────────────
+      // IMPORTANT (UX fix): even if a frame scores below the sharpness floor,
+      // we SAVE it and give the user the normal photo-was-taken feedback (thumb
+      // rail + progress count). We only surface an amber "retake recommended"
+      // hint on top. Silently dropping the frame left users thinking "the photo
+      // wasn't taken" — a dark/glossy luxury item on a handheld phone will often
+      // dip below floor 8, and dropping it with no visual state change reads as
+      // "app is glitchy". Saving + hinting = the user can review the thumbnail
+      // and retake if they want, or keep it. The retake hint (not a hard gate)
+      // keeps accuracy honest without surprising the user on a non-blurry shot.
       const sharpness = await measureSharpness(dataUrl)
-      const SHARPNESS_FLOOR = 8  // empirical threshold — below this = too blurry
-      if (sharpness < SHARPNESS_FLOOR) {
-        toast('Photo too blurry — hold steady and retake. Tap the shutter again.', 'warning')
-        renderPreviews()
-        return  // don't save this frame, don't advance the guide
+      let blurryHint = false
+      if (typeof sharpness === 'number' && sharpness < SHARPNESS_FLOOR) {
+        blurryHint = true
       }
 
       // Associate this capture with the current guided step (so thumbnails and
@@ -1543,7 +1555,13 @@ function initValuation() {
       if (!guideSkipped) {
         images[stepIdx].tier = (currentGuide()[stepIdx] || {}).tier || 'standard'
         markStepCaptured(stepIdx)
-        toast(`✓ ${currentGuide()[stepIdx]?.shot || 'Step'} captured`, 'success')
+      }
+
+      // Explicit, always-visible capture confirmation + retake hint when soft.
+      if (blurryHint) {
+        toast('Photo saved — a bit soft. Tap the thumbnail to retake if you want a sharper shot.', 'warning')
+      } else {
+        toast(`✓ ${guideSkipped ? 'Photo' : (currentGuide()[stepIdx]?.shot || 'Step')} captured`, 'success')
       }
 
       // Advance guided capture step — now works with any sequence length
@@ -1950,6 +1968,7 @@ function initValuation() {
         shotTiers: filledImages.map(i => i.tier || 'standard'), // accuracy weight
         description: descriptionInput?.value.trim() || undefined,
         transcript: window._voiceTranscript || undefined,
+        category: activeCategory || undefined, // user-selected category → server uses it to constrain RAG + enforce category-consistency (fixes handbag→watch cross-category mismatch)
       };
       // Stash the shot tiers so the Assessment card can honestly report whether a
       // macro/serial/hero shot was captured (the server weights but doesn't echo).

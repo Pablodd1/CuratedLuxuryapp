@@ -309,6 +309,7 @@ app.post('/analyze', async (c) => {
       description?: string
       source?: 'camera' | 'voice' | 'manual' | 'embed'
       shotTiers?: string[]  // per-image accuracy tier: hero | macro | detail | standard
+      category?: string     // user-selected category from the capture flow (authoritative for RAG scoping)
     }>()
 
     // ── Abuse caps (audit H1) ────────────────────────────────────────────────
@@ -475,12 +476,20 @@ app.post('/analyze', async (c) => {
     // route to human review instead of stamping a wrong AUTHENTIC.
     if (result.brand && result.brand !== 'Unknown') {
       try {
+        // AUTHORITATIVE category for RAG scoping: the user's selected category
+        // (from the capture flow) wins over the vision model's guess. The vision
+        // model notoriously drifts (Watches is first in its enum) and a wrong
+        // category filter locks a handbag into the watch-only slice of the
+        // catalog — the exact "handbag returned watch details" bug.
+        const userCat = (body.category || '').trim()
+        const ragCategory = userCat || result.category || 'all'
+
         const verifyQuery = [
           result.brand,
           result.model || '',
           result.referenceNumber || ''
         ].filter(Boolean).join(' ')
-        const candidates = queryVectorRAG(verifyQuery, result.category || 'all', 5)
+        const candidates = queryVectorRAG(verifyQuery, ragCategory, 5)
         // Pick the BEST candidate, not just rank-1: TF-IDF can rank a same-brand
         // sibling above the true model. Prefer exact ref match > model-text
         // overlap > raw similarity.
@@ -502,10 +511,14 @@ app.post('/analyze', async (c) => {
           const propBrand = (result.brand || '').toLowerCase().trim()
           // Normalize for brand comparison (strip accents/labels)
           const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-          const brandMatch = norm(topBrand) === norm(propBrand) ||
-            norm(topBrand.split(' ')[0]) === norm(propBrand.split(' ')[0])
+          // Strengthened brand match: require a FULL normalized brand match (e.g.
+          // 'patek philippe' vs 'patek philippe'). The old first-word-only
+          // comparison ('audemars' matching 'audemars piguet', or a generic word
+          // colliding across categories) let a wrong category/reference slip in.
+          // An exact reference match is also accepted as a strong brand signal.
           const refMatch = result.referenceNumber &&
             top.item.referenceNumber.toLowerCase() === String(result.referenceNumber).toLowerCase()
+          const brandMatch = norm(topBrand) === norm(propBrand) || refMatch
 
           result.reference_match = {
             catalogId: top.item.id,
@@ -521,8 +534,20 @@ app.post('/analyze', async (c) => {
             referenceMatches: refMatch
           }
 
-          // Confidence grounding rules (honesty guard — matches your "accuracy always best")
-          if (brandMatch) {
+          // CATEGORY-CONSISTENCY GUARD: if the user told us this is a Handbag and
+          // the closest catalog entry is a Watch, that's a cross-category
+          // contradiction (a handbag should never ground against a watch). Route
+          // to human review instead of stamping a wrong AUTHENTIC.
+          const crossCategory = userCat
+            && norm(userCat) !== norm(top.item.category)
+            && norm(userCat) !== 'all'
+          if (crossCategory) {
+            result.reference_match.brandMatches = false
+            result.confidence = Math.min(result.confidence || 100, 55)
+            result.authenticityStatus = 'REVIEW_REQUIRED'
+            result.estimatedValue = 0
+            result.reasoning = (result.reasoning || '') + ` Caution: you selected ${userCat}, but the closest catalog entry is a ${top.item.category} (${top.item.brand} ${top.item.model}). Category mismatch — manual verification required.`
+          } else if (brandMatch) {
             // AI proposal confirmed by a curated reference → reinforce confidence
             const catalogConfidence = top.matchConfidence
             // Blend: keep AI's reading but floor by catalog agreement
