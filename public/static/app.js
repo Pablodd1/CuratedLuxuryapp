@@ -487,74 +487,95 @@ function initValuation() {
     const GUIDE_SEQUENCES = {
       Watches: [
         { icon: 'fa-clock', shot: 'Dial / Face', distance: '25–35 cm (Straight-on)', tier: 'hero',
+        tip: "Lay the watch flat or prop it upright; hold the phone 25-35 cm away, perfectly parallel to the dial (no tilt), and block glare by staying between the light and the crystal.",
           instruction: 'Photograph the dial straight-on so the face fills the golden reticle.',
           details: ['Logo + brand text sharp', 'Hands + date window visible', 'No glare on crystal'], macro: false, example: 'dial' },
         { icon: 'fa-magnifying-glass-plus', shot: 'Caseback / Serial', distance: '10–15 cm (Macro)', tier: 'macro',
+        tip: "Rest the watch face-down on a dark cloth, hold the phone 10-15 cm above, dead-vertical, and let the camera focus 1s on the engraving before shooting.",
           instruction: 'Flip watch — macro on the caseback engravings and serial number.',
           details: ['Serial must be perfectly readable', 'Shoot straight down, not tilted'], macro: true, example: 'macro' },
         { icon: 'fa-link', shot: 'Clasp / Bracelet', distance: '10–15 cm (Macro)', tier: 'detail',
+        tip: "Unfold the clasp flat on a plain surface and shoot straight down so both the logo and the end-link stamps are square to the lens.",
           instruction: 'Macro on the clasp mechanism and end-link hallmarks.',
           details: ['Crown/hallmark stamps sharp', 'Clasp logo readable'], macro: true, example: 'macro' },
         { icon: 'fa-box-archive', shot: 'Box & Papers', distance: '20–30 cm (Card)', tier: 'standard',
+        tip: "Press the card completely flat under even indoor light, shoot top-down from 20-30 cm so the reference number zone is centered.",
           instruction: 'Warranty card, box label, receipt — flat and well-lit for OCR.',
           details: ['Card flat, no curl', 'Reference number on card readable'], macro: false, example: 'card' },
       ],
       Handbags: [
         { icon: 'fa-bag-shopping', shot: 'Full Bag — Front', distance: '40–60 cm (Full View)', tier: 'hero',
+        tip: "Stand the bag upright on a table, step back 40-60 cm until the entire silhouette fits with margin, phone square to the bag front at chest height.",
           instruction: 'Entire bag front, straight-on — shape, grain, handle alignment.',
           details: ['Full silhouette in frame', 'Brand emblem centered', 'Neutral background'], macro: false, example: 'bag' },
         { icon: 'fa-fire', shot: 'Heat Stamp / Logo', distance: '10–15 cm (Macro)', tier: 'macro',
+        tip: "Bring the phone to 10-15 cm, directly facing the stamp (never at an angle - foil looks embossed or flat depending on tilt), tap to focus on the letters.",
           instruction: 'Macro on the brand heat stamp — kerning + foil depth.',
           details: ['Stamp sharp and readable', 'Foil depth visible', 'Straight-on, no angle'], macro: true, example: 'macro' },
         { icon: 'fa-hashtag', shot: 'Date Code / Serial', distance: '10–15 cm (Macro)', tier: 'macro',
+        tip: "Open the flap or lift the tag and hold it flat; shoot straight-on with soft light so every character of the code is legible edge-to-edge.",
           instruction: 'Date code / blind stamp inside tag or under flap — for OCR.',
           details: ['Code fully in frame', 'Backing label flat + lit'], macro: true, example: 'macro' },
         { icon: 'fa-grip-lines', shot: 'Stitching & Hardware', distance: '10–15 cm (Macro)', tier: 'detail',
+        tip: "Lay the bag on its side so the stitching run is horizontal; shoot 10-15 cm away, parallel to the seam, with the zipper pull or turn-lock centered.",
           instruction: 'Stitch tension + hardware engravings (zipper pull, turn-lock).',
           details: ['Stitch pattern clear', 'Hardware logo sharp'], macro: true, example: 'macro' },
         { icon: 'fa-box-archive', shot: 'Box & Dust Bag', distance: '30–45 cm (Overview)', tier: 'standard',
+        tip: "Arrange box, dust bag and booklet in one frame from 30-45 cm at 45 degrees above, under even light so printed logos are readable.",
           instruction: 'Original box, dust bag, authenticity booklet.',
           details: ['Box logo/print visible', 'Booklet title readable'], macro: false, example: 'card' },
       ],
       'Fine Jewelry': [
         { icon: 'fa-gem', shot: 'Full Piece', distance: '20–30 cm (Centered)', tier: 'hero',
+        tip: "Place the piece on a plain dark cloth, prop the phone 20-30 cm above, centered, with a single soft light from the top to kill reflections.",
           instruction: 'Full piece on neutral background — overall design + symmetry.',
           details: ['Center the piece', 'Show both sides of symmetry', 'No reflections'], macro: false, example: 'gem' },
         { icon: 'fa-stamp', shot: 'Hallmark / Stamp', distance: '8–12 cm (Ultra Macro)', tier: 'macro',
+        tip: "Get within 8-12 cm with MACRO on; hold nearly touching-distance, dead-still, and angle slightly off direct light so the metal stamp casts a micro-shadow (that is what makes it readable).",
           instruction: 'Metal hallmark stamp — 750 / Pt950 / 18K. Confirms purity.',
           details: ['Hallmark fully readable', 'Macro engaged', 'Best under direct light'], macro: true, example: 'macro' },
         { icon: 'fa-snowflake', shot: 'Gemstone / Setting', distance: '8–12 cm (Ultra Macro)', tier: 'detail',
+        tip: "Shoot 8-12 cm away through the side of the stone so facets catch light - rotate the piece a few degrees until fire flashes, then shoot.",
           instruction: 'Main gemstone — facet clarity + prong setting.',
           details: ['Facets in focus', 'Prongs visible', 'No light reflection'], macro: true, example: 'gem' },
         { icon: 'fa-weight-hanging', shot: 'Clasp / Serial', distance: '10–15 cm (Macro)', tier: 'detail',
+        tip: "Open the clasp flat and shoot straight down at 10-15 cm; the micro-engraving reads best with light raking across at a low angle.",
           instruction: 'Clasp mechanism + micro-serial engraving.',
           details: ['Serial readable under loop', 'Clasp maker mark sharp'], macro: true, example: 'macro' },
       ],
       'Luxury Vehicles': [
         { icon: 'fa-car-side', shot: '3/4 Front Angle', distance: '2–3 meters (Full Vehicle)', tier: 'hero',
+        tip: "Stand 2-3 m from the nose at bumper height, angle ~30 degrees off head-on, sun behind you so badge and panel gaps are evenly lit.",
           instruction: '3/4 front angle — badge, headlights, panel gaps.',
           details: ['Full nose in frame', 'Badge readable', 'Even daylight, no harsh shadow'], macro: false, example: 'car' },
         { icon: 'fa-gauge-high', shot: 'Dashboard / Odometer', distance: '50–70 cm (Interior)', tier: 'detail',
+        tip: "Shoot from the driver's seat at 50-70 cm, screen off all dash lights you can, and cup a hand above the lens to kill windshield reflection.",
           instruction: 'Dashboard — odometer reading clearly in focus.',
           details: ['Odometer digits sharp', 'No reflection on cluster'], macro: false, example: 'dash' },
         { icon: 'fa-id-card', shot: 'VIN Plate', distance: '15–25 cm (Close-Up)', tier: 'macro',
+        tip: "Shoot the windshield-base plate from outside at 15-25 cm, phone parallel to the glass, with your body shading the reflection.",
           instruction: 'VIN plate at windshield base or door jamb — 17-digit OCR.',
           details: ['All 17 chars readable', 'Plate flat + lit'], macro: true, example: 'macro' },
         { icon: 'fa-couch', shot: 'Interior Stitching', distance: '30–50 cm (Detail)', tier: 'detail',
+        tip: "Open the door and shoot along the seat from 30-50 cm with daylight falling across the stitching - the low angle makes the pattern pop.",
           instruction: 'Seat leather stitching, headrest badge, carbon weave.',
           details: ['Stitch pattern clear', 'Material weave in focus'], macro: false, example: 'macro' },
       ],
       'Art & Collectibles': [
         { icon: 'fa-image', shot: 'Full Work', distance: '1–2 meters (Straight-on)', tier: 'hero',
+        tip: "Center the piece on a wall at eye level, stand square 1-2 m back, and kill glare by standing slightly left or right of any window reflection.",
           instruction: 'Entire artwork centered, straight-on, no glare.',
           details: ['Full canvas in frame', 'Edge-to-edge visible', 'No crop'], macro: false, example: 'art' },
         { icon: 'fa-signature', shot: 'Signature', distance: '15–25 cm (Close-Up)', tier: 'macro',
+        tip: "Shoot 15-25 cm from the signature at a slight angle (5 degrees) so ink texture is visible; never use flash - it whites out the strokes.",
           instruction: 'Artist signature / maker stamp sharp — verify stroke style.',
           details: ['Signature fully readable', 'Stroke line in focus'], macro: true, example: 'macro' },
         { icon: 'fa-list-ol', shot: 'Edition / Markings', distance: '15–25 cm (Close-Up)', tier: 'detail',
+        tip: "Shoot the numbering straight-on from 15-25 cm; if it is on the back or corner, turn the work so the marking faces the light.",
           instruction: 'Edition numbering (12/50) + corner/rear markings.',
           details: ['Numbering readable', 'Markings not cropped'], macro: true, example: 'macro' },
         { icon: 'fa-certificate', shot: 'Certificate / COA', distance: '25–35 cm (Doc)', tier: 'standard',
+        tip: "Flatten the COA completely, no curls, and shoot top-down from 25-35 cm with two-side even lighting.",
           instruction: 'Certificate of Authenticity or provenance docs.',
           details: ['COA title readable', 'Doc flat + well-lit'], macro: false, example: 'card' },
       ],
@@ -566,137 +587,224 @@ function initValuation() {
     // Each key shows a correct framing (left) vs a bad one (right) with a one-line caption.
     const EXAMPLES = {
       dial: {
-        good: 'Dial fills the reticle, straight-on, sharp logo',
-        bad: 'Tilted, glare on crystal, too far away',
-        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
-          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <circle cx="39" cy="42" r="22" fill="none" stroke="#8a1c2c" stroke-width="2"/>
-          <circle cx="39" cy="42" r="16" fill="#111827"/>
-          <line x1="39" y1="42" x2="39" y2="30" stroke="#e5e7eb" stroke-width="1.5"/>
-          <line x1="39" y1="42" x2="48" y2="46" stroke="#e5e7eb" stroke-width="1.5"/>
-          <ellipse cx="121" cy="42" rx="26" ry="16" fill="none" stroke="#8a1c2c" stroke-width="1.5" transform="rotate(-18 121 42)"/>
-          <ellipse cx="121" cy="38" rx="24" ry="10" fill="rgba(255,255,255,0.45)" transform="rotate(-18 121 38)"/>
-          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
-          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
-          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">centered · sharp</text>
-          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">tilted · glare</text>
+        good: 'Dial fills the frame, straight-on, logo crisp, no glare',
+        bad: 'Tilted, glare band on crystal, watch too far away',
+        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="dG" cx="40%" cy="35%" r="75%"><stop offset="0%" stop-color="#1f2937"/><stop offset="100%" stop-color="#030712"/></radialGradient>
+            <linearGradient id="dGl" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.28)"/><stop offset="45%" stop-color="rgba(255,255,255,0.02)"/><stop offset="100%" stop-color="rgba(255,255,255,0.16)"/></linearGradient>
+            <radialGradient id="dG2" cx="45%" cy="35%" r="75%"><stop offset="0%" stop-color="#273244"/><stop offset="100%" stop-color="#050810"/></radialGradient>
+          </defs>
+          <rect x="1" y="8" width="76" height="80" rx="7" fill="url(#dG)" stroke="#10b981" stroke-width="1.6"/>
+          <circle cx="39" cy="48" r="23" fill="#0b1220" stroke="#c9a227" stroke-width="2"/>
+          <circle cx="39" cy="48" r="18" fill="url(#dG2)"/>
+          <circle cx="39" cy="48" r="23" fill="url(#dGl)" opacity="0.55"/>
+          <rect x="27" y="33" width="24" height="6" rx="1.5" fill="#e5e7eb" opacity="0.9"/>
+          <line x1="39" y1="48" x2="39" y2="33" stroke="#f3f4f6" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="39" y1="48" x2="50" y2="53" stroke="#f3f4f6" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="39" y1="48" x2="34" y2="60" stroke="#c9a227" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="39" cy="48" r="1.6" fill="#c9a227"/>
+          <circle cx="39" cy="48" r="27.5" fill="none" stroke="#10b981" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.8"/>
+          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
+          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">centered · parallel · sharp</text>
+
+          <rect x="83" y="8" width="76" height="80" rx="7" fill="url(#dG)" stroke="#ef4444" stroke-width="1.6"/>
+          <g transform="rotate(-16 121 48)">
+            <circle cx="121" cy="48" r="18" fill="#0b1220" stroke="#9ca3af" stroke-width="1.6"/>
+            <circle cx="121" cy="48" r="18" fill="url(#dGl)" opacity="0.95"/>
+            <ellipse cx="118" cy="44" rx="13" ry="4" fill="rgba(255,255,255,0.5)" transform="rotate(-24 118 44)"/>
+            <line x1="121" y1="48" x2="121" y2="36" stroke="#f3f4f6" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="121" y1="48" x2="130" y2="52" stroke="#f3f4f6" stroke-width="1.3" stroke-linecap="round"/>
+          </g>
+          <line x1="86" y1="60" x2="156" y2="38" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
+          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">tilted · glare · too far</text>
         </svg>`
       },
       macro: {
-        good: 'Engraving fills frame, camera steady and close',
-        bad: 'Too far — text unreadable, camera shaking',
-        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
-          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <text x="39" y="46" text-anchor="middle" fill="#e5e7eb" font-size="11" font-family="monospace" letter-spacing="1">A7F2 904L</text>
-          <rect x="14" y="32" width="50" height="18" fill="none" stroke="#10b981" stroke-width="1" stroke-dasharray="3 2"/>
-          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
-          <text x="121" y="42" text-anchor="middle" fill="#6b7280" font-size="5.5" font-family="monospace">A7F2 904L</text>
-          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
-          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">close · readable</text>
-          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">too far · tiny</text>
+        good: 'Engraving fills the frame, crisp and fully readable',
+        bad: 'Too far away — serial too small to read, hand shaking',
+        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="mG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#111827"/><stop offset="100%" stop-color="#05070d"/></linearGradient>
+          </defs>
+          <rect x="1" y="8" width="76" height="80" rx="7" fill="url(#mG)" stroke="#10b981" stroke-width="1.6"/>
+          <circle cx="39" cy="48" r="24" fill="#94a3b8" opacity="0.08"/>
+          <text x="39" y="46" text-anchor="middle" fill="#f8fafc" font-size="10.5" font-family="monospace" font-weight="bold" letter-spacing="1.2">A7F2·904L</text>
+          <text x="39" y="58" text-anchor="middle" fill="#cbd5e1" font-size="6.5" font-family="monospace" letter-spacing="2">SWISS MADE</text>
+          <rect x="12" y="34" width="54" height="28" fill="none" stroke="#10b981" stroke-width="1.3" stroke-dasharray="4 3" rx="4"/>
+          <path d="M 39 62 l -2.5 5 h 5 z" fill="#10b981" opacity="0.9"/>
+          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
+          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">fills frame · readable</text>
+
+          <rect x="83" y="8" width="76" height="80" rx="7" fill="url(#mG)" stroke="#ef4444" stroke-width="1.6"/>
+          <rect x="104" y="30" width="52" height="36" rx="5" fill="#64748b" opacity="0.25"/>
+          <text x="130" y="50" text-anchor="middle" fill="#6b7280" font-size="4.6" font-family="monospace">A7F2·904L</text>
+          <path d="M 96 66 q 8 -6 14 0 t 14 0" stroke="#ef4444" stroke-width="1" fill="none" opacity="0.7"/>
+          <path d="M 98 70 q 8 -6 14 0 t 14 0" stroke="#ef4444" stroke-width="1" fill="none" opacity="0.4"/>
+          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
+          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">tiny text · motion blur</text>
         </svg>`
       },
       card: {
-        good: 'Card flat, fills frame, even light',
-        bad: 'Curved card, shadow across the text',
-        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
-          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <rect x="12" y="24" width="54" height="34" rx="3" fill="#f9fafb"/>
-          <line x1="17" y1="32" x2="61" y2="32" stroke="#111827" stroke-width="2"/>
-          <line x1="17" y1="38" x2="50" y2="38" stroke="#6b7280" stroke-width="1"/>
-          <line x1="17" y1="43" x2="55" y2="43" stroke="#6b7280" stroke-width="1"/>
-          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
-          <path d="M 92 44 Q 121 34 150 44 L 150 54 Q 121 46 92 54 Z" fill="#d1d5db"/>
-          <path d="M 92 44 Q 121 34 150 44 L 150 48 Q 121 38 92 48 Z" fill="rgba(0,0,0,0.4)"/>
-          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
-          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">flat · even light</text>
-          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">curved · shadow</text>
+        good: 'Card flat and square, fills frame, evenly lit',
+        bad: 'Card curved, shadow band across the text',
+        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="cG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#d6d3d1"/></linearGradient></defs>
+          <rect x="1" y="8" width="76" height="80" rx="7" fill="#0a0a0a" stroke="#10b981" stroke-width="1.6"/>
+          <rect x="11" y="24" width="56" height="42" rx="3" fill="url(#cG)" stroke="#78716c" stroke-width="0.8"/>
+          <rect x="11" y="24" width="56" height="42" rx="3" fill="none" stroke="#10b981" stroke-width="1" stroke-dasharray="4 3" opacity="0.7"/>
+          <text x="16" y="34" font-family="Georgia, serif" font-size="6.5" fill="#1c1917" font-weight="bold">CERTIFICAT</text>
+          <line x1="16" y1="40" x2="62" y2="40" stroke="#292524" stroke-width="1.4"/>
+          <line x1="16" y1="45" x2="52" y2="45" stroke="#78716c" stroke-width="0.8"/>
+          <line x1="16" y1="49" x2="57" y2="49" stroke="#78716c" stroke-width="0.8"/>
+          <rect x="16" y="54" width="20" height="7" rx="1" fill="#c9a227" opacity="0.85"/>
+          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
+          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">flat · even light</text>
+
+          <rect x="83" y="8" width="76" height="80" rx="7" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.6"/>
+          <path d="M 95 40 Q 121 26 147 40 L 147 58 Q 121 48 95 58 Z" fill="#d6d3d1" stroke="#78716c" stroke-width="0.8"/>
+          <path d="M 100 44 Q 121 34 142 44" stroke="#292524" stroke-width="1.1" fill="none"/>
+          <path d="M 103 50 q 18 -4 36 0" stroke="#78716c" stroke-width="0.7" fill="none"/>
+          <path d="M 95 40 Q 108 46 95 58 Z" fill="rgba(0,0,0,0.45)"/>
+          <path d="M 110 38 Q 116 52 112 60 L 128 56 Q 124 46 124 36 Z" fill="rgba(0,0,0,0.5)"/>
+          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
+          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">curved · shadowed</text>
         </svg>`
       },
       bag: {
-        good: 'Whole bag in frame, straight-on, handles up',
-        bad: 'Bag cut off, shot from the side',
-        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
-          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <path d="M 22 34 h 34 v 30 h -34 z" fill="#92400e" stroke="#8a1c2c"/>
-          <path d="M 30 34 q 9 -14 18 0" fill="none" stroke="#8a1c2c" stroke-width="2"/>
-          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
-          <path d="M 108 38 l 26 -6 v 26 l -26 6 z" fill="#92400e" stroke="#ef4444"/>
-          <path d="M 96 30 l 8 2" stroke="#ef4444" stroke-width="1" stroke-dasharray="2 2"/>
-          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
-          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">full · straight</text>
-          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">cut off · angled</text>
+        good: 'Whole bag in frame, straight-on, handles up, neutral background',
+        bad: 'Bag cut off at the edge, shot from the side',
+        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="bG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#92400e"/><stop offset="100%" stop-color="#451a03"/></linearGradient></defs>
+          <rect x="1" y="8" width="76" height="80" rx="7" fill="#0d0b08" stroke="#10b981" stroke-width="1.6"/>
+          <path d="M 22 38 h 34 q 2 0 2 3 v 26 q 0 3 -3 3 h -32 q -3 0 -3 -3 v -26 q 0 -3 2 -3 z" fill="url(#bG)" stroke="#78350f" stroke-width="1"/>
+          <path d="M 30 38 q 9 -13 18 0" fill="none" stroke="#a16207" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="39" cy="50" r="3.4" fill="#c9a227" stroke="#78350f"/>
+          <path d="M 23 44 h 32" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
+          <rect x="14" y="34" width="50" height="38" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" rx="5" opacity="0.8"/>
+          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
+          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">full · straight · handles up</text>
+
+          <rect x="83" y="8" width="76" height="80" rx="7" fill="#0d0b08" stroke="#ef4444" stroke-width="1.6"/>
+          <g transform="skewY(-8 121 50)">
+            <path d="M 106 40 h 30 v 24 q 0 3 -3 3 h -24 q -3 0 -3 -3 z" fill="url(#bG)" stroke="#78350f" stroke-width="1"/>
+            <path d="M 112 40 q 8 -11 16 0" fill="none" stroke="#a16207" stroke-width="2"/>
+          </g>
+          <path d="M 146 26 L 152 20 M 148 30 L 155 23" stroke="#ef4444" stroke-width="1.2"/>
+          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
+          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">cut off · side angle</text>
         </svg>`
       },
       gem: {
-        good: 'Piece centered on plain background',
-        bad: 'Cluttered background, piece off-center',
-        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
-          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <path d="M 33 30 l 12 -8 l 12 8 l -6 24 h -12 z" fill="#60a5fa" stroke="#8a1c2c"/>
-          <circle cx="39" cy="42" r="26" fill="none" stroke="#8a1c2c" stroke-width="1" stroke-dasharray="4 3"/>
-          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
-          <path d="M 128 38 l 10 -6 l 10 6 l -5 18 h -10 z" fill="#60a5fa" stroke="#ef4444" transform="rotate(14 133 40)"/>
-          <rect x="95" y="52" width="14" height="10" fill="#374151"/>
-          <circle cx="148" cy="26" r="6" fill="#374151"/>
-          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
-          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">plain · centered</text>
-          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">clutter · tilted</text>
+        good: 'Piece centered on plain background, facets catching light',
+        bad: 'Cluttered background, off-center, blown-out flash',
+        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gemG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e0f2fe"/><stop offset="50%" stop-color="#7dd3fc"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient>
+          </defs>
+          <rect x="1" y="8" width="76" height="80" rx="7" fill="#08090c" stroke="#10b981" stroke-width="1.6"/>
+          <circle cx="39" cy="48" r="25" fill="#0f172a"/>
+          <path d="M 39 34 L 51 43 L 46 56 L 32 56 L 27 43 Z" fill="url(#gemG)" opacity="0.95"/>
+          <path d="M 39 34 L 51 43 L 39 46 Z" fill="rgba(255,255,255,0.5)"/>
+          <path d="M 39 34 L 27 43 L 39 46 Z" fill="rgba(255,255,255,0.25)"/>
+          <path d="M 27 43 L 32 56 L 39 46 Z" fill="rgba(14,165,233,0.35)"/>
+          <path d="M 51 43 L 46 56 L 39 46 Z" fill="rgba(2,132,199,0.45)"/>
+          <path d="M 33 58 q 6 3 12 0" stroke="#c9a227" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path d="M 30 34 l -4 -3 M 48 34 l 4 -3" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>
+          <circle cx="39" cy="48" r="28" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" opacity="0.75"/>
+          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
+          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">centered · facets lit</text>
+
+          <rect x="83" y="8" width="76" height="80" rx="7" fill="#08090c" stroke="#ef4444" stroke-width="1.6"/>
+          <rect x="88" y="20" width="68" height="60" fill="#1c1917"/>
+          <path d="M 92 70 l 12 -8 10 6 8 -9 14 11" stroke="#57534e" stroke-width="2" fill="none"/>
+          <circle cx="96" cy="28" r="6" fill="#fbbf24" opacity="0.7"/>
+          <path d="M 145 38 L 154 46 L 149 55 L 139 54 L 136 45 Z" fill="url(#gemG)" opacity="0.4"/>
+          <ellipse cx="145" cy="46" rx="9" ry="6" fill="rgba(255,255,255,0.75)"/>
+          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
+          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">cluttered · flash blowout</text>
         </svg>`
       },
       car: {
-        good: '3/4 angle — badge, headlight AND side visible',
-        bad: 'Dead-on front, half the car out of frame',
-        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
-          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <path d="M 10 52 l 8 -10 l 14 -4 l 12 -8 l 14 8 l 8 14 z" fill="#1f2937" stroke="#8a1c2c"/>
-          <circle cx="24" cy="54" r="4" fill="#111"/><circle cx="56" cy="54" r="4" fill="#111"/>
-          <circle cx="17" cy="46" r="2.5" fill="#fbbf24"/>
-          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
-          <path d="M 104 40 l 50 0 l -4 14 l -44 0 z" fill="#1f2937" stroke="#ef4444"/>
-          <path d="M 150 40 l 10 0" stroke="#ef4444" stroke-width="1" stroke-dasharray="2 2"/>
-          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
-          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">3/4 · badge+side</text>
-          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">flat · cut off</text>
+        good: '3/4 front angle, full nose in frame, badge readable',
+        bad: 'Front cropped, harsh sun shadow across panels',
+        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="carG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#334155"/><stop offset="100%" stop-color="#0f172a"/></linearGradient></defs>
+          <rect x="1" y="8" width="76" height="80" rx="7" fill="#0b0f16" stroke="#10b981" stroke-width="1.6"/>
+          <rect x="8" y="34" width="62" height="30" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" rx="6" opacity="0.8"/>
+          <path d="M 14 60 q 2 -12 10 -14 l 10 -10 q 14 -5 26 2 l 8 9 q 8 2 8 13 z" fill="url(#carG)" stroke="#64748b" stroke-width="1"/>
+          <path d="M 26 40 l 8 -8 q 12 -4 22 2 l 6 7 z" fill="#0ea5e9" opacity="0.55"/>
+          <circle cx="24" cy="61" r="5" fill="#111827" stroke="#94a3b8" stroke-width="1.4"/>
+          <circle cx="54" cy="61" r="5" fill="#111827" stroke="#94a3b8" stroke-width="1.4"/>
+          <circle cx="15" cy="55" r="2.4" fill="#fde68a"/>
+          <rect x="30" y="47" width="6" height="4" rx="1" fill="#c9a227"/>
+          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
+          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">3/4 angle · full nose</text>
+
+          <rect x="83" y="8" width="76" height="80" rx="7" fill="#0b0f16" stroke="#ef4444" stroke-width="1.6"/>
+          <path d="M 118 60 q 2 -12 10 -14 l 10 -10 q 12 -4 22 2 l 6 7 q 6 2 6 15 z" fill="url(#carG)" stroke="#64748b" stroke-width="1"/>
+          <path d="M 90 42 L 158 36 L 156 58 L 92 60 Z" fill="rgba(0,0,0,0.55)"/>
+          <path d="M 96 40 l 10 -3 M 110 38 l 10 -3" stroke="#475569" stroke-width="1"/>
+          <circle cx="126" cy="61" r="5" fill="#111827" stroke="#94a3b8" stroke-width="1.4"/>
+          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
+          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">cropped · hard shadow</text>
         </svg>`
       },
       dash: {
-        good: 'Odometer sharp and readable',
-        bad: 'Glare washing out the numbers',
-        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
-          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <rect x="14" y="30" width="50" height="20" rx="3" fill="#000"/>
-          <text x="39" y="44" text-anchor="middle" fill="#4ade80" font-size="9" font-family="monospace">042,138 km</text>
-          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
-          <rect x="92" y="30" width="50" height="20" rx="3" fill="#000"/>
-          <text x="117" y="44" text-anchor="middle" fill="#4ade80" font-size="9" font-family="monospace" opacity="0.25">042,138 km</text>
-          <ellipse cx="117" cy="40" rx="24" ry="10" fill="rgba(255,255,255,0.5)"/>
-          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
-          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">readable</text>
-          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">glare · washed</text>
+        good: 'Cluster sharp, odometer digits clearly readable',
+        bad: 'Windshield reflection washing out the display',
+        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="dshG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e293b"/><stop offset="100%" stop-color="#020617"/></linearGradient></defs>
+          <rect x="1" y="8" width="76" height="80" rx="7" fill="url(#dshG)" stroke="#10b981" stroke-width="1.6"/>
+          <circle cx="39" cy="48" r="16" fill="#020617" stroke="#475569" stroke-width="1.6"/>
+          <path d="M 39 48 L 39 36 A 12 12 0 0 1 49 41 Z" fill="#10b981" opacity="0.8"/>
+          <path d="M 39 48 L 49 51 A 12 12 0 0 1 43 58 Z" fill="#22d3ee" opacity="0.5"/>
+          <circle cx="39" cy="48" r="1.4" fill="#f8fafc"/>
+          <rect x="27" y="66" width="24" height="9" rx="2" fill="#052e16" stroke="#10b981" stroke-width="0.8"/>
+          <text x="39" y="73" text-anchor="middle" fill="#4ade80" font-family="monospace" font-size="6.5" font-weight="bold">048 273</text>
+          <rect x="16" y="32" width="46" height="46" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" rx="7" opacity="0.75"/>
+          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
+          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">digits sharp · no glare</text>
+
+          <rect x="83" y="8" width="76" height="80" rx="7" fill="url(#dshG)" stroke="#ef4444" stroke-width="1.6"/>
+          <circle cx="121" cy="48" r="16" fill="#020617" stroke="#475569" stroke-width="1.6"/>
+          <path d="M 121 48 L 121 36 A 12 12 0 0 1 131 41 Z" fill="#10b981" opacity="0.6"/>
+          <rect x="109" y="66" width="24" height="9" rx="2" fill="#052e16" stroke="#334155" stroke-width="0.8"/>
+          <text x="121" y="73" text-anchor="middle" fill="#166534" font-family="monospace" font-size="6.5">0?8 ?7?</text>
+          <path d="M 90 26 L 152 30 L 148 52 L 94 50 Z" fill="rgba(226,232,240,0.4)"/>
+          <path d="M 96 30 l 40 3 M 100 44 l 36 -2" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
+          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">reflection · unreadable</text>
         </svg>`
       },
       art: {
-        good: 'Full work, edges parallel to frame',
-        bad: 'Keystoned (shot from side), glare spot',
-        svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#10b981" stroke-width="1.5"/>
-          <rect x="82" y="0" width="78" height="80" rx="6" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.5"/>
-          <rect x="16" y="22" width="46" height="36" fill="#1e3a5f" stroke="#8a1c2c"/>
-          <circle cx="39" cy="40" r="9" fill="#f59e0b"/>
-          <text x="39" y="12" text-anchor="middle" fill="#10b981" font-size="8" font-family="monospace">✓ LIKE THIS</text>
-          <path d="M 96 24 L 146 20 L 150 58 L 100 62 Z" fill="#1e3a5f" stroke="#ef4444"/>
-          <ellipse cx="124" cy="38" rx="14" ry="8" fill="rgba(255,255,255,0.45)"/>
-          <text x="121" y="12" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace">✗ NOT THIS</text>
-          <text x="39" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">square · no glare</text>
-          <text x="121" y="76" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">skewed · glare</text>
+        good: 'Whole work edge-to-edge, straight-on, glare-free',
+        bad: 'Perspective skew from the side, window glare hotspot',
+        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="artG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c2d12"/><stop offset="55%" stop-color="#c2410c"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+          </defs>
+          <rect x="1" y="8" width="76" height="80" rx="7" fill="#0a0a0a" stroke="#10b981" stroke-width="1.6"/>
+          <rect x="13" y="26" width="52" height="42" fill="#1c1917" stroke="#c9a227" stroke-width="2"/>
+          <rect x="16" y="29" width="46" height="36" fill="url(#artG)"/>
+          <circle cx="30" cy="40" r="5" fill="#fde68a" opacity="0.9"/>
+          <path d="M 20 58 q 12 -10 24 -2 q 10 6 18 -4" stroke="#7c2d12" stroke-width="2.5" fill="none"/>
+          <path d="M 44 34 q 8 8 2 16" stroke="#fde68a" stroke-width="1.5" fill="none" opacity="0.7"/>
+          <rect x="13" y="26" width="52" height="42" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" opacity="0.75"/>
+          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
+          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">full frame · square · no glare</text>
+
+          <rect x="83" y="8" width="76" height="80" rx="7" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.6"/>
+          <g transform="skewX(-10 121 47)">
+            <rect x="98" y="28" width="46" height="38" fill="#1c1917" stroke="#c9a227" stroke-width="1.8"/>
+            <rect x="101" y="31" width="40" height="32" fill="url(#artG)" opacity="0.85"/>
+            <circle cx="114" cy="41" r="4.4" fill="#fde68a" opacity="0.8"/>
+          </g>
+          <ellipse cx="138" cy="38" rx="14" ry="9" fill="rgba(255,255,255,0.5)"/>
+          <path d="M 130 34 l -12 10 M 138 32 l -16 14" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
+          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">skewed · window glare</text>
         </svg>`
       },
     }
@@ -901,22 +1009,46 @@ function initValuation() {
     const exModal = document.createElement('div');
     exModal.className = 'fixed inset-0 z-[70] bg-black/95 backdrop-blur-sm overflow-y-auto overscroll-contain';
     exModal.innerHTML = `
-      <div class="relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-5">
-        <button id="cl-exclose" class="absolute top-3 right-3 z-40 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
-        <h2 class="text-center text-xl font-bold text-gold" style="font-family: Georgia, 'Times New Roman', serif;">Example Photos</h2>
-        <p class="text-center text-[12px] text-white/50 mt-1 mb-5">${category} — what each required shot should look like</p>
-        <div class="space-y-4">
-          ${seq.map(s => {
+      <div class="relative max-w-2xl w-full mx-auto px-4 pt-5 pb-8 flex flex-col items-stretch">
+        <div class="sticky top-0 z-30 -mx-4 px-4 py-3 bg-black/90 backdrop-blur-md border-b border-gold/15 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-gold leading-tight" style="font-family: Georgia, 'Times New Roman', serif;">How It Works</h2>
+            <p class="text-[11px] text-white/50 mt-0.5">${category} · ${seq.length} guided photos · follow the examples for the best accuracy</p>
+          </div>
+          <button id="cl-exclose" class="shrink-0 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
+        </div>
+
+        <div class="mt-4 rounded-xl border border-gold/20 bg-gold/5 p-3 flex items-start gap-3">
+          <i class="fas fa-bullseye text-gold mt-0.5"></i>
+          <p class="text-[11.5px] text-white/70 leading-snug">For <span class="text-gold font-semibold">best analysis &amp; accuracy</span>: shoot <span class="text-white font-semibold">straight-on</span> (phone parallel to the surface), fill the frame with the detail, use <span class="text-white font-semibold">soft, even light</span> — no glare, and hold steady for 1s before tapping the shutter.</p>
+        </div>
+
+        <div class="mt-4 space-y-4">
+          ${seq.map((s, i) => {
             const ex = EXAMPLES[s.example];
             if (!ex) return '';
             return `
-              <div class="bg-zinc-900/70 border border-gold/15 rounded-xl p-3">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-xs font-semibold text-gold" style="font-family: Georgia, 'Times New Roman', serif;"><i class="fas ${s.icon} mr-1.5"></i>${s.shot}</span>
-                  <span class="text-[10px] font-mono text-white/35 uppercase">${s.tier}</span>
+              <div class="bg-zinc-900/80 border border-white/10 rounded-2xl p-3.5">
+                <div class="flex items-center justify-between gap-2 mb-2.5">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="shrink-0 w-6 h-6 rounded-full bg-gold/20 border border-gold/50 text-gold text-[11px] font-bold flex items-center justify-center">${i + 1}</span>
+                    <span class="text-[13px] font-semibold text-gold truncate" style="font-family: Georgia, 'Times New Roman', serif;"><i class="fas ${s.icon} mr-1.5 text-[11px]"></i>${s.shot}</span>
+                  </div>
+                  <span class="shrink-0 text-[9px] font-mono text-white/35 uppercase tracking-wider border border-white/10 rounded px-1.5 py-0.5">${s.tier}</span>
                 </div>
-                <div class="cl-example-svg w-full" style="max-height:130px; overflow:hidden;">${ex.svg}</div>
-                <p class="text-[11px] text-white/45 mt-2 leading-snug">${ex.good}</p>
+                <div class="cl-example-svg w-full">${ex.svg}</div>
+                <div class="mt-2.5 grid grid-cols-2 gap-2">
+                  <div class="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-2.5 py-1.5">
+                    <p class="text-[9px] font-mono text-emerald-400 uppercase tracking-wide mb-0.5">✓ Like this</p>
+                    <p class="text-[10.5px] text-white/70 leading-snug">${ex.good}</p>
+                  </div>
+                  <div class="rounded-lg border border-rose-500/25 bg-rose-500/5 px-2.5 py-1.5">
+                    <p class="text-[9px] font-mono text-rose-400 uppercase tracking-wide mb-0.5">✗ Not this</p>
+                    <p class="text-[10.5px] text-white/70 leading-snug">${ex.bad}</p>
+                  </div>
+                </div>
+                ${s.tip ? `<div class="mt-2 flex items-start gap-2 text-[10.5px] text-gold/80 leading-snug"><i class="fas fa-crosshairs mt-0.5 text-[10px]"></i><span><span class="font-semibold">Best position:</span> ${s.tip}</span></div>` : ''}
+                ${s.details && s.details.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${s.details.map(d => `<span class="text-[9.5px] text-white/50 border border-white/10 rounded-full px-2 py-0.5"><i class="fas fa-check text-emerald-400/70 mr-1 text-[8px]"></i>${d}</span>`).join('')}</div>` : ''}
               </div>`;
           }).join('')}
         </div>
@@ -1186,7 +1318,19 @@ function initValuation() {
       if (icon) { icon.className = `fas ${cur.icon}` }
       if (label) label.textContent = `Step ${step + 1} of ${total} — ${cur.shot}`
       if (shotCount) shotCount.textContent = `${stepCaptured.size}/${total}`
-      if (instruction) instruction.textContent = cur.instruction + `  (${cur.distance || ''})`
+      if (instruction) instruction.textContent = cur.instruction + `  (${cur.distance || ''})`;
+
+      // Best-position tip line (accuracy guidance per step)
+      let tipEl = modal.querySelector('#cl-step-tip')
+      if (cur.tip) {
+        if (!tipEl) {
+          tipEl = document.createElement('p')
+          tipEl.id = 'cl-step-tip'
+          tipEl.className = 'text-[11px] leading-snug text-gold/85 mt-1 flex items-start gap-1.5'
+          instruction?.parentElement?.appendChild(tipEl)
+        }
+        tipEl.innerHTML = `<i class="fas fa-crosshairs mt-0.5 text-[9px]"></i><span><span class="font-semibold">Best position:</span> ${cur.tip}</span>`
+      } else if (tipEl) tipEl.remove()
 
       // Update the lens/prep accuracy strip distance for this shot
       const prepDist = modal.querySelector('#cl-prep-distance')
