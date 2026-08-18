@@ -625,23 +625,20 @@ app.post('/analyze', async (c) => {
     // back, we can trust a keyword match more. If they skipped key macro shots
     // on a text-only guess, don't over-claim authenticity.
     const shotTiers: string[] = (body.shotTiers || []).filter((t: string) => t && t !== 'standard')
-    const hasMacroShot = shotTiers.includes('macro') || shotTiers.includes('hero')
+    const hasMacroShot = shotTiers.includes('macro')
     const ocrStrong = (result.ocr_serials && result.ocr_serials.length > 0) || (result.ocr_barcodes && result.ocr_barcodes.length > 0)
     if (result.confidence > 0 && result.authenticityStatus === 'AUTHENTIC MATCH' && !ocrStrong) {
-      // AUTHENTIC claimed without any OCR serial/barcode, no macro detail shot →
-      // soften toward review (honesty guard). A description-only guess (no photos
-      // at all) should NEVER claim AUTHENTIC MATCH.
+      // Never stamp AUTHENTIC MATCH without a serial/barcode. Hero photos are not macros.
+      result.authenticityStatus = 'REVIEW_REQUIRED'
       if (shotTiers.length === 0 && images.length === 0) {
         result.confidence = Math.min(result.confidence, 72)
-        result.authenticityStatus = 'REVIEW_REQUIRED'
         result.reasoning = (result.reasoning || '') + ' (Estimate from description only — capture photos for authentication)'
-      } else if (shotTiers.length > 0 && !hasMacroShot) {
+      } else if (!hasMacroShot) {
         result.confidence = Math.min(result.confidence, 68)
-        result.authenticityStatus = 'REVIEW_REQUIRED'
         result.reasoning = (result.reasoning || '') + ' (No macro/serial photo — manual verification advised)'
-      } else if (shotTiers.length === 0) {
+      } else {
         result.confidence = Math.min(result.confidence, 72)
-        result.reasoning = (result.reasoning || '') + ' (Photos present but no macro/serial verified)'
+        result.reasoning = (result.reasoning || '') + ' (Macro captured but serial/barcode not readable)'
       }
     }
     if (ocrStrong || hasMacroShot) {
