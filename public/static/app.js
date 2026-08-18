@@ -939,9 +939,9 @@ function initValuation() {
     // Mobile-first: scrollable so the guide (top) and video never overlap on
     // phones. The inner card is a flex column [guide · video · controls] that
     // fits height and scrolls when content exceeds the viewport.
-    modal.className = 'fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm overflow-y-auto overscroll-contain';
+    modal.className = 'clx-camera-modal fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm overflow-y-auto overscroll-contain';
     modal.innerHTML = `
-      <div class="relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-4">
+      <div class="clx-camera-inner relative max-w-2xl w-full min-h-full mx-auto flex flex-col justify-center p-4">
         <button id="cl-cam-close" class="absolute top-2 right-2 z-40 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 border border-white/10">&times;</button>
 
         <!-- Mode & Quality Toolbar (compact top row) -->

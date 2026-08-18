@@ -147,3 +147,171 @@ a, button, input, select, textarea {
   nav, footer, button, #dossier-detail { display: none; }
   #dossier-certificate { border-color: #0a0a0a !important; background: white !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CAPTURE-UI HARDENING — Tailwind-CDN INDEPENDENCE (MVP stabiliser)
+   The <nav>/scan body relies on cdn.tailwindcss.com (PlayCDN) to generate its
+   utility classes at runtime. If that script loads late, is blocked, or its
+   MutationObserver misses the innerHTML-injected camera modal, the capture UI
+   would render UNSTYLED (raw video, floating buttons, invisible thumb rail) —
+   the "app is glitchy" report. These rules hard-style the CAMERA modal + its
+   critical feedback elements so capture always works even with zero CDN. Only
+   the layout-critical properties carry !important so PlayCDN (when present)
+   can still refine colours/spacing; the geometry guarantees the flow is usable.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.clx-camera-modal {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  z-index: 60 !important;
+  background: rgba(0, 0, 0, 0.95) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+}
+.clx-camera-inner {
+  position: relative !important;
+  max-width: 42rem !important;
+  width: 100% !important;
+  min-height: 100% !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+}
+/* The camera feed stays the DOMINANT element regardless of CDN state. */
+.clx-camera-feed {
+  position: relative !important;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #000;
+}
+#cl-cam-video {
+  width: 100%;
+}
+/* Ensure the video fills its frame on phones and is at least usable if Tailwind
+   never set .w-full/.bg-black on it. */
+#cl-cam-video {
+  background: #000 !important;
+}
+/* Guide dock always scrolls and stays below the video. */
+#cl-guide-panel {
+  max-height: 38vh !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  background: rgba(24, 24, 24, 0.95);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 0.75rem;
+}
+/* Thumb rail — always starts below the HUD banner, never collides. */
+#cl-thumb-rail {
+  position: absolute !important;
+  top: 4.5rem !important;
+  right: 0.5rem !important;
+  z-index: 30 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.375rem !important;
+  max-height: 70% !important;
+  overflow-y: auto !important;
+}
+@media (min-width: 768px) { #cl-thumb-rail { top: 3.5rem !important; } }
+/* Live HUD banner overlays the top of the camera with step info. */
+#cl-live-hud-banner {
+  position: absolute !important;
+  top: 0.5rem !important;
+  left: 0.5rem !important;
+  right: 3.5rem !important;
+  z-index: 30 !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  border: 1px solid rgba(212, 175, 55, 0.4) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  pointer-events: none !important;
+}
+/* Mega shutter — the primary capture CTA. Always a big gold, full-width,
+   tappable block so a shot can ALWAYS be taken even without CDN. */
+#cl-mega-snap {
+  display: flex !important;
+  width: 100% !important;
+  margin-top: 0.5rem;
+  padding: 0.875rem !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  background: #d4af37 !important;
+  color: #000 !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  border: none;
+}
+/* Analyze-now (in-camera, hidden until ≥1 photo or description). When shown it
+   must be a tappable green block even without CDN. */
+#cl-analyze-now-btn {
+  display: none; /* default hidden; JS toggles via .hidden removal */
+  width: 100% !important;
+  margin-top: 0.5rem;
+  padding: 0.75rem !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  background: #10b981 !important;
+  color: #000 !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  border: none;
+}
+#cl-analyze-now-btn:not(.hidden) {
+  display: flex !important;
+}
+#cl-analyze-now-btn.hidden {
+  display: none !important;
+}
+/* Progress count banner — this is the "how many photos" feedback. Even unstyled
+   it must be readable. */
+#cl-live-hud-banner :is(#cl-progress-count, #cl-progress-total) {
+  font-weight: 700;
+}
+/* Close button — always tappable, top-right. */
+#cl-cam-close {
+  position: absolute !important;
+  top: 0.5rem !important;
+  right: 0.5rem !important;
+  z-index: 40 !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.7) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+/* Capture-stage buttons (Next / Skip) — always tappable rows. */
+#cl-guide-skip-step, #cl-guide-skip, #cl-guide-next {
+  padding: 0.625rem 0.75rem !important;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8e6e1;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+#cl-guide-next[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+#cl-guide-skip { opacity: 0.6; }
+
