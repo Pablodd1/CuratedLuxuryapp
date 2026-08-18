@@ -4,6 +4,10 @@
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* How It Works gallery: keep SVG captions inside the card */
+.cl-example-svg { overflow: hidden; }
+.cl-example-svg svg { display: block; width: 100%; height: auto; overflow: hidden; }
+
 /* ── Camera modal — mobile-first stacking (guide on top, video below) ── */
 #cl-cam-video {
   width: 100%;
