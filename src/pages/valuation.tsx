@@ -47,7 +47,7 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
           <div class="mt-6 grid grid-cols-3 gap-2 text-center">
             {[
               { n: '1', icon: 'fa-camera', t: 'Capture', s: 'Take clear photos with guidance.' },
-              { n: '2', icon: 'fa-magnifying-glass', t: 'Analyze', s: 'Our experts and AI analyze the details.' },
+              { n: '2', icon: 'fa-magnifying-glass', t: 'Analyze', s: 'AI reads brand, serial, and condition from your photos.' },
               { n: '3', icon: 'fa-shield-halved', t: 'Assessment', s: 'Receive a detailed authentication report.' },
             ].map(st => (
               <div key={st.n} class="px-1">
@@ -316,7 +316,7 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
           <div id="results-panel" class="bg-card border border-gold/[0.06] rounded-lg p-5">
             <div id="results-empty" class="text-center py-12 text-white/5">
               <i class="fas fa-microscope text-4xl mb-2 opacity-5 block"></i>
-              <p class="text-xs text-white/10">Snap a photo, speak a description,<br/>or fill the manual form</p>
+              <p class="text-xs text-white/10">Snap a photo or speak a description.<br/>Hero + serial get you a real verdict.</p>
             </div>
             <div id="results-content" class="hidden">
               <div id="result-header" class="mb-4 pb-3 border-b border-gold/[0.06]"></div>

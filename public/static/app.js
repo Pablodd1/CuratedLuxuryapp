@@ -586,228 +586,34 @@ function initValuation() {
     // ── "Like this / Not this" example diagrams (inline SVG — no external assets) ──
     // Each key shows a correct framing (left) vs a bad one (right) with a one-line caption.
     const EXAMPLES = {
-      dial: {
-        good: 'Dial fills the frame, straight-on, logo crisp, no glare',
-        bad: 'Tilted, glare band on crystal, watch too far away',
-        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="dG" cx="40%" cy="35%" r="75%"><stop offset="0%" stop-color="#1f2937"/><stop offset="100%" stop-color="#030712"/></radialGradient>
-            <linearGradient id="dGl" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.28)"/><stop offset="45%" stop-color="rgba(255,255,255,0.02)"/><stop offset="100%" stop-color="rgba(255,255,255,0.16)"/></linearGradient>
-            <radialGradient id="dG2" cx="45%" cy="35%" r="75%"><stop offset="0%" stop-color="#273244"/><stop offset="100%" stop-color="#050810"/></radialGradient>
-          </defs>
-          <rect x="1" y="8" width="76" height="80" rx="7" fill="url(#dG)" stroke="#10b981" stroke-width="1.6"/>
-          <circle cx="39" cy="48" r="23" fill="#0b1220" stroke="#c9a227" stroke-width="2"/>
-          <circle cx="39" cy="48" r="18" fill="url(#dG2)"/>
-          <circle cx="39" cy="48" r="23" fill="url(#dGl)" opacity="0.55"/>
-          <rect x="27" y="33" width="24" height="6" rx="1.5" fill="#e5e7eb" opacity="0.9"/>
-          <line x1="39" y1="48" x2="39" y2="33" stroke="#f3f4f6" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="39" y1="48" x2="50" y2="53" stroke="#f3f4f6" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="39" y1="48" x2="34" y2="60" stroke="#c9a227" stroke-width="1.2" stroke-linecap="round"/>
-          <circle cx="39" cy="48" r="1.6" fill="#c9a227"/>
-          <circle cx="39" cy="48" r="27.5" fill="none" stroke="#10b981" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.8"/>
-          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
-          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">centered · parallel · sharp</text>
-
-          <rect x="83" y="8" width="76" height="80" rx="7" fill="url(#dG)" stroke="#ef4444" stroke-width="1.6"/>
-          <g transform="rotate(-16 121 48)">
-            <circle cx="121" cy="48" r="18" fill="#0b1220" stroke="#9ca3af" stroke-width="1.6"/>
-            <circle cx="121" cy="48" r="18" fill="url(#dGl)" opacity="0.95"/>
-            <ellipse cx="118" cy="44" rx="13" ry="4" fill="rgba(255,255,255,0.5)" transform="rotate(-24 118 44)"/>
-            <line x1="121" y1="48" x2="121" y2="36" stroke="#f3f4f6" stroke-width="1.6" stroke-linecap="round"/>
-            <line x1="121" y1="48" x2="130" y2="52" stroke="#f3f4f6" stroke-width="1.3" stroke-linecap="round"/>
-          </g>
-          <line x1="86" y1="60" x2="156" y2="38" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
-          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
-          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">tilted · glare · too far</text>
-        </svg>`
-      },
-      macro: {
-        good: 'Engraving fills the frame, crisp and fully readable',
-        bad: 'Too far away — serial too small to read, hand shaking',
-        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="mG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#111827"/><stop offset="100%" stop-color="#05070d"/></linearGradient>
-          </defs>
-          <rect x="1" y="8" width="76" height="80" rx="7" fill="url(#mG)" stroke="#10b981" stroke-width="1.6"/>
-          <circle cx="39" cy="48" r="24" fill="#94a3b8" opacity="0.08"/>
-          <text x="39" y="46" text-anchor="middle" fill="#f8fafc" font-size="10.5" font-family="monospace" font-weight="bold" letter-spacing="1.2">A7F2·904L</text>
-          <text x="39" y="58" text-anchor="middle" fill="#cbd5e1" font-size="6.5" font-family="monospace" letter-spacing="2">SWISS MADE</text>
-          <rect x="12" y="34" width="54" height="28" fill="none" stroke="#10b981" stroke-width="1.3" stroke-dasharray="4 3" rx="4"/>
-          <path d="M 39 62 l -2.5 5 h 5 z" fill="#10b981" opacity="0.9"/>
-          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
-          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">fills frame · readable</text>
-
-          <rect x="83" y="8" width="76" height="80" rx="7" fill="url(#mG)" stroke="#ef4444" stroke-width="1.6"/>
-          <rect x="104" y="30" width="52" height="36" rx="5" fill="#64748b" opacity="0.25"/>
-          <text x="130" y="50" text-anchor="middle" fill="#6b7280" font-size="4.6" font-family="monospace">A7F2·904L</text>
-          <path d="M 96 66 q 8 -6 14 0 t 14 0" stroke="#ef4444" stroke-width="1" fill="none" opacity="0.7"/>
-          <path d="M 98 70 q 8 -6 14 0 t 14 0" stroke="#ef4444" stroke-width="1" fill="none" opacity="0.4"/>
-          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
-          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">tiny text · motion blur</text>
-        </svg>`
-      },
-      card: {
-        good: 'Card flat and square, fills frame, evenly lit',
-        bad: 'Card curved, shadow band across the text',
-        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="cG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#d6d3d1"/></linearGradient></defs>
-          <rect x="1" y="8" width="76" height="80" rx="7" fill="#0a0a0a" stroke="#10b981" stroke-width="1.6"/>
-          <rect x="11" y="24" width="56" height="42" rx="3" fill="url(#cG)" stroke="#78716c" stroke-width="0.8"/>
-          <rect x="11" y="24" width="56" height="42" rx="3" fill="none" stroke="#10b981" stroke-width="1" stroke-dasharray="4 3" opacity="0.7"/>
-          <text x="16" y="34" font-family="Georgia, serif" font-size="6.5" fill="#1c1917" font-weight="bold">CERTIFICAT</text>
-          <line x1="16" y1="40" x2="62" y2="40" stroke="#292524" stroke-width="1.4"/>
-          <line x1="16" y1="45" x2="52" y2="45" stroke="#78716c" stroke-width="0.8"/>
-          <line x1="16" y1="49" x2="57" y2="49" stroke="#78716c" stroke-width="0.8"/>
-          <rect x="16" y="54" width="20" height="7" rx="1" fill="#c9a227" opacity="0.85"/>
-          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
-          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">flat · even light</text>
-
-          <rect x="83" y="8" width="76" height="80" rx="7" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.6"/>
-          <path d="M 95 40 Q 121 26 147 40 L 147 58 Q 121 48 95 58 Z" fill="#d6d3d1" stroke="#78716c" stroke-width="0.8"/>
-          <path d="M 100 44 Q 121 34 142 44" stroke="#292524" stroke-width="1.1" fill="none"/>
-          <path d="M 103 50 q 18 -4 36 0" stroke="#78716c" stroke-width="0.7" fill="none"/>
-          <path d="M 95 40 Q 108 46 95 58 Z" fill="rgba(0,0,0,0.45)"/>
-          <path d="M 110 38 Q 116 52 112 60 L 128 56 Q 124 46 124 36 Z" fill="rgba(0,0,0,0.5)"/>
-          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
-          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">curved · shadowed</text>
-        </svg>`
-      },
-      bag: {
-        good: 'Whole bag in frame, straight-on, handles up, neutral background',
-        bad: 'Bag cut off at the edge, shot from the side',
-        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="bG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#92400e"/><stop offset="100%" stop-color="#451a03"/></linearGradient></defs>
-          <rect x="1" y="8" width="76" height="80" rx="7" fill="#0d0b08" stroke="#10b981" stroke-width="1.6"/>
-          <path d="M 22 38 h 34 q 2 0 2 3 v 26 q 0 3 -3 3 h -32 q -3 0 -3 -3 v -26 q 0 -3 2 -3 z" fill="url(#bG)" stroke="#78350f" stroke-width="1"/>
-          <path d="M 30 38 q 9 -13 18 0" fill="none" stroke="#a16207" stroke-width="2.2" stroke-linecap="round"/>
-          <circle cx="39" cy="50" r="3.4" fill="#c9a227" stroke="#78350f"/>
-          <path d="M 23 44 h 32" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
-          <rect x="14" y="34" width="50" height="38" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" rx="5" opacity="0.8"/>
-          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
-          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">full · straight · handles up</text>
-
-          <rect x="83" y="8" width="76" height="80" rx="7" fill="#0d0b08" stroke="#ef4444" stroke-width="1.6"/>
-          <g transform="skewY(-8 121 50)">
-            <path d="M 106 40 h 30 v 24 q 0 3 -3 3 h -24 q -3 0 -3 -3 z" fill="url(#bG)" stroke="#78350f" stroke-width="1"/>
-            <path d="M 112 40 q 8 -11 16 0" fill="none" stroke="#a16207" stroke-width="2"/>
-          </g>
-          <path d="M 146 26 L 152 20 M 148 30 L 155 23" stroke="#ef4444" stroke-width="1.2"/>
-          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
-          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">cut off · side angle</text>
-        </svg>`
-      },
-      gem: {
-        good: 'Piece centered on plain background, facets catching light',
-        bad: 'Cluttered background, off-center, blown-out flash',
-        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="gemG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e0f2fe"/><stop offset="50%" stop-color="#7dd3fc"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient>
-          </defs>
-          <rect x="1" y="8" width="76" height="80" rx="7" fill="#08090c" stroke="#10b981" stroke-width="1.6"/>
-          <circle cx="39" cy="48" r="25" fill="#0f172a"/>
-          <path d="M 39 34 L 51 43 L 46 56 L 32 56 L 27 43 Z" fill="url(#gemG)" opacity="0.95"/>
-          <path d="M 39 34 L 51 43 L 39 46 Z" fill="rgba(255,255,255,0.5)"/>
-          <path d="M 39 34 L 27 43 L 39 46 Z" fill="rgba(255,255,255,0.25)"/>
-          <path d="M 27 43 L 32 56 L 39 46 Z" fill="rgba(14,165,233,0.35)"/>
-          <path d="M 51 43 L 46 56 L 39 46 Z" fill="rgba(2,132,199,0.45)"/>
-          <path d="M 33 58 q 6 3 12 0" stroke="#c9a227" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-          <path d="M 30 34 l -4 -3 M 48 34 l 4 -3" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>
-          <circle cx="39" cy="48" r="28" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" opacity="0.75"/>
-          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
-          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">centered · facets lit</text>
-
-          <rect x="83" y="8" width="76" height="80" rx="7" fill="#08090c" stroke="#ef4444" stroke-width="1.6"/>
-          <rect x="88" y="20" width="68" height="60" fill="#1c1917"/>
-          <path d="M 92 70 l 12 -8 10 6 8 -9 14 11" stroke="#57534e" stroke-width="2" fill="none"/>
-          <circle cx="96" cy="28" r="6" fill="#fbbf24" opacity="0.7"/>
-          <path d="M 145 38 L 154 46 L 149 55 L 139 54 L 136 45 Z" fill="url(#gemG)" opacity="0.4"/>
-          <ellipse cx="145" cy="46" rx="9" ry="6" fill="rgba(255,255,255,0.75)"/>
-          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
-          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">cluttered · flash blowout</text>
-        </svg>`
-      },
-      car: {
-        good: '3/4 front angle, full nose in frame, badge readable',
-        bad: 'Front cropped, harsh sun shadow across panels',
-        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="carG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#334155"/><stop offset="100%" stop-color="#0f172a"/></linearGradient></defs>
-          <rect x="1" y="8" width="76" height="80" rx="7" fill="#0b0f16" stroke="#10b981" stroke-width="1.6"/>
-          <rect x="8" y="34" width="62" height="30" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" rx="6" opacity="0.8"/>
-          <path d="M 14 60 q 2 -12 10 -14 l 10 -10 q 14 -5 26 2 l 8 9 q 8 2 8 13 z" fill="url(#carG)" stroke="#64748b" stroke-width="1"/>
-          <path d="M 26 40 l 8 -8 q 12 -4 22 2 l 6 7 z" fill="#0ea5e9" opacity="0.55"/>
-          <circle cx="24" cy="61" r="5" fill="#111827" stroke="#94a3b8" stroke-width="1.4"/>
-          <circle cx="54" cy="61" r="5" fill="#111827" stroke="#94a3b8" stroke-width="1.4"/>
-          <circle cx="15" cy="55" r="2.4" fill="#fde68a"/>
-          <rect x="30" y="47" width="6" height="4" rx="1" fill="#c9a227"/>
-          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
-          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">3/4 angle · full nose</text>
-
-          <rect x="83" y="8" width="76" height="80" rx="7" fill="#0b0f16" stroke="#ef4444" stroke-width="1.6"/>
-          <path d="M 118 60 q 2 -12 10 -14 l 10 -10 q 12 -4 22 2 l 6 7 q 6 2 6 15 z" fill="url(#carG)" stroke="#64748b" stroke-width="1"/>
-          <path d="M 90 42 L 158 36 L 156 58 L 92 60 Z" fill="rgba(0,0,0,0.55)"/>
-          <path d="M 96 40 l 10 -3 M 110 38 l 10 -3" stroke="#475569" stroke-width="1"/>
-          <circle cx="126" cy="61" r="5" fill="#111827" stroke="#94a3b8" stroke-width="1.4"/>
-          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
-          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">cropped · hard shadow</text>
-        </svg>`
-      },
-      dash: {
-        good: 'Cluster sharp, odometer digits clearly readable',
-        bad: 'Windshield reflection washing out the display',
-        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="dshG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e293b"/><stop offset="100%" stop-color="#020617"/></linearGradient></defs>
-          <rect x="1" y="8" width="76" height="80" rx="7" fill="url(#dshG)" stroke="#10b981" stroke-width="1.6"/>
-          <circle cx="39" cy="48" r="16" fill="#020617" stroke="#475569" stroke-width="1.6"/>
-          <path d="M 39 48 L 39 36 A 12 12 0 0 1 49 41 Z" fill="#10b981" opacity="0.8"/>
-          <path d="M 39 48 L 49 51 A 12 12 0 0 1 43 58 Z" fill="#22d3ee" opacity="0.5"/>
-          <circle cx="39" cy="48" r="1.4" fill="#f8fafc"/>
-          <rect x="27" y="66" width="24" height="9" rx="2" fill="#052e16" stroke="#10b981" stroke-width="0.8"/>
-          <text x="39" y="73" text-anchor="middle" fill="#4ade80" font-family="monospace" font-size="6.5" font-weight="bold">048 273</text>
-          <rect x="16" y="32" width="46" height="46" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" rx="7" opacity="0.75"/>
-          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
-          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">digits sharp · no glare</text>
-
-          <rect x="83" y="8" width="76" height="80" rx="7" fill="url(#dshG)" stroke="#ef4444" stroke-width="1.6"/>
-          <circle cx="121" cy="48" r="16" fill="#020617" stroke="#475569" stroke-width="1.6"/>
-          <path d="M 121 48 L 121 36 A 12 12 0 0 1 131 41 Z" fill="#10b981" opacity="0.6"/>
-          <rect x="109" y="66" width="24" height="9" rx="2" fill="#052e16" stroke="#334155" stroke-width="0.8"/>
-          <text x="121" y="73" text-anchor="middle" fill="#166534" font-family="monospace" font-size="6.5">0?8 ?7?</text>
-          <path d="M 90 26 L 152 30 L 148 52 L 94 50 Z" fill="rgba(226,232,240,0.4)"/>
-          <path d="M 96 30 l 40 3 M 100 44 l 36 -2" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
-          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
-          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">reflection · unreadable</text>
-        </svg>`
-      },
-      art: {
-        good: 'Whole work edge-to-edge, straight-on, glare-free',
-        bad: 'Perspective skew from the side, window glare hotspot',
-        svg: `<svg viewBox="0 0 160 96" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="artG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c2d12"/><stop offset="55%" stop-color="#c2410c"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
-          </defs>
-          <rect x="1" y="8" width="76" height="80" rx="7" fill="#0a0a0a" stroke="#10b981" stroke-width="1.6"/>
-          <rect x="13" y="26" width="52" height="42" fill="#1c1917" stroke="#c9a227" stroke-width="2"/>
-          <rect x="16" y="29" width="46" height="36" fill="url(#artG)"/>
-          <circle cx="30" cy="40" r="5" fill="#fde68a" opacity="0.9"/>
-          <path d="M 20 58 q 12 -10 24 -2 q 10 6 18 -4" stroke="#7c2d12" stroke-width="2.5" fill="none"/>
-          <path d="M 44 34 q 8 8 2 16" stroke="#fde68a" stroke-width="1.5" fill="none" opacity="0.7"/>
-          <rect x="13" y="26" width="52" height="42" fill="none" stroke="#10b981" stroke-width="1.1" stroke-dasharray="4 3" opacity="0.75"/>
-          <text x="39" y="15" text-anchor="middle" fill="#10b981" font-size="8.5" font-family="monospace" font-weight="bold">✓ LIKE THIS</text>
-          <text x="39" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">full frame · square · no glare</text>
-
-          <rect x="83" y="8" width="76" height="80" rx="7" fill="#0a0a0a" stroke="#ef4444" stroke-width="1.6"/>
-          <g transform="skewX(-10 121 47)">
-            <rect x="98" y="28" width="46" height="38" fill="#1c1917" stroke="#c9a227" stroke-width="1.8"/>
-            <rect x="101" y="31" width="40" height="32" fill="url(#artG)" opacity="0.85"/>
-            <circle cx="114" cy="41" r="4.4" fill="#fde68a" opacity="0.8"/>
-          </g>
-          <ellipse cx="138" cy="38" rx="14" ry="9" fill="rgba(255,255,255,0.5)"/>
-          <path d="M 130 34 l -12 10 M 138 32 l -16 14" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
-          <text x="121" y="15" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="monospace" font-weight="bold">✗ NOT THIS</text>
-          <text x="121" y="91" text-anchor="middle" fill="#9ca3af" font-size="6" font-family="monospace">skewed · window glare</text>
-        </svg>`
-      },
+      dial: { good: 'Dial fills the frame, straight-on, logo crisp, no glare', bad: 'Lifestyle angle, too far, scene stealing the face', goodSrc: '/static/examples/dial-good.jpg', badSrc: '/static/examples/dial-bad.jpg' },
+      macro: { good: 'Serial / engraving fills the frame and is fully readable', bad: 'Too far — characters too small, motion blur', goodSrc: '/static/examples/macro-good.jpg', badSrc: '/static/examples/macro-bad.jpg' },
+      card: { good: 'Document flat, square, even light, reference readable', bad: 'Curled paper, shadow band across the text', goodSrc: '/static/examples/card-good.jpg', badSrc: '/static/examples/card-bad.jpg' },
+      bag: { good: 'Whole bag front-on, handles up, silhouette complete', bad: 'Side angle, hardware and shape distorted', goodSrc: '/static/examples/bag-good.jpg', badSrc: '/static/examples/bag-bad.jpg' },
+      gem: { good: 'Piece centered on a plain ground, facets catching light', bad: 'Tilted, glare wash, subject lost in the frame', goodSrc: '/static/examples/gem-good.jpg', badSrc: '/static/examples/gem-bad.jpg' },
+      car: { good: '3/4 front, full nose in frame, badge readable', bad: 'Cropped, harsh shadow across the panels', goodSrc: '/static/examples/car-good.jpg', badSrc: '/static/examples/car-bad.jpg' },
+      dash: { good: 'Cluster sharp, odometer digits clearly readable', bad: 'Reflection washing out the display', goodSrc: '/static/examples/dash-good.jpg', badSrc: '/static/examples/dash-bad.jpg' },
+      art: { good: 'Whole work edge-to-edge, square, glare-free', bad: 'Skewed from the side with a glare hotspot', goodSrc: '/static/examples/art-good.jpg', badSrc: '/static/examples/art-bad.jpg' },
     }
+    function examplePairHtml(ex, compact) {
+      if (!ex) return ''
+      const h = compact ? 'h-24' : 'h-44'
+      return `<div class="cl-ex-pair grid grid-cols-2 gap-2">
+        <figure class="cl-ex-good m-0">
+          <div class="${h} rounded-lg overflow-hidden border border-emerald-500/40 bg-black">
+            <img src="${ex.goodSrc}" alt="Like this" class="w-full h-full object-cover" loading="lazy"/>
+          </div>
+          <figcaption class="mt-1.5 text-[10px] leading-snug text-emerald-300/90"><span class="font-mono uppercase tracking-wide text-[9px]">✓ Like this</span> — ${ex.good}</figcaption>
+        </figure>
+        <figure class="cl-ex-bad m-0">
+          <div class="${h} rounded-lg overflow-hidden border border-rose-500/40 bg-black">
+            <img src="${ex.badSrc}" alt="Not this" class="w-full h-full object-cover" loading="lazy"/>
+          </div>
+          <figcaption class="mt-1.5 text-[10px] leading-snug text-rose-300/90"><span class="font-mono uppercase tracking-wide text-[9px]">✗ Not this</span> — ${ex.bad}</figcaption>
+        </figure>
+      </div>`
+    }
+
   // ── PREP SCREEN: "Prepare for Capture" (Step 1 of 10) ──────────────────
   // Faithful mimic of the reference frame: CL logo, serif title, gold-on-black,
   // 5 prep checklist items, gold "Begin Capture" CTA, "See example photos" link.
@@ -825,77 +631,11 @@ function initValuation() {
   // the app palette (#8a1c2c gold on #111827 black, black leather strap). Inline
   // SVG = zero asset weight, offline-safe, themeable.
   const PREP_HEROES = {
-    Watches: `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="clh-case" cx="50%" cy="40%" r="75%">
-          <stop offset="0%" stop-color="#f3d98a"/><stop offset="55%" stop-color="#8a1c2c"/><stop offset="100%" stop-color="#8a6d1c"/>
-        </radialGradient>
-        <radialGradient id="clh-dial" cx="50%" cy="45%" r="65%">
-          <stop offset="0%" stop-color="#16181d"/><stop offset="100%" stop-color="#0b0c0e"/>
-        </radialGradient>
-      </defs>
-      <!-- leather strap -->
-      <path d="M 88 62 C 88 92 78 110 64 132 L 92 138 C 100 116 104 96 104 62 Z" fill="#1a1208" stroke="#8a1c2c" stroke-width="0.8"/>
-      <path d="M 132 62 C 132 92 142 110 156 132 L 128 138 C 120 116 116 96 116 62 Z" fill="#1a1208" stroke="#8a1c2c" stroke-width="0.8"/>
-      <circle cx="110" cy="88" r="2" fill="#8a1c2c"/>
-      <!-- case -->
-      <circle cx="110" cy="70" r="46" fill="url(#clh-case)"/>
-      <circle cx="110" cy="70" r="40" fill="url(#clh-dial)"/>
-      <circle cx="110" cy="70" r="46" fill="none" stroke="#f3d98a" stroke-width="1"/>
-      <!-- crown -->
-      <rect x="154" y="62" width="8" height="16" rx="3" fill="url(#clh-case)" stroke="#f3d98a" stroke-width="0.6"/>
-      <!-- applied gold indices -->
-      ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>{
-        const r=33, col='#e7c96a';
-        if(a%90===0){ return '' }
-        const x=110+r*Math.cos((a-90)*Math.PI/180), y=70+r*Math.sin((a-90)*Math.PI/180);
-        return `<rect x="${x-1.4}" y="${y-4.5}" width="2.8" height="9" rx="1" fill="${col}" transform="rotate(${a-90} ${x} ${y})"/>`;
-      }).join('')}
-      <!-- 12 / 6 / 9 markers -->
-      <rect x="108.6" y="33"    width="2.8" height="11" rx="1.2" fill="#e7c96a"/>
-      <rect x="108.6" y="96"    width="2.8" height="11" rx="1.2" fill="#e7c96a"/>
-      <rect x="95"    y="68.6"  width="11"  height="2.8" rx="1.2" fill="#e7c96a"/>
-      <rect x="114"   y="68.6"  width="11"  height="2.8" rx="1.2" fill="#e7c96a"/>
-      <!-- hands -->
-      <rect x="108.4" y="46" width="3.2" height="26" rx="1" fill="#e7c96a" transform="rotate(150 110 70)"/>
-      <rect x="108.4" y="56" width="3.2" height="18" rx="1" fill="#f3d98a" transform="rotate(-60 110 70)"/>
-      <rect x="106"   y="84" width="8" height="3" rx="1.5" fill="#f3d98a"/>
-      <circle cx="110" cy="70" r="3.2" fill="#e7c96a"/>
-      <!-- date window -->
-      <rect x="124" y="82" width="12" height="8" rx="1.5" fill="#0b0c0e" stroke="#e7c96a" stroke-width="0.6"/>
-      <circle cx="110" cy="70" r="40" fill="none" stroke="#8a1c2c" stroke-width="0.5" opacity="0.5"/>
-    </svg>`,
-    Handbags: `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 62 78 h 96 l 6 68 H 56 Z" fill="#1a1208" stroke="#8a1c2c" stroke-width="1.2"/>
-      <path d="M 82 78 c 0 -22 12 -34 28 -34 s 28 12 28 34" fill="none" stroke="#8a1c2c" stroke-width="2.5"/>
-      <rect x="86" y="74" width="12" height="8" rx="2" fill="#8a1c2c"/>
-      <rect x="122" y="74" width="12" height="8" rx="2" fill="#8a1c2c"/>
-      <path d="M 110 70 v 10" stroke="#8a1c2c" stroke-width="2"/>
-      <path d="M 74 96 h 72 v 40 H 74 Z" fill="#0b0c0e" stroke="#8a1c2c" stroke-width="0.8" opacity="0.9"/>
-      <rect x="96" y="60" width="28" height="6" rx="3" fill="#8a1c2c"/>
-    </svg>`,
-    'Fine Jewelry': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="110" cy="64" r="26" fill="#8a1c2c"/>
-      <circle cx="110" cy="64" r="18" fill="#f3d98a"/>
-      <circle cx="110" cy="64" r="11" fill="#e7c96a"/>
-      <circle cx="110" cy="64" r="5" fill="#fffbe6"/>
-      <path d="M 78 116 l 22 -34 h 20 l 22 34 h 28 l -56 26 -56 -26 Z" fill="#8a1c2c"/>
-      <path d="M 98 92 l 14 -14 14 14 Z" fill="none" stroke="#0b0c0e" stroke-width="1.5"/>
-    </svg>`,
-    'Luxury Vehicles': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 56 104 h 8 c 10 -12 34 -18 46 -18 h 0 c 12 0 36 6 46 18 h 10 c 8 0 12 6 10 12 l -4 10 -132 0 -4 -10 c -2 -6 2 -12 10 -12 Z" fill="#8a1c2c"/>
-      <path d="M 104 92 h 16 l 2 -10 c 0 -6 6 -12 12 -12 h 8 c 8 0 14 6 14 14 l -2 8 Z" fill="#0b0c0e"/>
-      <circle cx="92" cy="128" r="12" fill="#0b0c0e"/>
-      <circle cx="92" cy="128" r="5" fill="#8a1c2c"/>
-      <circle cx="140" cy="128" r="12" fill="#0b0c0e"/>
-      <circle cx="140" cy="128" r="5" fill="#8a1c2c"/>
-    </svg>`,
-    'Art & Collectibles': `<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-      <rect x="60" y="40" width="100" height="110" fill="#0b0c0e" stroke="#8a1c2c" stroke-width="2"/>
-      <circle cx="100" cy="80" r="14" fill="#8a1c2c" opacity="0.85"/>
-      <path d="M 82 118 l 18 -22 14 14 12 -10 24 26 H 82 Z" fill="#e7c96a" opacity="0.9"/>
-      <path d="M 118 66 c 6 -4 12 -2 14 3" stroke="#8a1c2c" stroke-width="2" fill="none"/>
-    </svg>`,
+    Watches: '<img src="/static/examples/prep-dial.jpg" alt="Watch capture reference" class="w-full h-[190px] object-cover rounded-xl"/>',
+    Handbags: '<img src="/static/examples/prep-bag.jpg" alt="Handbag capture reference" class="w-full h-[190px] object-cover rounded-xl"/>',
+    'Fine Jewelry': '<img src="/static/examples/prep-gem.jpg" alt="Jewelry capture reference" class="w-full h-[190px] object-cover rounded-xl"/>',
+    'Luxury Vehicles': '<img src="/static/examples/prep-car.jpg" alt="Vehicle capture reference" class="w-full h-[190px] object-cover rounded-xl"/>',
+    'Art & Collectibles': '<img src="/static/examples/prep-art.jpg" alt="Artwork capture reference" class="w-full h-[190px] object-cover rounded-xl"/>',
   };
   const PREP_HERO_TITLES = {
     Watches: 'GOLD & BLACK DRESS WATCH', Handbags: 'LUXURY HANDBAG',
@@ -1020,7 +760,7 @@ function initValuation() {
 
         <div class="mt-4 rounded-xl border border-gold/20 bg-gold/5 p-3 flex items-start gap-3">
           <i class="fas fa-bullseye text-gold mt-0.5"></i>
-          <p class="text-[11.5px] text-white/70 leading-snug">For <span class="text-gold font-semibold">best analysis &amp; accuracy</span>: shoot <span class="text-white font-semibold">straight-on</span> (phone parallel to the surface), fill the frame with the detail, use <span class="text-white font-semibold">soft, even light</span> — no glare, and hold steady for 1s before tapping the shutter.</p>
+          <p class="text-[11.5px] text-white/70 leading-snug">Copy these photos, not a drawing of them. <span class="text-white font-semibold">Straight-on, fill the frame, serial readable, no glare.</span> High confidence needs a hero plus a macro serial. Phone photos will not hit 99% authenticity — they produce a strong review-grade file.</p>
         </div>
 
         <div class="mt-4 space-y-4">
@@ -1036,17 +776,7 @@ function initValuation() {
                   </div>
                   <span class="shrink-0 text-[9px] font-mono text-white/35 uppercase tracking-wider border border-white/10 rounded px-1.5 py-0.5">${s.tier}</span>
                 </div>
-                <div class="cl-example-svg w-full">${ex.svg}</div>
-                <div class="mt-2.5 grid grid-cols-2 gap-2">
-                  <div class="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-2.5 py-1.5">
-                    <p class="text-[9px] font-mono text-emerald-400 uppercase tracking-wide mb-0.5">✓ Like this</p>
-                    <p class="text-[10.5px] text-white/70 leading-snug">${ex.good}</p>
-                  </div>
-                  <div class="rounded-lg border border-rose-500/25 bg-rose-500/5 px-2.5 py-1.5">
-                    <p class="text-[9px] font-mono text-rose-400 uppercase tracking-wide mb-0.5">✗ Not this</p>
-                    <p class="text-[10.5px] text-white/70 leading-snug">${ex.bad}</p>
-                  </div>
-                </div>
+                <div class="cl-example-photos w-full">${examplePairHtml(ex, false)}</div>
                 ${s.tip ? `<div class="mt-2 flex items-start gap-2 text-[10.5px] text-gold/80 leading-snug"><i class="fas fa-crosshairs mt-0.5 text-[10px]"></i><span><span class="font-semibold">Best position:</span> ${s.tip}</span></div>` : ''}
                 ${s.details && s.details.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${s.details.map(d => `<span class="text-[9.5px] text-white/50 border border-white/10 rounded-full px-2 py-0.5"><i class="fas fa-check text-emerald-400/70 mr-1 text-[8px]"></i>${d}</span>`).join('')}</div>` : ''}
               </div>`;
@@ -1223,7 +953,7 @@ function initValuation() {
               <span class="text-[9px] text-white/30">tap to expand</span>
             </div>
             <div class="cl-example-body">
-              <div id="cl-example-svg" class="w-full" style="max-height:110px; overflow:hidden;"></div>
+              <div id="cl-example-svg" class="w-full"></div>
             </div>
           </div>
         </div>
@@ -1405,7 +1135,7 @@ function initValuation() {
       if (exCard) {
         if (ex) {
           exCard.style.display = ''
-          if (exSvg) exSvg.innerHTML = ex.svg
+          if (exSvg) exSvg.innerHTML = examplePairHtml(ex, true)
         } else {
           exCard.style.display = 'none'
         }
@@ -2096,6 +1826,11 @@ function initValuation() {
     }
 
     const filledImages = images.filter(Boolean)          // drop undefined holes
+    const hasMacro = filledImages.some(i => i.tier === 'macro')
+    const hasHero = filledImages.some(i => i.tier === 'hero')
+    if (filledImages.length && (!hasHero || !hasMacro)) {
+      toast('For a real verdict capture the hero and a readable serial/macro. This run will stay review-only.', 'warning')
+    }
     if (filledImages.length > 0) {
       const confirmed = await showAnalyzeConfirmation(filledImages.length, descriptionInput?.value?.trim());
       if (!confirmed) return;
@@ -2128,7 +1863,7 @@ function initValuation() {
 
       renderValuationResult(data, res);
       window._voiceTranscript = null;
-      toast(res.stored ? 'Asset authenticated and stored' : 'Analysis complete \u2014 review required', res.stored ? 'success' : 'warning');
+      toast(data.authenticityStatus === 'AUTHENTIC MATCH' ? 'Authenticated and stored' : (data.stored ? 'Stored for review' : 'Analysis complete — review required'), data.authenticityStatus === 'AUTHENTIC MATCH' ? 'success' : 'warning');
       // scroll the review panel into view (especially useful right after closing camera)
       resultsContent?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {

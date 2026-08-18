@@ -7,6 +7,8 @@
 /* How It Works gallery: keep SVG captions inside the card */
 .cl-example-svg { overflow: hidden; }
 .cl-example-svg svg { display: block; width: 100%; height: auto; overflow: hidden; }
+.cl-ex-pair img { display: block; }
+.cl-example-photos img { background: #050505; }
 
 /* ── Camera modal — mobile-first stacking (guide on top, video below) ── */
 #cl-cam-video {
