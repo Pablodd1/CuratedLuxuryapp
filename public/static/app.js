@@ -110,11 +110,11 @@ function showAnalyzeConfirmation(photoCount, description) {
 // ── Image Compression: canvas resize to max 1024px before upload ──
 // Cuts payload ~80%, prevents Worker timeouts, preserves quality for AI analysis
 function compressImage(dataUrl, maxDim = 1024) {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       let w = img.width, h = img.height;
-      if (w <= maxDim && h <= maxDim) return resolve(dataUrl); // already small enough
+      if (w <= maxDim && h <= maxDim) return resolve(dataUrl);
       const ratio = Math.min(maxDim / w, maxDim / h);
       w = Math.round(w * ratio);
       h = Math.round(h * ratio);
@@ -123,6 +123,7 @@ function compressImage(dataUrl, maxDim = 1024) {
       c.getContext('2d').drawImage(img, 0, 0, w, h);
       resolve(c.toDataURL('image/jpeg', 0.92));
     };
+    img.onerror = () => reject(new Error('unsupported image'));
     img.src = dataUrl;
   });
 }
@@ -194,6 +195,18 @@ function initValuation() {
   const cameraTriggerBtn = $id('camera-trigger-btn');
   if (cameraTriggerBtn) {
     cameraTriggerBtn.addEventListener('click', showPrepScreen);
+  }
+  function openSavedPhotoPicker() {
+    if (!imageInput) { toast('File picker unavailable', 'error'); return; }
+    imageInput.click();
+  }
+  const libraryTriggerBtn = $id('library-trigger-btn');
+  if (libraryTriggerBtn) {
+    libraryTriggerBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openSavedPhotoPicker();
+    });
   }
 
   // ── AUTHENTICATE YOUR ITEM hero wiring (landing card on the scan page) ──
@@ -405,19 +418,56 @@ function initValuation() {
     imageInput.addEventListener('change', handleFiles);
   }
 
+  function filledCount() {
+    return images.filter(Boolean).length;
+  }
+
+  function nextImageSlot() {
+    for (let i = 0; i < images.length; i++) if (!images[i]) return i;
+    return images.length;
+  }
+
+  function uploadTierForSlot(slot) {
+    try {
+      const seq = (typeof currentGuide === 'function') ? currentGuide() : [];
+      if (seq[slot] && seq[slot].tier) return seq[slot].tier;
+    } catch { /* guide not ready */ }
+    return slot === 0 ? 'hero' : 'macro';
+  }
+
   function handleFiles(e) {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from((e && e.target && e.target.files) || []);
+    if (!files.length) return;
+    let added = 0;
     files.forEach(file => {
-      if (!file.type.startsWith('image/')) return;
-      if (images.length >= MAX_IMAGES) { toast('Max 5 images per scan', 'warning'); return; }
+      const type = (file.type || '').toLowerCase();
+      const name = (file.name || '').toLowerCase();
+      const looksImage = type.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif|gif)$/.test(name);
+      if (!looksImage) return;
+      if (filledCount() + added >= MAX_IMAGES) { toast('Max 5 images per scan', 'warning'); return; }
+      added += 1;
       const reader = new FileReader();
+      reader.onerror = () => toast(`Could not read ${file.name}. Try JPG or PNG.`, 'error');
       reader.onload = async () => {
-        const compressed = await compressImage(reader.result);
-        images.push({ data: compressed, name: file.name });
-        renderPreviews();
+        try {
+          const compressed = await compressImage(reader.result);
+          const slot = nextImageSlot();
+          images[slot] = {
+            data: compressed,
+            name: file.name || `photo-${slot + 1}.jpg`,
+            tier: uploadTierForSlot(slot),
+            source: 'library',
+          };
+          renderPreviews();
+          const n = filledCount();
+          toast(n === 1 ? 'Photo attached. Add a serial close-up if you have one, or tap Analyze.' : `${n} photos attached`, 'success');
+        } catch {
+          toast(`Could not use ${file.name}. Try another image.`, 'error');
+        }
       };
       reader.readAsDataURL(file);
     });
+    if (!added) toast('Choose a photo (JPG, PNG, HEIC, or WebP). One is enough.', 'warning');
     if (imageInput) imageInput.value = '';
   }
 
@@ -919,6 +969,9 @@ function initValuation() {
           <!-- Big TAKE PICTURE CTA -->
           <button id="cl-mega-snap" class="mt-2 w-full py-3.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(138,28,44,0.25)]">
             <i class="fas fa-camera-retro text-base"></i> Take Picture
+          </button>
+          <button id="cl-use-saved" type="button" class="mt-2 w-full py-2.5 rounded-xl border border-gold/35 text-gold hover:bg-gold/10 text-xs font-semibold uppercase tracking-widest flex items-center justify-center gap-2">
+            <i class="fas fa-images"></i> Use a saved photo for this step
           </button>
 
           <!-- Step nav row -->
@@ -1747,6 +1800,42 @@ function initValuation() {
     // Big "Take Picture" CTA, Next (unlocks on capture/skip), Skip shot.
     const megaSnap = modal.querySelector('#cl-mega-snap')
     if (megaSnap) megaSnap.addEventListener('click', snap)
+    const useSaved = modal.querySelector('#cl-use-saved')
+    if (useSaved) {
+      useSaved.addEventListener('click', (ev) => {
+        ev.preventDefault()
+        ev.stopPropagation()
+        const picker = document.createElement('input')
+        picker.type = 'file'
+        picker.accept = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*'
+        picker.onchange = async () => {
+          const file = picker.files && picker.files[0]
+          if (!file) return
+          try {
+            const dataUrl = await new Promise((resolve, reject) => {
+              const r = new FileReader()
+              r.onload = () => resolve(r.result)
+              r.onerror = () => reject(new Error('read failed'))
+              r.readAsDataURL(file)
+            })
+            const compressed = await compressImage(dataUrl)
+            const stepIdx = guideSkipped ? images.filter(Boolean).length : guideStep
+            images[stepIdx] = {
+              data: compressed,
+              name: file.name || `library-${Date.now()}.jpg`,
+              tier: (currentGuide()[stepIdx] || {}).tier || 'standard',
+              source: 'library',
+            }
+            if (!guideSkipped) markStepCaptured(stepIdx)
+            renderPreviews()
+            toast(`✓ Saved photo used for ${currentGuide()[stepIdx]?.shot || 'this step'}`, 'success')
+          } catch {
+            toast('Could not open that photo. Try JPG or PNG.', 'error')
+          }
+        }
+        picker.click()
+      })
+    }
     const nextBtn = modal.querySelector('#cl-guide-next')
     if (nextBtn) nextBtn.addEventListener('click', nextStep)
     const skipShot = modal.querySelector('#cl-guide-skip-step')

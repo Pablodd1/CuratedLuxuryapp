@@ -73,19 +73,20 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
           <span id="credits-balance-text" class="text-xs font-mono text-gold font-semibold">—</span>
         </div>
 
-        {/* Primary Action Bar: Camera + Mic (Manual Entry removed per product decision) */}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-          {/* Camera */}
+        {/* Primary actions: camera, saved photos, voice */}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           <button id="camera-trigger-btn"
             class="bg-gold hover:bg-gold-light text-black font-semibold py-3 rounded text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(138,28,44,0.15)] hover:shadow-[0_0_30px_rgba(138,28,44,0.25)]">
             <i class="fas fa-camera text-lg"></i> Take Photo
           </button>
-          {/* Microphone */}
+          <button id="library-trigger-btn" type="button"
+            class="border-2 border-gold/30 hover:border-gold/60 hover:bg-gold/[0.06] text-gold py-3 rounded text-sm transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-images text-lg"></i> Upload saved photo
+          </button>
           <button id="voice-trigger-btn"
             class="border-2 border-gold/20 hover:border-gold/50 hover:bg-gold/[0.04] text-gold py-3 rounded text-sm transition-all flex items-center justify-center gap-2">
             <i class="fas fa-microphone text-lg"></i> <span id="voice-label">Speak to Describe</span>
           </button>
-          {/* Manual Entry button removed — voice + photo auto-fill the form */}
         </div>
 
         {/* Voice Status Bar */}
@@ -101,12 +102,12 @@ export function ValuationPage({ embed = false }: { embed?: boolean }) {
           <div class="space-y-4">
 
             {/* Dropzone (secondary — camera is primary) */}
-            <div id="drop-zone" class="bg-card border border-dashed border-white/[0.06] hover:border-gold/20 rounded-lg p-4 text-center cursor-pointer transition-all">
-              <input type="file" id="image-input" accept="image/*" class="hidden" multiple />
+            <div id="drop-zone" class="bg-card border border-dashed border-gold/25 hover:border-gold/50 rounded-lg p-4 text-center cursor-pointer transition-all">
+              <input type="file" id="image-input" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*" class="hidden" multiple />
               <div id="drop-content">
-                <i class="fas fa-cloud-arrow-up text-white/10 text-lg mb-1.5 block"></i>
-                <p class="text-white/20 text-xs">Drop images here or click</p>
-                <p class="text-white/5 text-[10px] mt-0.5">JPG, PNG, WebP — max 5</p>
+                <i class="fas fa-folder-open text-gold/50 text-lg mb-1.5 block"></i>
+                <p class="text-gold/80 text-xs font-medium">Attach a saved photo from this computer or phone</p>
+                <p class="text-white/35 text-[10px] mt-0.5">One image is enough to start · JPG, PNG, HEIC, WebP · max 5</p>
               </div>
               <div id="previews-area" class="hidden"></div>
             </div>
