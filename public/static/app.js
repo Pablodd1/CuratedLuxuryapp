@@ -13,7 +13,8 @@ const SHARPNESS_FLOOR = 8
 
 async function api(path, options = {}) {
   try {
-    const res = await axios({ url: path, ...options, timeout: 30000 });
+    const timeout = options.timeout ?? (path.includes('/valuation/analyze') ? 120000 : 30000);
+    const res = await axios({ url: path, ...options, timeout });
     return res.data;
   } catch (err) {
     const msg = err.response?.data?.error || err.message || 'Request failed';
@@ -123,7 +124,13 @@ function compressImage(dataUrl, maxDim = 1024) {
       c.getContext('2d').drawImage(img, 0, 0, w, h);
       resolve(c.toDataURL('image/jpeg', 0.92));
     };
-    img.onerror = () => reject(new Error('unsupported image'));
+    img.onerror = () => {
+      if (typeof dataUrl === 'string' && /^data:image\/(jpeg|jpg|png|webp)/i.test(dataUrl)) {
+        resolve(dataUrl);
+        return;
+      }
+      reject(new Error('unsupported image'));
+    };
     img.src = dataUrl;
   });
 }
@@ -460,7 +467,9 @@ function initValuation() {
           };
           renderPreviews();
           const n = filledCount();
-          toast(n === 1 ? 'Photo attached. Add a serial close-up if you have one, or tap Analyze.' : `${n} photos attached`, 'success');
+          toast(n === 1 ? 'Photo attached — starting full analysis…' : `${n} photos attached — analyzing…`, 'success');
+          clearTimeout(window._clxAnalyzeTimer);
+          window._clxAnalyzeTimer = setTimeout(() => runAnalyze({ skipConfirm: true }), 350);
         } catch {
           toast(`Could not use ${file.name}. Try another image.`, 'error');
         }
@@ -1908,19 +1917,16 @@ function initValuation() {
   refreshCredits()
 
   // ── Analyze logic (shared: page button + in-camera "Analyze Now" button) ──
-  async function runAnalyze() {
+  async function runAnalyze(opts = {}) {
+    const skipConfirm = !!opts.skipConfirm;
     if (images.filter(Boolean).length === 0 && !descriptionInput?.value.trim()) {
       toast('Take a photo or describe the item first', 'warning');
       return;
     }
 
     const filledImages = images.filter(Boolean)          // drop undefined holes
-    const hasMacro = filledImages.some(i => i.tier === 'macro')
-    const hasHero = filledImages.some(i => i.tier === 'hero')
-    if (filledImages.length && (!hasHero || !hasMacro)) {
-      toast('For a real verdict capture the hero and a readable serial/macro. This run will stay review-only.', 'warning')
-    }
-    if (filledImages.length > 0) {
+    if (!filledImages.length && !descriptionInput?.value.trim()) return;
+    if (filledImages.length > 0 && !skipConfirm) {
       const confirmed = await showAnalyzeConfirmation(filledImages.length, descriptionInput?.value?.trim());
       if (!confirmed) return;
     }
@@ -1956,7 +1962,7 @@ function initValuation() {
       // scroll the review panel into view (especially useful right after closing camera)
       resultsContent?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
-      toast(err.response?.data?.error || 'Analysis failed', 'error');
+      if (!err?.response) toast(err?.message || 'Analysis failed', 'error');
     } finally {
       if (analyzeBtn) analyzeBtn.disabled = false;
       if (analyzeSpinner) hide(analyzeSpinner);

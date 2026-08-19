@@ -377,9 +377,16 @@ app.post('/analyze', async (c) => {
       } catch (e) { console.error('Gemini Vision error:', e) }
     }
 
-    // ── Stage 2: OCR (images 1+, or sole image if no Gemini) ─────────────────
-    // Try PaddleOCR via Fireworks first, fall back to Gemini OCR
-    for (let i = (visionResult ? 1 : 0); i < images.length; i++) {
+    // ── Stage 2: OCR — always run on at least one image ─────────────────────
+    // Previous logic skipped image 0 whenever vision succeeded, so a single
+    // uploaded photo never received serial/OCR. Prefer extra shots, but OCR
+    // the hero too when it is the only frame.
+    const ocrIndexes = images.length <= 1
+      ? images.map((_, i) => i)
+      : images.map((_, i) => i).filter(i => i > 0)
+    if (images.length > 1 && ocrIndexes.length === 0) ocrIndexes.push(0)
+
+    for (const i of ocrIndexes) {
       const { data, mimeType } = cleanBase64(images[i])
 
       // Try Fireworks PaddleOCR
