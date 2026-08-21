@@ -712,12 +712,14 @@ app.post('/voice', async (c) => {
       } catch { /* keyword fallback */ }
     }
 
-    // Keyword fallback for voice
+    // Keyword fallback for voice — only for KNOWN items. No match means we
+    // don't know the item: return Unknown, never a fabricated guess.
     const t = transcript.toLowerCase()
-    let brand = 'Rolex', model = 'Submariner 126610LN', category = 'Watches', value = '13500'
+    let brand = 'Unknown', model = '', category = '', value = '0'
     if (t.includes('birkin') || t.includes('herm')) { brand = 'Hermès'; model = 'Birkin 30 Epsom'; category = 'Handbags'; value = '22500' }
     else if (t.includes('cartier') || t.includes('love')) { brand = 'Cartier'; model = 'Love Bracelet 18k Gold'; category = 'Fine Jewelry'; value = '7300' }
     else if (t.includes('daytona')) { brand = 'Rolex'; model = 'Daytona 126500LN'; category = 'Watches'; value = '34800' }
+    else if (t.includes('submariner') || t.includes('rolex')) { brand = 'Rolex'; model = 'Submariner 126610LN'; category = 'Watches'; value = '13500' }
     else if (t.includes('nautilus') || t.includes('patek')) { brand = 'Patek Philippe'; model = 'Nautilus 5811'; category = 'Watches'; value = '145000' }
 
     const numMatch = transcript.match(/(\d[\d,.]*)/)
@@ -726,7 +728,14 @@ app.post('/voice', async (c) => {
       if (!isNaN(Number(v)) && Number(v) > 100) value = v
     }
 
-    return c.json({ category, brand, model, condition: 4, estimatedValue: value, currency: 'USD', description: transcript })
+    const identified = brand !== 'Unknown'
+    return c.json({
+      category: category || 'Unknown', brand, model,
+      condition: identified ? 4 : null,
+      estimatedValue: value, currency: 'USD',
+      authenticityStatus: identified ? 'PENDING' : 'INSUFFICIENT_DATA',
+      description: transcript,
+    })
   } catch (err: any) {
     return c.json({ error: err.message }, 500)
   }
