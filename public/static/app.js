@@ -1531,6 +1531,20 @@ function initValuation() {
       const shotCountEl = modal.querySelector('#cl-shot-count')
       if (shotCountEl) shotCountEl.textContent = `${images.filter(Boolean).length} captured`
 
+      // Auto-advance to the next guided step after a short beat so the user
+      // sees the thumbnail + ✓ before the instruction changes. Keeps the
+      // flow moving: capture → save → next instruction, no manual Next tap.
+      // Manual "Next →" still works (and "Skip shot" still advances without
+      // a capture); this only removes the stuck-on-one-photo confusion.
+      if (!guideSkipped && guideStep < currentGuide().length - 1) {
+        const nxt = modal.querySelector('#cl-guide-next')
+        if (nxt && !nxt.disabled) {
+          setTimeout(() => {
+            if (modal.isConnected) nextStep()
+          }, 650)
+        }
+      }
+
       toast('Captured', 'success')
     }
 
@@ -1838,6 +1852,13 @@ function initValuation() {
             if (!guideSkipped) markStepCaptured(stepIdx)
             renderPreviews()
             toast(`✓ Saved photo used for ${currentGuide()[stepIdx]?.shot || 'this step'}`, 'success')
+            // Auto-advance like the camera path — keep the flow moving.
+            if (!guideSkipped && guideStep < currentGuide().length - 1) {
+              const nxt = modal.querySelector('#cl-guide-next')
+              if (nxt && !nxt.disabled) {
+                setTimeout(() => { if (modal.isConnected) nextStep() }, 650)
+              }
+            }
           } catch {
             toast('Could not open that photo. Try JPG or PNG.', 'error')
           }

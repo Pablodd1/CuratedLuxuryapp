@@ -339,7 +339,6 @@ app.post('/analyze', async (c) => {
     const { transcript, description } = body
     const searchText = (description || transcript || '').toLowerCase().trim()
     const apiKey = c.env.GEMINI_API_KEY as string | undefined
-    const fireworksKey = c.env.FIREWORKS_API_KEY as string | undefined
 
     // ── Variable containers ──────────────────────────────────────────────────
     let visionResult: any = null
@@ -392,38 +391,8 @@ app.post('/analyze', async (c) => {
     for (const i of ocrIndexes) {
       const { data, mimeType } = cleanBase64(images[i])
 
-      // Try Fireworks PaddleOCR
-      if (fireworksKey) {
-        try {
-          const fwResp = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${fireworksKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: 'accounts/fireworks/models/paddleocr-vl-1-6',
-              messages: [{
-                role: 'user',
-                content: [
-                  { type: 'text', text: OCR_PROMPT },
-                  { type: 'image_url', image_url: { url: `data:${mimeType};base64,${data}` } }
-                ]
-              }],
-              response_format: { type: 'json_object' },
-              temperature: 0.0
-            })
-          })
-          if (fwResp.ok) {
-            const fwData = await fwResp.json() as any
-            const content = fwData?.choices?.[0]?.message?.content || ''
-            ocrResults.push(content)
-            continue
-          }
-        } catch (e) { console.error('Fireworks OCR error:', e) }
-      }
-
-      // Fall back to Gemini for OCR if Fireworks unavailable
+      // OCR with Gemini (single provider — Fireworks account suspended 2026-08,
+      // its paddleocr-vl-1-6 model returns 404. Gemini 3.6-flash does the job.)
       if (apiKey) {
         try {
           const gemOcrResp = await fetch(
