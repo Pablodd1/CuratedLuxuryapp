@@ -35,9 +35,6 @@ ALTER TABLE scan_history ADD COLUMN price_source TEXT DEFAULT '';
 ALTER TABLE dossiers ADD COLUMN cert_signature TEXT DEFAULT '';
 ALTER TABLE dossiers ADD COLUMN cert_public_key TEXT DEFAULT '';
 
--- code (auth.ts createSession) writes embed_origin; absent from 0001-0005
-ALTER TABLE sessions ADD COLUMN embed_origin TEXT DEFAULT NULL;
-
 -- Key/value store for the certificate signing keypair (JWK). Without this,
 -- every Workers cold start regenerates a key and old signatures die.
 CREATE TABLE IF NOT EXISTS settings (

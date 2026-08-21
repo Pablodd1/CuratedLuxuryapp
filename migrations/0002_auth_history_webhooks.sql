@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   expires_at DATETIME NOT NULL,
   ip_address TEXT DEFAULT '',
   user_agent TEXT DEFAULT '',
+  embed_origin TEXT DEFAULT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
