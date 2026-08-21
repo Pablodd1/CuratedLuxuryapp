@@ -14,6 +14,7 @@ import autocompleteRoutes from './routes/api/autocomplete'
 import creditsRoutes from './routes/api/credits'
 import { ragRoutes } from './routes/api/rag'
 import { marketPriceRoutes } from './routes/api/marketPrices'
+import { canonicalCertJson, verifyCertificate } from './lib/certSign'
 import { HomePage } from './pages/home'
 import { ValuationPage } from './pages/valuation'
 import { InventoryPage } from './pages/inventory'
@@ -108,26 +109,58 @@ app.get('/verify/:id', async (c) => {
   let dossier = null
   let valid = false
   let verificationHash = '0x00000000000000000000000000000000'
+  let certStatus: string | undefined
 
   if (c.env.DB && id) {
     try {
-      // 1. Direct inventory id
-      let res = await c.env.DB.prepare('SELECT * FROM inventory WHERE id = ?').bind(id).first()
-      if (!res) {
-        // 2. Dossier id → resolve the underlying inventory item so a shared
-        //    /verify/{dossierId} link talks to the same verified asset.
-        const dos = await c.env.DB
-          .prepare('SELECT inventory_id, certificate_data FROM dossiers WHERE id = ?')
-          .bind(id).first() as any
-        if (dos?.inventory_id) {
-          res = await c.env.DB.prepare('SELECT * FROM inventory WHERE id = ?').bind(dos.inventory_id).first()
+      // A certificate is a DOSSIER. Resolve the id to one (falling back to the
+      // inventory item it points at) and check its ES256 signature. Bare
+      // inventory ids without a dossier do not verify — no certificate was
+      // issued for them, so a "verified" page would be a false claim.
+      let dos: any = await c.env.DB
+        .prepare('SELECT inventory_id, certificate_data, cert_signature, cert_public_key, created_at FROM dossiers WHERE id = ?')
+        .bind(id).first() as any
+      if (!dos) {
+        const inv = await c.env.DB.prepare('SELECT id FROM inventory WHERE id = ?').bind(id).first()
+        if (inv) {
+          dos = await c.env.DB
+            .prepare('SELECT inventory_id, certificate_data, cert_signature, cert_public_key, created_at FROM dossiers WHERE inventory_id = ? LIMIT 1')
+            .bind(inv.id).first() as any
         }
       }
-      if (res) {
-        dossier = res
-        valid = true
-        verificationHash = '0x' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(res)))))
-          .map(b => b.toString(16).padStart(2, '0')).join('')
+      if (dos?.inventory_id) {
+        const res = await c.env.DB.prepare('SELECT * FROM inventory WHERE id = ?').bind(dos.inventory_id).first()
+        if (res) {
+          dossier = res
+          if (dos.cert_signature && dos.cert_public_key) {
+            // Signed certificate: ES256 over the canonical payload rebuilt from
+            // the CURRENT inventory row — tamper after signing ⇒ mismatch.
+            const fields = {
+              inventoryId: res.id,
+              dossierId: dos.id,
+              brand: res.brand || '',
+              model: res.model || '',
+              referenceNumber: res.reference_number || '',
+              dial: res.dial || '',
+              conditionLabel: res.condition_label || '',
+              authenticityStatus: res.authenticity_status || '',
+              confidence: Number(res.confidence) || 0,
+              estimatedValue: Number(res.estimated_value) || 0,
+              marketPrice: Number(res.market_price) || 0,
+              priceSource: res.price_source || '',
+              verifiedAt: (JSON.parse(dos.certificate_data || '{}') as any)?.verified_at || dos.created_at || '',
+            }
+            const payload = canonicalCertJson(fields)
+            valid = await verifyCertificate(payload, dos.cert_signature, JSON.parse(dos.cert_public_key))
+            certStatus = valid ? 'valid' : 'mismatch'
+            verificationHash = valid ? payload.slice(0, 96) : 'SIGNATURE MISMATCH — record modified after issuance'
+          } else {
+            // Unsigned/legacy row: registry existence is the check, labeled as such.
+            valid = true
+            certStatus = 'legacy'
+            verificationHash = 'Registry record exists — issued before ES256 certificate signing was enabled'
+          }
+        }
       }
     } catch { /* DB query error fallback */ }
   }
@@ -139,6 +172,7 @@ app.get('/verify/:id', async (c) => {
     dossier = null
   }
 
+  if (dossier && certStatus) (dossier as any).cert_status = certStatus
   return c.html(<VerifyPage id={id} valid={valid} dossier={dossier} verificationHash={verificationHash} />)
 })
 

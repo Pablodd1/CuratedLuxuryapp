@@ -2233,10 +2233,27 @@ function initValuation() {
               <input id="rev-ref" value="${data.referenceNumber || ''}" class="w-full bg-surface border border-white/10 rounded px-2 py-1 text-white text-xs font-mono" />
             </div>
             <div>
-              <label class="text-[9px] text-white/30 uppercase block">Market Value (USD)</label>
-              <input id="rev-value" type="number" value="${data.estimatedValue || 0}" class="w-full bg-surface border border-white/10 rounded px-2 py-1 text-gold text-xs font-mono font-bold" />
+              <label class="text-[9px] text-white/30 uppercase block">Dial</label>
+              <input id="rev-dial" value="${data.dial || ''}" class="w-full bg-surface border border-white/10 rounded px-2 py-1 text-white text-xs" placeholder="e.g. Black, Panda" />
             </div>
           </div>
+          ${data.market ? `
+          <div class="bg-gold/[0.06] border border-gold/15 rounded p-2">
+            <div class="flex items-baseline justify-between">
+              <div>
+                <div class="text-[9px] text-white/30 uppercase">Market Price (median, ${data.market.listings} live listings)</div>
+                <div class="text-sm font-bold font-mono text-gold">${fmtCurrency(data.market.price)}</div>
+                <div class="text-[9px] text-white/30">range ${fmtCurrency(data.market.min)} – ${fmtCurrency(data.market.max)} · ${data.market.source.replace('chrono24_baseline_', 'Chrono24 ')} snapshot</div>
+              </div>
+              <input id="rev-value" type="number" value="${data.market.price}" class="w-24 bg-surface border border-gold/20 rounded px-2 py-1 text-gold text-xs font-mono font-bold" title="Confirmed value (editable)" />
+            </div>
+          </div>` : `
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[9px] text-white/30 uppercase block">Market Value (USD) — AI estimate, no live listings found</label>
+              <input id="rev-value" type="number" value="${data.estimatedValue || 0}" class="w-full bg-surface border border-white/10 rounded px-2 py-1 text-gold text-xs font-mono font-bold" />
+            </div>
+          </div>`}
         </div>
 
         <!-- Action Control Buttons -->
@@ -2269,7 +2286,13 @@ function initValuation() {
           brand: $id('rev-brand')?.value || data.brand,
           model: $id('rev-model')?.value || data.model,
           reference_number: $id('rev-ref')?.value || data.referenceNumber,
-          estimated_value: parseFloat($id('rev-value')?.value || data.estimatedValue || 0),
+          dial: $id('rev-dial')?.value || data.dial || '',
+          // AI estimate stays the AI estimate; the user's final number goes to
+          // market_price with its source label.
+          estimated_value: parseFloat(data.estimatedValue || 0),
+          market_price: data.market ? parseFloat($id('rev-value')?.value || data.market.price || 0) : parseFloat($id('rev-value')?.value || data.estimatedValue || 0),
+          price_source: data.market ? data.market.source : 'ai_estimate',
+          price_as_of: data.market ? data.market.asOf : '',
           category: data.category || 'Watches',
           condition_grade: data.condition_grade || 3,
           condition_label: data.condition_label || 'Good',
@@ -2859,10 +2882,18 @@ function initDossier() {
             <div class="bg-surface rounded-lg p-3"><div class="text-xs text-white/30">Model</div><div class="text-sm text-white">${fmtText(d.model)}</div></div>
             <div class="bg-surface rounded-lg p-3"><div class="text-xs text-white/30">Category</div><div class="text-sm text-white">${fmtText(d.category)}</div></div>
             <div class="bg-surface rounded-lg p-3"><div class="text-xs text-white/30">Reference</div><div class="text-sm text-white font-mono">${fmtText(d.reference_number)}</div></div>
+            <div class="bg-surface rounded-lg p-3"><div class="text-xs text-white/30">Dial</div><div class="text-sm text-white">${fmtText(d.dial) || '\u2014'}</div></div>
             <div class="bg-surface rounded-lg p-3"><div class="text-xs text-white/30">Year</div><div class="text-sm text-white">${d.year || '\u2014'}</div></div>
             <div class="bg-surface rounded-lg p-3"><div class="text-xs text-white/30">Condition</div><div class="text-sm text-white">${fmtText(d.condition_label)} (Grade ${d.condition_grade ?? '\u2014'})</div></div>
             <div class="bg-surface rounded-lg p-3 col-span-2"><div class="text-xs text-white/30">Estimated Value</div><div class="text-lg font-bold font-mono text-gold">${fmtCurrency(d.estimated_value)}</div></div>
+            ${d.market_price ? `<div class="bg-surface rounded-lg p-3 col-span-2"><div class="text-xs text-white/30">Market Value (${(d.price_source || 'market').replace('chrono24_baseline_', 'Chrono24 ')})</div><div class="text-lg font-bold font-mono text-gold">${fmtCurrency(d.market_price)}</div></div>` : ''}
           </div>
+          ${(function(cs){
+            if(cs==='valid') return `<div class="flex items-center gap-2 bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-2.5"><i class="fas fa-signature text-emerald-400"></i><div><div class="text-xs text-emerald-300 font-medium">Cryptographic signature valid (ES256)</div><div class="text-[9px] text-white/25">This certificate is signed and tamper-evident</div></div></div>`;
+            if(cs==='mismatch') return `<div class="flex items-center gap-2 bg-red-500/5 border border-red-500/20 rounded-lg p-2.5"><i class="fas fa-triangle-exclamation text-red-400"></i><div class="text-xs text-red-300 font-medium">Signature MISMATCH — record modified after issuance</div></div>`;
+            if(cs==='legacy') return `<div class="text-[9px] text-white/20">Issued before ES256 certificate signing was enabled</div>`;
+            return '';
+          })(d.cert_status)}
         `;
       }
 

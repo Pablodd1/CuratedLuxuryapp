@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { optionalAuth, type User } from '../../lib/auth'
 import { queryVectorRAG } from '../../lib/vectorizeRAG'
+import { lookupMarketPrice, extractRefs } from '../../lib/marketPrice'
 
 // ── Luxury Editorial Dataset (2025 Market Edition) ──────────────────────────
 const LUXURY_DATASET = [
@@ -157,6 +158,7 @@ Return ONLY this JSON (no markdown, no explanation):
   "brand": "exact brand name",
   "model": "exact model name with reference if visible",
   "referenceNumber": "reference number from dial/caseback/certificate",
+  "dial": "dial color/style as a user names it: 'Black', 'Panda', 'Sunburst Silver', 'Blue with Gold Indices' — null for non-watch categories",
   "year": 2024 or null,
   "condition_grade": 0-4 (0=Poor, 1=Fair, 2=Good, 3=Excellent, 4=Mint/NOS),
   "condition_label": "Mint" | "Excellent" | "Good" | "Fair" | "Poor",
@@ -237,6 +239,7 @@ function normalizeResults(vision: any, ocrTexts: string[], voice: any, descripti
     brand: vision?.brand || voice?.brand || '',
     model: vision?.model || voice?.model || '',
     referenceNumber: vision?.referenceNumber || voice?.referenceNumber || '',
+    dial: vision?.dial || '',
     year: vision?.year || voice?.year || null,
     condition_grade: vision?.condition_grade ?? voice?.condition_grade ?? 3,
     condition_label: vision?.condition_label || voice?.condition_label || 'Good',
@@ -655,7 +658,9 @@ app.post('/analyze', async (c) => {
       }
     }
 
-    // ── Stage 6: Store to D1 (inventory + scan_history) if confidence > 70 ───
+    // ── Stage 6: real market price (280K-listing baseline), then store ───────
+    // Must run BEFORE storeValuation so the persisted row carries the price.
+    await attachMarket(c, result)
     const shouldStore = result.confidence >= 70 || result.authenticityStatus === 'AUTHENTIC MATCH'
     let storedId: string | null = null
     if (shouldStore) {
@@ -858,6 +863,8 @@ Return ONLY this JSON:
 
     // Store only identified items. Default confidence is 60, so an empty
     // Unknown payload used to persist junk inventory rows.
+    await attachMarket(c, result)
+
     const identified = result.brand && result.brand !== 'Unknown'
     const shouldStore = identified && result.confidence >= 60
     let storedId: string | null = null
@@ -878,6 +885,24 @@ Return ONLY this JSON:
 })
 
 // ── STORE TO D1 ──────────────────────────────────────────────────────────────
+// Real market price for the identified reference, from the 280K-listing
+// Chrono24 baseline. Non-blocking: on miss/error the AI estimate stands,
+// clearly labeled by price_source.
+async function attachMarket(c: any, result: any) {
+  if ((result.category || 'Watches') !== 'Watches' || !result.brand || !result.referenceNumber || !c.env.DB) return
+  try {
+    const refs = extractRefs(`${result.referenceNumber} ${result.model || ''}`)
+    if (refs.length === 0) return
+    const q = await lookupMarketPrice(c.env.DB, result.brand, refs)
+    if (q) {
+      result.market_price = q.price
+      result.price_source = q.source
+      result.price_as_of = q.asOf
+      result.market = q // full range for the UI: {price, avg, min, max, listings, source, asOf}
+    }
+  } catch { /* non-blocking */ }
+}
+
 async function storeValuation(c: any, result: any, source: string): Promise<string | null> {
   try {
     const db = c.env.DB as D1Database | undefined
@@ -886,17 +911,21 @@ async function storeValuation(c: any, result: any, source: string): Promise<stri
     const cb = result.confidence_breakdown || {}
     const user = c.get('user')
     const ownerId = user?.id || 'system'
-    await db.prepare(`INSERT INTO inventory (id, owner_id, category, brand, model, reference_number, year, condition_grade, condition_label, estimated_value, currency, confidence, authenticity_status, reasoning, confidence_logo, confidence_serial, confidence_materials, confidence_bezel, inclusions, image_count, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`)
+    await db.prepare(`INSERT INTO inventory (id, owner_id, category, brand, model, reference_number, dial, year, condition_grade, condition_label, estimated_value, market_price, price_source, price_as_of, currency, confidence, authenticity_status, reasoning, confidence_logo, confidence_serial, confidence_materials, confidence_bezel, inclusions, image_count, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`)
       .bind(id, ownerId,
         result.category || 'Watches',
         result.brand || '',
         result.model || '',
         result.referenceNumber || '',
+        result.dial || '',
         result.year || null,
         result.condition_grade || 3,
         result.condition_label || 'Good',
         result.estimatedValue || 0,
+        result.market_price || 0,
+        result.price_source || '',
+        result.price_as_of || '',
         result.currency || 'USD',
         result.confidence || 0,
         result.authenticityStatus || 'PENDING',
@@ -910,11 +939,12 @@ async function storeValuation(c: any, result: any, source: string): Promise<stri
     // Mirror to scan_history for end-user history view
     await db.prepare(
       `INSERT INTO scan_history
-        (id, user_id, source, category, brand, model, reference_number, year,
-         condition_grade, condition_label, estimated_value, currency, confidence,
+        (id, user_id, source, category, brand, model, reference_number, dial, year,
+         condition_grade, condition_label, estimated_value, market_price, price_source,
+         currency, confidence,
          authenticity_status, reasoning, inclusions, red_flags, image_count,
          scan_payload, scan_source_host, inventory_id, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
       .bind(
         crypto.randomUUID(),
@@ -924,10 +954,13 @@ async function storeValuation(c: any, result: any, source: string): Promise<stri
         result.brand || '',
         result.model || '',
         result.referenceNumber || '',
+        result.dial || '',
         result.year || null,
         result.condition_grade || 3,
         result.condition_label || 'Good',
         result.estimatedValue || 0,
+        result.market_price || 0,
+        result.price_source || '',
         result.currency || 'USD',
         result.confidence || 0,
         result.authenticityStatus || 'PENDING',

@@ -61,11 +61,12 @@ app.post('/', requireAuth, async (c) => {
     // audit C3: owner_id is derived from the authenticated session — the request
     // body can no longer assert someone else's identity.
     // NOTE: prod inventory table has no updated_at / escrow_amount columns (schema 0001).
-    await c.env.DB.prepare(`INSERT INTO inventory (id, owner_id, category, brand, model, reference_number, year, condition_grade, condition_label, estimated_value, currency, confidence, authenticity_status, reasoning, inclusions, image_count, status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    await c.env.DB.prepare(`INSERT INTO inventory (id, owner_id, category, brand, model, reference_number, dial, year, condition_grade, condition_label, estimated_value, market_price, price_source, price_as_of, currency, confidence, authenticity_status, reasoning, inclusions, image_count, status, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
       .bind(id, user.id, body.category || 'Watches', body.brand || '', body.model || '', body.reference_number || '',
-        body.year || null, body.condition_grade || 3, body.condition_label || 'Good',
-        body.estimated_value || 0, body.currency || 'USD', body.confidence || 0,
+        body.dial || '', body.year || null, body.condition_grade || 3, body.condition_label || 'Good',
+        body.estimated_value || 0, body.market_price || 0, body.price_source || '', body.price_as_of || '',
+        body.currency || 'USD', body.confidence || 0,
         body.authenticity_status || 'PENDING', body.reasoning || '',
         typeof body.inclusions === 'string' ? body.inclusions : JSON.stringify(body.inclusions || []),
         body.image_count || 0, body.status || 'active', now)
@@ -91,11 +92,13 @@ app.put('/:id', requireAuth, async (c) => {
     if (!canManage(user, existing)) return c.json({ error: 'forbidden', message: 'Not your item' }, 403)
 
     // NOTE: no updated_at/escrow_amount columns in prod schema — write allowed fields only
-    await c.env.DB.prepare(`UPDATE inventory SET category=?, brand=?, model=?, reference_number=?, year=?, condition_grade=?, condition_label=?, estimated_value=?, currency=?, confidence=?, authenticity_status=?, reasoning=?, inclusions=?, image_count=?, status=? WHERE id=?`)
+    await c.env.DB.prepare(`UPDATE inventory SET category=?, brand=?, model=?, reference_number=?, dial=?, year=?, condition_grade=?, condition_label=?, estimated_value=?, market_price=?, price_source=?, price_as_of=?, currency=?, confidence=?, authenticity_status=?, reasoning=?, inclusions=?, image_count=?, status=? WHERE id=?`)
       .bind(body.category ?? existing.category, body.brand ?? existing.brand, body.model ?? existing.model,
-        body.reference_number ?? existing.reference_number, body.year ?? existing.year,
+        body.reference_number ?? existing.reference_number, body.dial ?? existing.dial ?? '', body.year ?? existing.year,
         body.condition_grade ?? existing.condition_grade, body.condition_label ?? existing.condition_label,
-        body.estimated_value ?? existing.estimated_value, body.currency ?? existing.currency,
+        body.estimated_value ?? existing.estimated_value, body.market_price ?? existing.market_price ?? 0,
+        body.price_source ?? existing.price_source ?? '', body.price_as_of ?? existing.price_as_of ?? '',
+        body.currency ?? existing.currency,
         body.confidence ?? existing.confidence, body.authenticity_status ?? existing.authenticity_status,
         body.reasoning ?? existing.reasoning, typeof body.inclusions === 'string' ? body.inclusions : JSON.stringify(body.inclusions ?? []),
         body.image_count ?? existing.image_count, body.status ?? existing.status,

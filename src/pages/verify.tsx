@@ -65,10 +65,13 @@ export function VerifyPage({ id, valid, dossier, verificationHash }: VerifyProps
             {/* Verification Cryptographic Signature */}
             <div class="bg-black/40 rounded-lg p-4 border border-gold/20 font-mono text-[10px] text-white/60 space-y-1">
               <div class="flex items-center justify-between text-gold">
-                <span><i class="fas fa-key mr-1"></i> CRYPTOGRAPHIC VERIFICATION HASH (SHA-256)</span>
-                <span class="text-emerald-400"><i class="fas fa-check-circle mr-1"></i>MATCHED</span>
+                <span><i class="fas fa-key mr-1"></i> CRYPTOGRAPHIC SIGNATURE (ES256 / ECDSA P-256)</span>
+                <span class={valid ? 'text-emerald-400' : 'text-red-400'}>
+                  <i class={`fas ${valid ? 'fa-check-circle' : 'fa-xmark-circle'} mr-1`}></i>
+                  {valid ? 'MATCHED' : 'FAILED'}
+                </span>
               </div>
-              <p class="break-all text-white/40">{verificationHash}</p>
+              <p class="break-all text-white/40">{verificationHash || '—'}</p>
             </div>
 
             <div class="pt-2 flex justify-center gap-4">
