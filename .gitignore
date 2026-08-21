@@ -10,3 +10,4 @@ coverage/
 *.bak
 *.tar.gz
 *.zip
+.dev.vars
