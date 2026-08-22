@@ -1,6 +1,6 @@
 // src/routes/api/history.ts — scan history CRUD for authenticated users
 import { Hono } from 'hono'
-import { requireAuth, optionalAuth, type User } from '../../lib/auth'
+import { requireAuth, optionalAuth, requireRole, type User } from '../../lib/auth'
 
 type Bindings = {
   DB: D1Database
@@ -151,6 +151,32 @@ app.get('/embed-analytics', async (c) => {
     })
   } catch (e: any) {
     return c.json({ error: 'analytics_failed', detail: String(e?.message || e) }, 500)
+  }
+})
+
+// GET /api/history/review-queue — curator/admin: items awaiting human review (#12).
+// The REVIEW_REQUIRED outcome (weak match, contradiction, missing macro/serial) is
+// where the AI honestly declines to auto-authenticate — this endpoint turns that
+// dead-end into an actionable curator queue. Defined BEFORE /:id (route order).
+app.get('/review-queue', requireRole('admin', 'curator'), async (c) => {
+  try {
+    const limit = Math.min(200, Math.max(1, parseInt(c.req.query('limit') || '50', 10)))
+    const rows = await c.env.DB.prepare(
+      `SELECT id, user_id, source, category, brand, model, reference_number,
+              estimated_value, currency, confidence, authenticity_status,
+              reasoning, red_flags, image_count, scan_source_host, created_at
+       FROM scan_history
+       WHERE authenticity_status IN ('REVIEW_REQUIRED', 'REQUIRES IN-PERSON VERIFICATION')
+       ORDER BY created_at DESC
+       LIMIT ?`
+    ).bind(limit).all()
+    const countRow = await c.env.DB.prepare(
+      `SELECT COUNT(*) AS pending FROM scan_history
+       WHERE authenticity_status IN ('REVIEW_REQUIRED', 'REQUIRES IN-PERSON VERIFICATION')`
+    ).first<{ pending: number }>()
+    return c.json({ pending: countRow?.pending ?? 0, items: rows.results || [] })
+  } catch (e: any) {
+    return c.json({ error: 'queue_failed', detail: String(e?.message || e) }, 500)
   }
 })
 
