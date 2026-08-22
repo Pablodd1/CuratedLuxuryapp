@@ -839,6 +839,179 @@ export const LUXURY_CATALOG: WatchCatalogItem[] = [
       cyclopsMagnification: 'N/A',
       hallmarks: '6.0L Twin-Turbo W12 (650 hp), all-wheel drive'
     }
+  },
+
+  // ── EXPANSION BATCH 2 — high-traded gaps: Tudor / VC / JLC / GS + Rolex depth ─
+  {
+    id: 'tud-bb58-79030n',
+    category: 'Watches',
+    brand: 'Tudor',
+    model: 'Black Bay Fifty-Eight 39mm Black',
+    referenceNumber: '79030N',
+    caseMaterial: 'Steel',
+    caseSizeMm: 39,
+    movement: 'Automatic',
+    braceletType: 'Steel riveted',
+    baselineMarketValueUSD: 3600,
+    keywords: ['tudor', 'black bay', 'bb58', 'fifty-eight', '79030n', 'black', 'snowflake'],
+    forensicIndicators: {
+      logoFontKerning: 'Tudor shield logo (post-2018); snowflake hour hand distinctive to Tudor divers',
+      rehautAlignment: 'Domed black aluminium bezel insert, gilt accents',
+      cyclopsMagnification: 'N/A (No date)',
+      hallmarks: 'Manufacture Calibre MT5402, COSC certified, 70h reserve; riveted-style steel bracelet'
+    }
+  },
+  {
+    id: 'tud-bb58-79030b',
+    category: 'Watches',
+    brand: 'Tudor',
+    model: 'Black Bay Fifty-Eight 39mm Navy Blue',
+    referenceNumber: '79030B',
+    caseMaterial: 'Steel',
+    caseSizeMm: 39,
+    movement: 'Automatic',
+    braceletType: 'Steel riveted',
+    baselineMarketValueUSD: 3800,
+    keywords: ['tudor', 'black bay', 'bb58', 'fifty-eight', '79030b', 'navy', 'blue'],
+    forensicIndicators: {
+      logoFontKerning: 'Tudor shield logo; snowflake hand; navy blue matte dial and bezel',
+      rehautAlignment: 'Domed navy aluminium bezel insert with gilt scale',
+      cyclopsMagnification: 'N/A (No date)',
+      hallmarks: 'Calibre MT5402 COSC; gilt "Black Bay" script on dial'
+    }
+  },
+  {
+    id: 'tud-pelagos-25600tn',
+    category: 'Watches',
+    brand: 'Tudor',
+    model: 'Pelagos 42mm Titanium',
+    referenceNumber: '25600TN',
+    caseMaterial: 'Titanium',
+    caseSizeMm: 42,
+    movement: 'Automatic',
+    braceletType: 'Titanium',
+    baselineMarketValueUSD: 4200,
+    keywords: ['tudor', 'pelagos', '25600tn', 'titanium', 'black', 'diver'],
+    forensicIndicators: {
+      logoFontKerning: 'Tudor shield logo; matte black ceramic bezel; applied square markers',
+      rehautAlignment: 'Ceramic bezel insert with lume-filled graduations',
+      cyclopsMagnification: 'N/A (No cyclops, snowflake hands)',
+      hallmarks: 'Titanium case+bracelet with spring-loaded auto-adjust clasp; MT5612 COSC, helium valve'
+    }
+  },
+  {
+    id: 'vc-overseas-4500v',
+    category: 'Watches',
+    brand: 'Vacheron Constantin',
+    model: 'Overseas Automatic Blue Dial',
+    referenceNumber: '4500V/110A-B128',
+    caseMaterial: 'Steel',
+    caseSizeMm: 41,
+    movement: 'Automatic',
+    braceletType: 'Steel integrated',
+    baselineMarketValueUSD: 32000,
+    keywords: ['vacheron', 'constantin', 'overseas', '4500v', 'blue', 'integrated'],
+    forensicIndicators: {
+      logoFontKerning: 'Maltese cross emblem at 12; VC logo crisp applied',
+      rehautAlignment: 'Six-sided bezel echoing the Maltese cross; half-Maltese-cross bracelet links',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Hallmark of Geneva (Poinçon de Genève); interchangeable quick-release bracelet/strap system'
+    }
+  },
+  {
+    id: 'jlc-reverso-classic',
+    category: 'Watches',
+    brand: 'Jaeger-LeCoultre',
+    model: 'Reverso Classic Medium Thin',
+    referenceNumber: 'Q2548520',
+    caseMaterial: 'Steel',
+    caseSizeMm: 40,
+    movement: 'Manual Wind',
+    braceletType: 'Leather',
+    baselineMarketValueUSD: 6500,
+    keywords: ['jaeger', 'lecoultre', 'jlc', 'reverso', 'q2548520', 'art deco', 'rectangular'],
+    forensicIndicators: {
+      logoFontKerning: 'Art Deco gadroons (three parallel lines) top and bottom of the reversible case',
+      rehautAlignment: 'Case fully reverses on its cradle to protect the dial',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'JLC 1000 Hours Control certification; blank caseback for engraving'
+    }
+  },
+  {
+    id: 'gs-snowflake-sbga211',
+    category: 'Watches',
+    brand: 'Grand Seiko',
+    model: 'Snowflake Spring Drive Titanium',
+    referenceNumber: 'SBGA211',
+    caseMaterial: 'Titanium',
+    caseSizeMm: 41,
+    movement: 'Spring Drive',
+    braceletType: 'Titanium',
+    baselineMarketValueUSD: 5200,
+    keywords: ['grand seiko', 'snowflake', 'sbga211', 'spring drive', 'titanium', 'white'],
+    forensicIndicators: {
+      logoFontKerning: 'Applied GS logo at 12; textured "snowflake" dial finish',
+      rehautAlignment: 'Zaratsu-polished distortion-free bezel and case flanks',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Spring Drive Calibre 9R65 with gliding (non-ticking) seconds hand; power reserve at 8'
+    }
+  },
+  {
+    id: 'rol-224270',
+    category: 'Watches',
+    brand: 'Rolex',
+    model: 'Explorer 36mm Black Dial',
+    referenceNumber: '224270',
+    caseMaterial: 'Oystersteel',
+    caseSizeMm: 36,
+    movement: 'Automatic',
+    braceletType: 'Oyster',
+    baselineMarketValueUSD: 8200,
+    keywords: ['rolex', 'explorer', '224270', 'black', '36mm', '3-6-9'],
+    forensicIndicators: {
+      logoFontKerning: 'Iconic 3-6-9 Arabic numerals with Chromalight lume',
+      rehautAlignment: 'Engraved ROLEXROLEX rehaut, coronet at 12',
+      cyclopsMagnification: 'N/A (No date)',
+      hallmarks: 'Calibre 3230 with Chronergy escapement, 70h reserve; smooth polished bezel'
+    }
+  },
+  {
+    id: 'rol-126622',
+    category: 'Watches',
+    brand: 'Rolex',
+    model: 'Yacht-Master 40 Rhodium Dial',
+    referenceNumber: '126622',
+    caseMaterial: 'Steel and Platinum',
+    caseSizeMm: 40,
+    movement: 'Automatic',
+    braceletType: 'Oyster',
+    baselineMarketValueUSD: 14500,
+    keywords: ['rolex', 'yacht-master', 'yachtmaster', '126622', 'rhodium', 'platinum bezel'],
+    forensicIndicators: {
+      logoFontKerning: 'Sandblasted 950 platinum bidirectional rotatable bezel with raised polished numerals',
+      rehautAlignment: 'Engraved rehaut, crown at 12',
+      cyclopsMagnification: '2.5x date cyclops',
+      hallmarks: 'Rolesium (steel + platinum) construction; Calibre 3235'
+    }
+  },
+  {
+    id: 'car-panthere-medium',
+    category: 'Watches',
+    brand: 'Cartier',
+    model: 'Panthère de Cartier Medium Steel',
+    referenceNumber: 'WSPN0007',
+    caseMaterial: 'Steel',
+    caseSizeMm: 27,
+    movement: 'Quartz',
+    braceletType: 'Steel link',
+    baselineMarketValueUSD: 5400,
+    keywords: ['cartier', 'panthere', 'panthère', 'wspn0007', 'medium', 'steel', 'quartz'],
+    forensicIndicators: {
+      logoFontKerning: 'Hidden CARTIER signature inside a Roman numeral; blue-steel sword hands',
+      rehautAlignment: 'Square case with rounded lugs; beaded crown with blue synthetic spinel cabochon',
+      cyclopsMagnification: 'N/A',
+      hallmarks: 'Signature soft flexible articulated bracelet links; Swiss quartz movement'
+    }
   }
 ]
 

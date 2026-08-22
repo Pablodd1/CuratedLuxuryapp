@@ -249,6 +249,7 @@ function normalizeResults(vision: any, ocrTexts: string[], voice: any, descripti
     authenticityStatus: vision?.authenticityStatus || 'PENDING',
     reasoning: vision?.reasoning || '',
     confidence_breakdown: vision?.confidence_breakdown || { logo: 0, serial: 0, materials: 0, bezel_geometry: 0, dial_texture: 0, overall_proportion: 0 },
+    identificationOnly: false,
     inclusions: vision?.inclusions || [],
     red_flags: vision?.red_flags || [],
     ocr_texts: [] as string[],
@@ -562,16 +563,21 @@ app.post('/analyze', async (c) => {
         result.model = m.model
         result.referenceNumber = result.referenceNumber || m.referenceNumber
         if (match.strong) {
-          // Multi-keyword model-level match — dataset identification stands.
+          // Multi-keyword model-level match — dataset IDENTIFICATION stands, but this
+          // is a TEXT match: no image forensics ran. Do NOT fabricate per-component
+          // forensic sub-scores (logo/serial/materials/etc.) — that is synthetic
+          // precision. Report identification confidence honestly and leave the
+          // forensic breakdown at 0 (= "not visually inspected"), so the UI's
+          // evidence checklist truthfully shows these components were not verified.
           result.estimatedValue = m.estimatedValue
           result.confidence = m.confidence
           result.authenticityStatus = 'AUTHENTIC MATCH'
-          result.reasoning = m.reasoning + ' (keyword-assisted identification)'
+          result.reasoning = m.reasoning + ' (keyword-assisted identification — forensic components not visually inspected; capture photos for full authentication)'
           result.confidence_breakdown = {
-            logo: m.confidence - 2, serial: m.confidence - 4, materials: m.confidence - 1,
-            bezel_geometry: m.confidence - 3, dial_texture: m.confidence - 2,
-            overall_proportion: m.confidence - 1,
+            logo: 0, serial: 0, materials: 0,
+            bezel_geometry: 0, dial_texture: 0, overall_proportion: 0,
           }
+          result.identificationOnly = true
         } else {
           // WEAK match (brand-only or single generic keyword): the dataset entry
           // may be a different product than the user's. NEVER stamp authentic or
