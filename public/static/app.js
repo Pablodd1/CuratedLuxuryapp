@@ -2031,6 +2031,19 @@ function initValuation() {
       const verdictTone = data.authenticityStatus === 'AUTHENTIC MATCH' ? 'text-gold' : 'text-amber-400';
       const verdictIcon = data.authenticityStatus === 'AUTHENTIC MATCH' ? 'fa-shield-halved' : 'fa-circle-question';
 
+      // ── Pipeline-degradation badge (#3): honestly show WHICH analysis path produced
+      //    this result, so a text-match/AI-offline result never masquerades as a full
+      //    vision inspection. Derived from real server signals (data.source / identificationOnly).
+      const pipe = (() => {
+        if (data.source === 'gemini_vision' || data.source === 'gemini_manual')
+          return { label: 'Vision AI', icon: 'fa-eye', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25' };
+        if (data.identificationOnly || data.source === 'keyword_match')
+          return { label: 'Text-match estimate', icon: 'fa-font', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/25' };
+        if (data.source === 'ocr')
+          return { label: 'OCR text read', icon: 'fa-file-lines', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/25' };
+        return { label: 'AI offline — rough estimate', icon: 'fa-triangle-exclamation', cls: 'bg-red-500/10 text-red-400 border-red-500/25' };
+      })();
+
       // Evidence checklist from the per-component confidence breakdown.
       const cb = data.confidence_breakdown || {};
       const FLOOR = 70; // matches the confidence store gate — honest threshold
@@ -2056,7 +2069,35 @@ function initValuation() {
             <span class="text-2xl font-bold ${verdictTone}" style="font-family: Georgia, 'Times New Roman', serif;">${esc(verdict)}</span>
           </div>
           <div class="text-[10px] font-mono tracking-[0.3em] text-white/40 mt-1 uppercase">Our Assessment</div>
+          <div class="mt-2 flex justify-center">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${pipe.cls}" title="Which analysis pipeline produced this result">
+              <i class="fas ${pipe.icon} text-[9px]"></i> ${pipe.label}
+            </span>
+          </div>
         </div>
+
+        <!-- Market price range (#5): show the FULL range + listing count + as-of, not a single number.
+             Only rendered when real market data exists — never fabricated. -->
+        ${data.market ? `
+        <div class="rounded-2xl bg-surface border border-gold/15 p-4">
+          <div class="text-[10px] font-mono tracking-[0.25em] text-gold/60 uppercase mb-2">Market Value</div>
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <div class="text-2xl font-bold text-gold font-mono">${fmtCurrency(data.market.min)} – ${fmtCurrency(data.market.max)}</div>
+              <div class="text-[11px] text-white/50 mt-0.5">Median ${fmtCurrency(data.market.price)} · across ${data.market.listings ?? '—'} listings</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-[9px] text-white/30 uppercase">Source</div>
+              <div class="text-[10px] text-white/60">${esc((data.market.source || '').replace('chrono24_baseline_', 'Chrono24 ') || 'baseline')}</div>
+              ${data.market.asOf ? `<div class="text-[9px] text-white/30 mt-0.5">as of ${esc(data.market.asOf)}</div>` : ''}
+            </div>
+          </div>
+        </div>` : (data.estimatedValue ? `
+        <div class="rounded-2xl bg-surface border border-white/10 p-4">
+          <div class="text-[10px] font-mono tracking-[0.25em] text-gold/60 uppercase mb-2">Estimated Value</div>
+          <div class="text-2xl font-bold text-gold font-mono">${fmtCurrency(data.estimatedValue)}</div>
+          <div class="text-[11px] text-white/40 mt-0.5">AI estimate — no live listings found</div>
+        </div>` : '')}
 
         <!-- Confidence block -->
         <div class="rounded-2xl bg-surface border border-gold/15 p-4 flex items-center gap-4">

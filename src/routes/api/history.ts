@@ -120,6 +120,40 @@ app.get('/stats', async (c) => {
   })
 })
 
+// GET /api/history/embed-analytics — scans grouped by originating host (#11).
+// Surfaces the already-captured-but-unused scan_source_host as a B2B dashboard:
+// "WatchFacts sent you N scans this week". Must be defined BEFORE the /:id route
+// so "embed-analytics" isn't captured as an :id param.
+app.get('/embed-analytics', async (c) => {
+  try {
+    const days = Math.min(365, Math.max(1, parseInt(c.req.query('days') || '30', 10)))
+    const sinceIso = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+    const byHost = await c.env.DB.prepare(
+      `SELECT
+         COALESCE(NULLIF(scan_source_host, ''), 'direct') AS host,
+         COUNT(*) AS scans,
+         COUNT(DISTINCT brand) AS distinct_brands,
+         MAX(created_at) AS last_scan
+       FROM scan_history
+       WHERE created_at >= ?
+       GROUP BY host
+       ORDER BY scans DESC
+       LIMIT 100`
+    ).bind(sinceIso).all()
+    const totalRow = await c.env.DB.prepare(
+      `SELECT COUNT(*) AS total FROM scan_history WHERE created_at >= ?`
+    ).bind(sinceIso).first<{ total: number }>()
+    return c.json({
+      windowDays: days,
+      since: sinceIso,
+      totalScans: totalRow?.total ?? 0,
+      byHost: byHost.results || [],
+    })
+  } catch (e: any) {
+    return c.json({ error: 'analytics_failed', detail: String(e?.message || e) }, 500)
+  }
+})
+
 // GET /api/history/:id — single scan (owner only)
 app.get('/:id', async (c) => {
   const user = c.get('user')
