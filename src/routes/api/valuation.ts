@@ -101,6 +101,56 @@ const GUARDRAIL_RULES: { brands: string[]; check: (r: any) => string | null }[] 
       return null
     }
   },
+  // ── Serial/reference FORMAT plausibility (#4) — RED-FLAG ONLY ───────────────
+  // IMPORTANT: a plausible format is NEVER proof of authenticity (fakes copy real
+  // serials). These rules ONLY flag an IMPLAUSIBLE format as a red flag, so a
+  // format inconsistent with the brand's known conventions routes to review.
+  { brands: ['Rolex', 'rolex'],
+    check: (r) => {
+      const serials: string[] = (r.ocr_serials || []).filter(Boolean)
+      for (const raw of serials) {
+        const s = String(raw).trim().toUpperCase().replace(/\s+/g, '')
+        if (!s || s.length < 3) continue
+        // Rolex serials: random config aside, they are alphanumeric, 4–8 chars,
+        // no spaces/hyphens, never purely lowercase words. A serial with symbols
+        // or wildly off length is a format red flag.
+        const plausible = /^[A-Z0-9]{4,8}$/.test(s)
+        if (!plausible)
+          return `SERIAL FORMAT: "${raw}" does not match Rolex's 4–8 char alphanumeric serial convention — verify manually (format inconsistency, not proof of fake).`
+      }
+      return null
+    }
+  },
+  { brands: ['Cartier', 'cartier'],
+    check: (r) => {
+      const serials: string[] = (r.ocr_serials || []).filter(Boolean)
+      for (const raw of serials) {
+        const s = String(raw).trim().toUpperCase().replace(/\s+/g, '')
+        if (!s || s.length < 4) continue
+        // Cartier serials are typically letters+digits (e.g. AB123456 / 6-digit
+        // case numbers). Flag serials that contain no digits at all, or symbols.
+        const plausible = /^[A-Z0-9]{5,10}$/.test(s) && /\d/.test(s)
+        if (!plausible)
+          return `SERIAL FORMAT: "${raw}" is inconsistent with Cartier serial conventions (letters+digits) — verify manually (format inconsistency, not proof of fake).`
+      }
+      return null
+    }
+  },
+  { brands: ['Patek Philippe', 'Patek', 'patek'],
+    check: (r) => {
+      const refs: string[] = [r.referenceNumber].filter(Boolean)
+      for (const raw of refs) {
+        const s = String(raw).trim()
+        if (!s) continue
+        // Patek references follow NNNN or NNNN/NNN(A/G/R/J...) patterns (e.g.
+        // 5711/1A-010). Flag a ref that has no 4-digit base at all.
+        const plausible = /\d{4}/.test(s)
+        if (!plausible)
+          return `REFERENCE FORMAT: "${raw}" lacks Patek Philippe's characteristic 4-digit reference base — verify manually (format inconsistency, not proof of fake).`
+      }
+      return null
+    }
+  },
   // Generic catch-all for extreme anomalies
   { brands: ['*'],
     check: (r) => {
